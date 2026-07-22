@@ -1115,6 +1115,22 @@ path(
     name="funcionarios_perfil",
 ),
 
+path(
+    'relatorios/aniversariantes/',
+    views.relatorio_aniversariantes,
+    name='relatorio_aniversariantes'
+),
+
+# =========================================
+# PDF RELATÓRIO DE ANIVERSARIANTES
+# =========================================
+
+path(
+    'relatorios/aniversariantes/pdf/',
+    views.gerar_pdf_relatorio_aniversariantes,
+    name='pdf_relatorio_aniversariantes'
+),
+
 ]
 
 

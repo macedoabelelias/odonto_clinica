@@ -439,6 +439,19 @@ def dashboard_view(request):
         'hora_inicio'
     )[:5]
 
+        # =========================================
+    # ANIVERSARIANTES DO MÊS
+    # =========================================
+
+    aniversariantes = (
+        Paciente.objects
+        .filter(
+            ativo=True,
+            nascimento__month=hoje.month
+        )
+        .order_by('nascimento__day', 'nome')
+    )
+
        # =========================================
     # RANKING DOS DENTISTAS
     # =========================================
@@ -512,6 +525,7 @@ def dashboard_view(request):
         'ultimas_movimentacoes': ultimas_movimentacoes,
         'proximas_consultas': proximas_consultas,
         'ranking_dentistas': ranking_dentistas,
+        'aniversariantes': aniversariantes,
 
         # =========================================
         # GRÁFICOS
@@ -9411,7 +9425,96 @@ def relatorio_pacientes(request):
         context
     )
 
+# =========================================
+# RELATÓRIO DE ANIVERSARIANTES
+# =========================================
 
+@login_required
+def relatorio_aniversariantes(request):
+
+    pacientes = Paciente.objects.all()
+
+    # =========================================
+    # MÊS
+    # =========================================
+
+    mes = request.GET.get("mes", "").strip()
+
+    if mes:
+        pacientes = pacientes.filter(
+            nascimento__month=int(mes)
+        )
+
+    # =========================================
+    # NOME
+    # =========================================
+
+    q = (request.GET.get("q") or "").strip()
+
+    if q.lower() == "none":
+        q = ""
+
+    if q:
+        pacientes = pacientes.filter(
+            nome__icontains=q
+        )
+
+    # =========================================
+    # STATUS
+    # =========================================
+
+    status = request.GET.get("status", "").strip()
+
+    if status == "1":
+        pacientes = pacientes.filter(
+            ativo=True
+        )
+
+    elif status == "0":
+        pacientes = pacientes.filter(
+            ativo=False
+        )
+
+    # =========================================
+    # ORDENAÇÃO
+    # =========================================
+
+    pacientes = pacientes.order_by(
+        "nascimento__month",
+        "nascimento__day",
+        "nome"
+    )
+
+    # =========================================
+    # PAGINAÇÃO
+    # =========================================
+
+    paginator = Paginator(
+        pacientes,
+        20
+    )
+
+    page = request.GET.get("page")
+
+    pacientes = paginator.get_page(page)
+
+    # =========================================
+    # CONTEXTO
+    # =========================================
+
+    context = {
+        "pacientes": pacientes,
+        "mes": mes,
+        "q": q,
+        "status": status,
+        "total_aniversariantes": pacientes.paginator.count,
+    }
+
+    return render(
+        request,
+        "accounts/relatorios/aniversariantes.html",
+        context
+    )
 
 # =========================================
 # PDF RELATÓRIO DE PACIENTES
@@ -9519,6 +9622,82 @@ def gerar_pdf_relatorio_pacientes(request):
         'accounts/pdf/pacientes_pdf.html',
         context
     )
+
+    # =========================================
+# PDF RELATÓRIO DE ANIVERSARIANTES
+# =========================================
+
+@login_required(login_url='/')
+def gerar_pdf_relatorio_aniversariantes(request):
+
+    pacientes = Paciente.objects.all()
+
+    # Nome
+    q = request.GET.get('q', '').strip()
+
+    if q:
+        pacientes = pacientes.filter(
+            nome__icontains=q
+        )
+
+    # Mês
+    mes = request.GET.get('mes', '').strip()
+
+    if mes:
+        pacientes = pacientes.filter(
+            nascimento__month=mes
+        )
+
+    # Status
+    status = request.GET.get('status', '').strip()
+
+    if status == "1":
+
+        pacientes = pacientes.filter(
+            ativo=True
+        )
+
+    elif status == "0":
+
+        pacientes = pacientes.filter(
+            ativo=False
+        )
+
+    # Ordenação
+    pacientes = pacientes.order_by(
+        'nascimento__month',
+        'nascimento__day',
+        'nome'
+    )
+
+    config = ConfiguracaoClinica.objects.first()
+
+    context = {
+
+        'pacientes': pacientes,
+
+        'config': config,
+
+        'q': q,
+
+        'mes': mes,
+
+        'status': status,
+
+        'now': timezone.now(),
+
+        'total_pacientes': pacientes.count(),
+
+        'titulo_relatorio': 'RELATÓRIO DE ANIVERSARIANTES',
+
+    }
+
+    return render(
+        request,
+        'accounts/pdf/aniversariantes_pdf.html',
+        context
+        )
+
 # =========================================
 # DADOS - ORÇAMENTOS
 # =========================================

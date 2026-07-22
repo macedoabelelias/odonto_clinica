@@ -157,23 +157,23 @@ Central de Relatórios
     Relatórios Gerenciais
 </h5>
 
-<div class="row g-4 mb-5">
+<div class="row g-4">
 
-    <!-- Produção -->
+    <!-- PRODUÇÃO -->
 
-    <div class="col-lg-4">
+    <div class="col-lg-3 col-md-6">
 
-        <div class="card shadow-sm relatorio-card h-100 text-center">
+        <div class="card h-100">
 
-            <div class="card-body">
+            <div class="card-body text-center">
 
-                <i class="bi bi-bar-chart-line-fill text-success relatorio-icon"></i>
+                <i class="bi bi-bar-chart-fill fs-1 text-success"></i>
 
-                <h5>
+                <h4 class="mt-3">
 
                     Produção
 
-                </h5>
+                </h4>
 
                 <p>
 
@@ -182,7 +182,7 @@ Central de Relatórios
                 </p>
 
                 <a href="{% url 'relatorio_producao' %}"
-                   class="btn btn-outline-success btn-sm">
+                   class="btn btn-outline-success">
 
                     Acessar
 
@@ -194,21 +194,21 @@ Central de Relatórios
 
     </div>
 
-    <!-- Faturamento -->
+    <!-- FATURAMENTO -->
 
-    <div class="col-lg-4">
+    <div class="col-lg-3 col-md-6">
 
-        <div class="card shadow-sm relatorio-card h-100 text-center">
+        <div class="card h-100">
 
-            <div class="card-body">
+            <div class="card-body text-center">
 
-                <i class="bi bi-currency-dollar text-warning relatorio-icon"></i>
+                <i class="bi bi-currency-dollar fs-1 text-warning"></i>
 
-                <h5>
+                <h4 class="mt-3">
 
                     Faturamento
 
-                </h5>
+                </h4>
 
                 <p>
 
@@ -217,7 +217,7 @@ Central de Relatórios
                 </p>
 
                 <a href="{% url 'relatorio_faturamento' %}"
-                class="btn btn-outline-warning">
+                   class="btn btn-outline-warning">
 
                     Acessar
 
@@ -229,34 +229,71 @@ Central de Relatórios
 
     </div>
 
-    <!-- AUDITORIA DO SISTEMA -->
+    <!-- AUDITORIA -->
 
-<div class="col-lg-4">
+    <div class="col-lg-3 col-md-6">
 
-    <div class="card shadow-sm relatorio-card h-100 text-center">
+        <div class="card h-100">
 
-        <div class="card-body">
+            <div class="card-body text-center">
 
-            <i class="bi bi-shield-check text-primary relatorio-icon"></i>
+                <i class="bi bi-shield-check fs-1 text-primary"></i>
 
-            <h5>
+                <h4 class="mt-3">
 
-                Auditoria do Sistema
+                    Auditoria do Sistema
 
-            </h5>
+                </h4>
 
-            <p>
+                <p>
 
-                Consulte o histórico de ações realizadas no sistema, como cadastros, alterações, exclusões, movimentações financeiras e atividades dos usuários.
+                    Consulte o histórico de ações realizadas no sistema.
 
-            </p>
+                </p>
 
-            <a href="{% url 'relatorio_auditoria' %}"
-            class="btn btn-primary">
+                <a href="{% url 'relatorio_auditoria' %}"
+                   class="btn btn-primary">
 
-                Acessar
+                    Acessar
 
-            </a>
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ANIVERSARIANTES -->
+
+    <div class="col-lg-3 col-md-6">
+
+        <div class="card h-100">
+
+            <div class="card-body text-center">
+
+                <i class="bi bi-cake2-fill fs-1 text-warning"></i>
+
+                <h4 class="mt-3">
+
+                    Aniversariantes
+
+                </h4>
+
+                <p>
+
+                    Relação de pacientes aniversariantes.
+
+                </p>
+
+                <a href="{% url 'relatorio_aniversariantes' %}"
+                   class="btn btn-outline-warning">
+
+                    Acessar
+
+                </a>
+
+            </div>
 
         </div>
 
@@ -264,7 +301,6 @@ Central de Relatórios
 
 </div>
 
-</div>
             
 
 
