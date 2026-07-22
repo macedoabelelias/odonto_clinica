@@ -220,45 +220,91 @@ def dashboard_view(request):
 
     perfil_usuario = getattr(request.user, "perfil", None)
 
-    perfil_nome = ""
+    perfil_acesso = getattr(perfil_usuario, "perfil_acesso", None)
 
-    if perfil_usuario and perfil_usuario.perfil_acesso:
-
-        perfil_nome = perfil_usuario.perfil_acesso.nome
+    perfil_nome = perfil_acesso.nome if perfil_acesso else ""
 
     # =========================================
     # TIPO DE DASHBOARD
     # =========================================
 
-    dashboard_tipo = "admin"
+    TIPOS_DASHBOARD = {
+        "Administrador": "admin",
+        "Gestor": "gestor",
+        "Dentista": "dentista",
+        "Secretária": "secretaria",
+        "Auxiliar de Saúde Bucal": "acd",
+        "Contabilidade": "contabilidade",
+        "Marketing": "marketing",
+        "Auditoria": "auditoria",
+    }
 
-    if perfil_nome == "Dentista":
+    dashboard_tipo = TIPOS_DASHBOARD.get(
+        perfil_nome,
+        "admin"
+    )
 
-        dashboard_tipo = "dentista"
+        # =========================================
+    # CONFIGURAÇÃO DO DASHBOARD
+    # =========================================
 
-    elif perfil_nome == "Secretária":
+    dashboard_config = {
 
-        dashboard_tipo = "secretaria"
+        # Cards Superiores
+        "mostrar_pacientes": True,
+        "mostrar_receber": True,
+        "mostrar_pagar": True,
+        "mostrar_saldo_caixa": True,
 
-    elif perfil_nome == "Gestor":
+        # Segunda linha
+        "mostrar_recebimentos": True,
+        "mostrar_pagamentos": True,
+        "mostrar_lucro": True,
+        "mostrar_fornecedores": True,
 
-        dashboard_tipo = "gestor"
+        # Conteúdo
+        "mostrar_faturamento": True,
+        "mostrar_consultas": True,
+        "mostrar_aniversariantes": True,
+        "mostrar_ranking": True,
+        "mostrar_movimentacoes": True,
 
-    elif perfil_nome == "Auxiliar de Saúde Bucal":
+    }
 
-        dashboard_tipo = "acd"
+    # =========================================
+    # PERSONALIZAÇÃO POR PERFIL
+    # =========================================
 
-    elif perfil_nome == "Contabilidade":
+    # Administrador e Gestor utilizam o Dashboard completo.
 
-        dashboard_tipo = "contabilidade"
+    # =========================================
+    # DENTISTA
+    # =========================================
 
-    elif perfil_nome == "Marketing":
+    if dashboard_tipo == "dentista":
 
-        dashboard_tipo = "marketing"
+        dashboard_config.update({
 
-    elif perfil_nome == "Auditoria":
+            # Cards
+            "mostrar_pacientes": True,
+            "mostrar_receber": True,
+            "mostrar_pagar": False,
+            "mostrar_saldo_caixa": False,
 
-        dashboard_tipo = "auditoria"
+            # Segunda linha
+            "mostrar_recebimentos": False,
+            "mostrar_pagamentos": False,
+            "mostrar_lucro": False,
+            "mostrar_fornecedores": False,
+
+            # Conteúdo
+            "mostrar_faturamento": False,
+            "mostrar_consultas": True,
+            "mostrar_aniversariantes": True,
+            "mostrar_ranking": True,
+            "mostrar_movimentacoes": False,
+
+        })
 
     # =========================================
     # PACIENTES
@@ -275,98 +321,91 @@ def dashboard_view(request):
     fornecedores_ativos = Fornecedor.objects.filter(
         ativo=True
     ).count()
-    
 
     # =========================================
     # CONTAS A RECEBER
     # =========================================
 
+    contas_receber = ContaReceber.objects.filter(
+        status="PENDENTE"
+    )
+
     receber_pendente = (
-
-        ContaReceber.objects.filter(
-            status='PENDENTE'
-        ).aggregate(
-            total=Sum('valor')
-        )['total']
-
-        or Decimal('0.00')
-
+        contas_receber.aggregate(
+            total=Sum("valor")
+        )["total"]
+        or Decimal("0.00")
     )
 
     # =========================================
     # CONTAS A PAGAR
     # =========================================
 
+    contas_pagar = ContaPagar.objects.filter(
+        status="PENDENTE"
+    )
+
     pagar_pendente = (
-
-        ContaPagar.objects.filter(
-            status='PENDENTE'
-        ).aggregate(
-            total=Sum('valor')
-        )['total']
-
-        or Decimal('0.00')
-
+        contas_pagar.aggregate(
+            total=Sum("valor")
+        )["total"]
+        or Decimal("0.00")
     )
 
     # =========================================
     # CAIXA
     # =========================================
 
+    caixa_entradas = Caixa.objects.filter(
+        tipo="ENTRADA"
+    )
+
+    caixa_saidas = Caixa.objects.filter(
+        tipo="SAIDA"
+    )
+
     total_entradas = (
-
-        Caixa.objects.filter(
-            tipo='ENTRADA'
-        ).aggregate(
-            total=Sum('valor')
-        )['total']
-
-        or Decimal('0.00')
-
+        caixa_entradas.aggregate(
+            total=Sum("valor")
+        )["total"]
+        or Decimal("0.00")
     )
 
     total_saidas = (
-
-        Caixa.objects.filter(
-            tipo='SAIDA'
-        ).aggregate(
-            total=Sum('valor')
-        )['total']
-
-        or Decimal('0.00')
-
+        caixa_saidas.aggregate(
+            total=Sum("valor")
+        )["total"]
+        or Decimal("0.00")
     )
 
     saldo_caixa = total_entradas - total_saidas
 
-    # =========================================
+        # =========================================
     # MOVIMENTAÇÃO HOJE
     # =========================================
 
+    movimentacao_entradas_hoje = Caixa.objects.filter(
+        tipo="ENTRADA",
+        data=hoje
+    )
+
+    movimentacao_saidas_hoje = Caixa.objects.filter(
+        tipo="SAIDA",
+        data=hoje
+    )
+
     entradas_hoje = (
-
-        Caixa.objects.filter(
-            tipo='ENTRADA',
-            data=hoje
-        ).aggregate(
-            total=Sum('valor')
-        )['total']
-
-        or Decimal('0.00')
-
+        movimentacao_entradas_hoje.aggregate(
+            total=Sum("valor")
+        )["total"]
+        or Decimal("0.00")
     )
 
     saidas_hoje = (
-
-        Caixa.objects.filter(
-            tipo='SAIDA',
-            data=hoje
-        ).aggregate(
-            total=Sum('valor')
-        )['total']
-
-        or Decimal('0.00')
-
+        movimentacao_saidas_hoje.aggregate(
+            total=Sum("valor")
+        )["total"]
+        or Decimal("0.00")
     )
 
     lucro_hoje = entradas_hoje - saidas_hoje
@@ -375,12 +414,14 @@ def dashboard_view(request):
     # ÚLTIMAS MOVIMENTAÇÕES
     # =========================================
 
-    ultimas_movimentacoes = (
-        Caixa.objects
-        .order_by('-data', '-id')[:20]
+    movimentacoes = Caixa.objects.order_by(
+        "-data",
+        "-id"
     )
 
-    # =========================================
+    ultimas_movimentacoes = movimentacoes[:20]
+
+        # =========================================
     # GRÁFICO FINANCEIRO
     # =========================================
 
@@ -392,9 +433,16 @@ def dashboard_view(request):
     entradas_mes = [0] * 12
     saidas_mes = [0] * 12
 
+    caixa_entradas_grafico = Caixa.objects.filter(
+        tipo='ENTRADA'
+    )
+
+    caixa_saidas_grafico = Caixa.objects.filter(
+        tipo='SAIDA'
+    )
+
     entradas_grafico = (
-        Caixa.objects
-        .filter(tipo='ENTRADA')
+        caixa_entradas_grafico
         .annotate(mes=ExtractMonth('data'))
         .values('mes')
         .annotate(total=Sum('valor'))
@@ -407,8 +455,7 @@ def dashboard_view(request):
             entradas_mes[item['mes'] - 1] = float(item['total'])
 
     saidas_grafico = (
-        Caixa.objects
-        .filter(tipo='SAIDA')
+        caixa_saidas_grafico
         .annotate(mes=ExtractMonth('data'))
         .values('mes')
         .annotate(total=Sum('valor'))
@@ -424,39 +471,82 @@ def dashboard_view(request):
     # PRÓXIMAS CONSULTAS
     # =========================================
 
-    proximas_consultas = Agendamento.objects.filter(
-        status__in=[
-            'agendado',
-            'confirmado',
-            'atendimento'
-        ],
-        data__gte=hoje
-    ).select_related(
-        'paciente',
-        'procedimento'
-    ).order_by(
-        'data',
-        'hora_inicio'
-    )[:5]
+    consultas = (
+        Agendamento.objects.filter(
+            status__in=[
+                'agendado',
+                'confirmado',
+                'atendimento'
+            ],
+            data__gte=hoje
+        )
+        .select_related(
+            'paciente',
+            'procedimento'
+        )
+        .order_by(
+            'data',
+            'hora_inicio'
+        )
+    )
 
         # =========================================
+    # FILTRO DO DENTISTA
+    # =========================================
+
+    print("=" * 60)
+    print("Dashboard Tipo:", dashboard_tipo)
+    print("Perfil:", perfil_nome)
+    print("Usuário:", request.user.username)
+    print("Profissional:", getattr(request.user, "profissional", None))
+    print("=" * 60)
+
+    if dashboard_tipo == "dentista":
+
+        print(">>> ENTROU NO FILTRO DO DENTISTA <<<")
+
+        profissional = getattr(
+            request.user,
+            "profissional",
+            None
+        )
+
+        if profissional:
+
+            print("Profissional encontrado:", profissional)
+
+            consultas = consultas.filter(
+                profissional=profissional
+            )
+
+            print("Total consultas:", consultas.count())
+
+        else:
+
+            print("Profissional NÃO encontrado")
+
+            consultas = consultas.none()
+
+    proximas_consultas = consultas[:5]
+
+    # =========================================
     # ANIVERSARIANTES DO MÊS
     # =========================================
 
     aniversariantes = (
-        Paciente.objects
-        .filter(
+        Paciente.objects.filter(
             ativo=True,
             nascimento__month=hoje.month
         )
-        .order_by('nascimento__day', 'nome')
+        .order_by(
+            "nascimento__day",
+            "nome"
+        )
     )
 
-       # =========================================
+        # =========================================
     # RANKING DOS DENTISTAS
     # =========================================
-
-    ranking_dict = defaultdict(Decimal)
 
     status_validos = [
         "aprovado",
@@ -464,26 +554,56 @@ def dashboard_view(request):
         "finalizado",
     ]
 
+    ranking_dict = defaultdict(Decimal)
+
     tratamentos = (
-        Tratamento.objects
-        .filter(dentista__isnull=False)
-        .select_related("dentista")
-        .prefetch_related("orcamentos")
+        Tratamento.objects.filter(
+            dentista__isnull=False
+        )
+        .select_related(
+            "dentista"
+        )
+        .prefetch_related(
+            "orcamentos"
+        )
     )
+
+    # =========================================
+    # FILTRO POR PERFIL
+    # =========================================
+
+    if dashboard_tipo == "dentista":
+
+        tratamentos = tratamentos.filter(
+            dentista=request.user
+        )
+
+    # =========================================
+    # CÁLCULO DA PRODUÇÃO
+    # =========================================
 
     for tratamento in tratamentos:
 
-        for orcamento in tratamento.orcamentos.filter(
+        orcamentos = tratamento.orcamentos.filter(
             status__in=status_validos
-        ):
+        )
 
-            ranking_dict[tratamento.dentista] += orcamento.total
+        for orcamento in orcamentos:
+
+            ranking_dict[
+                tratamento.dentista
+            ] += orcamento.total
 
     ranking_dentistas = sorted(
         ranking_dict.items(),
         key=lambda item: item[1],
-        reverse=True
-    )[:5]
+        reverse=True,
+    )
+
+    # Administrador e Gestor veem o Top 5.
+    if dashboard_tipo != "dentista":
+
+        ranking_dentistas = ranking_dentistas[:5]
 
         # =========================================
     # CONTEXT
@@ -495,52 +615,53 @@ def dashboard_view(request):
         # PERFIL
         # =========================================
 
-        'perfil_nome': perfil_nome,
-        'dashboard_tipo': dashboard_tipo,
+        "perfil_nome": perfil_nome,
+        "dashboard_tipo": dashboard_tipo,
+        "dashboard": dashboard_config,
 
         # =========================================
         # INDICADORES
         # =========================================
 
-        'total_pacientes': total_pacientes,
-        'fornecedores_ativos': fornecedores_ativos,
+        "total_pacientes": total_pacientes,
+        "fornecedores_ativos": fornecedores_ativos,
 
-        'receber_pendente': receber_pendente,
-        'pagar_pendente': pagar_pendente,
+        "receber_pendente": receber_pendente,
+        "pagar_pendente": pagar_pendente,
 
-        'saldo_caixa': saldo_caixa,
+        "saldo_caixa": saldo_caixa,
 
-        'total_entradas': total_entradas,
-        'total_saidas': total_saidas,
+        "total_entradas": total_entradas,
+        "total_saidas": total_saidas,
 
-        'entradas_hoje': entradas_hoje,
-        'saidas_hoje': saidas_hoje,
+        "entradas_hoje": entradas_hoje,
+        "saidas_hoje": saidas_hoje,
 
-        'lucro_hoje': lucro_hoje,
+        "lucro_hoje": lucro_hoje,
 
         # =========================================
         # DASHBOARD
         # =========================================
 
-        'ultimas_movimentacoes': ultimas_movimentacoes,
-        'proximas_consultas': proximas_consultas,
-        'ranking_dentistas': ranking_dentistas,
-        'aniversariantes': aniversariantes,
+        "ultimas_movimentacoes": ultimas_movimentacoes,
+        "proximas_consultas": proximas_consultas,
+        "ranking_dentistas": ranking_dentistas,
+        "aniversariantes": aniversariantes,
 
         # =========================================
         # GRÁFICOS
         # =========================================
 
-        'meses': meses,
-        'entradas_mes': entradas_mes,
-        'saidas_mes': saidas_mes,
+        "meses": meses,
+        "entradas_mes": entradas_mes,
+        "saidas_mes": saidas_mes,
 
     }
 
     return render(
         request,
-        'accounts/dashboard.html',
-        context
+        "accounts/dashboard.html",
+        context,
     )
 
 # =========================================

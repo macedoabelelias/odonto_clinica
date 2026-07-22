@@ -1,0 +1,47 @@
+
+
+
+
+<!-- =========================================
+KPIs DO DENTISTA
+========================================= -->
+
+<div class="stats-grid">
+
+    <!-- Pacientes Ativos -->
+    <div class="stats-card">
+        <div class="stats-icon blue">
+            <i class="bi bi-people-fill"></i>
+        </div>
+
+        <div>
+            <small>Pacientes Ativos</small>
+            <h3>{{ total_pacientes }}</h3>
+        </div>
+    </div>
+
+    <!-- Contas a Receber -->
+    <div class="stats-card">
+        <div class="stats-icon green">
+            <i class="bi bi-cash-stack"></i>
+        </div>
+
+        <div>
+            <small>Contas a Receber</small>
+            <h3>R$ {{ receber_pendente|floatformat:2 }}</h3>
+        </div>
+    </div>
+
+    <!-- Minha Produção -->
+    <div class="stats-card">
+        <div class="stats-icon orange">
+            <i class="bi bi-graph-up-arrow"></i>
+        </div>
+
+        <div>
+            <small>Minha Produção</small>
+            <h3>R$ {{ minha_producao|floatformat:2 }}</h3>
+        </div>
+    </div>
+
+</div>
