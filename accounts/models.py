@@ -1,4 +1,5 @@
 from django.db import models
+from decimal import Decimal, ROUND_HALF_UP
 
 from datetime import date
 
@@ -1311,6 +1312,7 @@ class Tratamento(models.Model):
 # =========================================
 # ORÇAMENTO
 # =========================================
+
 class Orcamento(models.Model):
 
     # =========================================
@@ -1356,17 +1358,25 @@ class Orcamento(models.Model):
     )
 
     # =========================================
-    # DESCONTO
+    # NEGOCIAÇÃO
     # =========================================
 
     desconto = models.DecimalField(
+        "Desconto",
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    acrescimo = models.DecimalField(
+        "Acréscimo",
         max_digits=10,
         decimal_places=2,
         default=0
     )
 
     # =========================================
-    # ENTRADA
+    # PAGAMENTO
     # =========================================
 
     entrada = models.DecimalField(
@@ -1375,17 +1385,9 @@ class Orcamento(models.Model):
         default=0
     )
 
-    # =========================================
-    # PARCELAS
-    # =========================================
-
     parcelas = models.PositiveIntegerField(
         default=1
     )
-
-    # =========================================
-    # FORMA PAGAMENTO
-    # =========================================
 
     FORMA_PAGAMENTO = (
 
@@ -1413,7 +1415,7 @@ class Orcamento(models.Model):
     )
 
     # =========================================
-    # DATA CRIAÇÃO
+    # CONTROLE
     # =========================================
 
     criado_em = models.DateTimeField(
@@ -1432,22 +1434,89 @@ class Orcamento(models.Model):
                 item.total
                 for item in self.itens.all()
             ),
-            0
+            Decimal("0.00")
         )
 
     # =========================================
-    # TOTAL
+    # VALOR DO DESCONTO
+    # =========================================
+
+    @property
+    def valor_desconto(self):
+
+        valor = (
+            self.subtotal *
+            (self.desconto or Decimal("0.00"))
+        ) / Decimal("100")
+
+        return valor.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP
+        )
+
+    # =========================================
+    # VALOR DO ACRÉSCIMO
+    # =========================================
+
+    @property
+    def valor_acrescimo(self):
+
+        valor = (
+            self.subtotal *
+            (self.acrescimo or Decimal("0.00"))
+        ) / Decimal("100")
+
+        return valor.quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP
+        )
+
+    # =========================================
+    # TOTAL BRUTO
+    # =========================================
+
+    @property
+    def total_bruto(self):
+
+        return self.subtotal
+
+    # =========================================
+    # TOTAL LÍQUIDO
     # =========================================
 
     @property
     def total(self):
 
-        subtotal = self.subtotal
+        total = (
+            self.subtotal
+            - self.valor_desconto
+            + self.valor_acrescimo
+        )
 
-        desconto = self.desconto or 0
+        return max(
+            total,
+            Decimal("0.00")
+        ).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP
+        )
 
-        return subtotal - desconto
+    # =========================================
+    # SALDO A RECEBER
+    # =========================================
 
+    @property
+    def saldo(self):
+
+        saldo = self.total - (self.entrada or Decimal("0.00"))
+
+        return max(
+            saldo,
+            Decimal("0.00")
+        ).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP
+        )
     # =========================================
     # QUANTIDADE DE ITENS
     # =========================================
@@ -1456,6 +1525,23 @@ class Orcamento(models.Model):
     def quantidade_itens(self):
 
         return self.itens.count()
+
+    # =========================================
+    # VALOR DA PARCELA
+    # =========================================
+
+    @property
+    def valor_parcela(self):
+
+        if not self.parcelas or self.parcelas <= 0:
+            return self.saldo
+
+        return (
+            self.saldo / Decimal(str(self.parcelas))
+        ).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP
+        )
 
     # =========================================
     # STRING
@@ -1467,7 +1553,7 @@ class Orcamento(models.Model):
             f"Orçamento #{self.id} - "
             f"{self.paciente.nome}"
         )
-        
+            
 # =========================================
 # CONFIGURAÇÃO DA CLÍNICA
 # =========================================
@@ -2490,7 +2576,7 @@ class PerfilUsuario(models.Model):
 
     )
 
-    # =========================================
+        # =========================================
     # DADOS PROFISSIONAIS
     # =========================================
 
@@ -2514,6 +2600,24 @@ class PerfilUsuario(models.Model):
 
     )
 
+    # =========================================
+    # COMISSÃO
+    # =========================================
+
+    percentual_comissao = models.DecimalField(
+
+        "Comissão (%)",
+
+        max_digits=5,
+
+        decimal_places=2,
+
+        default=40.00,
+
+        help_text="Percentual de comissão do dentista."
+
+    )
+
     telefone = models.CharField(
 
         max_length=20,
@@ -2533,7 +2637,6 @@ class PerfilUsuario(models.Model):
         null=True
 
     )
-
     # =========================================
     # DADOS PESSOAIS
     # =========================================
@@ -3136,12 +3239,14 @@ class ContaPagar(models.Model):
     STATUS_CHOICES = [
 
         ('PENDENTE', 'Pendente'),
-
         ('PAGO', 'Pago'),
-
         ('VENCIDO', 'Vencido')
 
     ]
+
+    # =========================================
+    # ORIGEM
+    # =========================================
 
     fornecedor = models.ForeignKey(
 
@@ -3149,7 +3254,25 @@ class ContaPagar(models.Model):
 
         on_delete=models.PROTECT,
 
-        related_name='contas_pagar'
+        related_name='contas_pagar',
+
+        blank=True,
+
+        null=True
+
+    )
+
+    profissional = models.ForeignKey(
+
+        PerfilUsuario,
+
+        on_delete=models.PROTECT,
+
+        related_name='contas_pagar',
+
+        blank=True,
+
+        null=True
 
     )
 
@@ -3166,6 +3289,28 @@ class ContaPagar(models.Model):
         related_name='contas_pagar'
 
     )
+
+    # =========================================
+    # CONTA A RECEBER QUE GEROU A COMISSÃO
+    # =========================================
+
+    conta_receber = models.OneToOneField(
+
+        'ContaReceber',
+
+        on_delete=models.SET_NULL,
+
+        blank=True,
+
+        null=True,
+
+        related_name='comissao'
+
+    )
+
+    # =========================================
+    # DADOS DA CONTA
+    # =========================================
 
     descricao = models.CharField(
 
@@ -3235,13 +3380,23 @@ class ContaPagar(models.Model):
 
     def __str__(self):
 
-        return (
+        if self.profissional:
 
-            f'{self.descricao} - '
+            destino = self.profissional.usuario.get_full_name()
 
-            f'R$ {self.valor}'
+            if not destino:
 
-        )
+                destino = self.profissional.usuario.username
+
+        elif self.fornecedor:
+
+            destino = self.fornecedor.nome
+
+        else:
+
+            destino = "Sem destino"
+
+        return f"{destino} - {self.descricao} - R$ {self.valor}"
 
     @property
     def esta_vencida(self):
@@ -3257,8 +3412,20 @@ class ContaPagar(models.Model):
             self.vencimento < date.today()
 
         )
-    
 
+    @property
+    def origem(self):
+
+        if self.profissional:
+
+            return "COMISSÃO"
+
+        if self.fornecedor:
+
+            return "FORNECEDOR"
+
+        return "-"
+        
 # =========================================
 # CONTAS A RECEBER
 # =========================================
@@ -3274,89 +3441,179 @@ class ContaReceber(models.Model):
 
     ]
 
+    # =========================================
+    # RELACIONAMENTOS
+    # =========================================
+
     paciente = models.ForeignKey(
+
         Paciente,
+
         on_delete=models.PROTECT,
+
         related_name='contas_receber'
+
     )
 
     orcamento = models.ForeignKey(
+
         Orcamento,
+
         on_delete=models.SET_NULL,
+
         blank=True,
+
         null=True,
+
         related_name='contas_receber'
+
     )
 
+    # =========================================
+    # DADOS DA CONTA
+    # =========================================
+
     descricao = models.CharField(
+
         max_length=255
+
     )
 
     valor = models.DecimalField(
+
         max_digits=12,
+
         decimal_places=2
+
     )
 
     # =========================================
     # PARCELAMENTO
     # =========================================
 
-    parcela = models.IntegerField(
+    parcela = models.PositiveIntegerField(
+
         default=1
+
     )
 
-    total_parcelas = models.IntegerField(
+    total_parcelas = models.PositiveIntegerField(
+
         default=1
+
     )
+
+    # =========================================
+    # DATAS
+    # =========================================
 
     vencimento = models.DateField()
 
     data_recebimento = models.DateField(
+
         blank=True,
+
         null=True
+
     )
 
+    # =========================================
+    # STATUS
+    # =========================================
+
     status = models.CharField(
+
         max_length=20,
+
         choices=STATUS_CHOICES,
+
         default='PENDENTE'
+
     )
 
     observacao = models.TextField(
+
         blank=True,
+
         null=True
+
     )
 
+    # =========================================
+    # CONTROLE
+    # =========================================
+
     criado_em = models.DateTimeField(
+
         auto_now_add=True
+
     )
 
     atualizado_em = models.DateTimeField(
+
         auto_now=True
+
     )
 
     class Meta:
 
         ordering = ['vencimento']
+
         verbose_name = 'Conta a Receber'
+
         verbose_name_plural = 'Contas a Receber'
 
     @property
     def forma_pagamento(self):
 
         if self.orcamento:
+
             return self.orcamento.get_forma_pagamento_display()
 
         return "-"
 
+    @property
+    def numero_parcela(self):
+
+        return f"{self.parcela}/{self.total_parcelas}"
+
+    @property
+    def tratamento(self):
+
+        if self.orcamento:
+
+            return self.orcamento.tratamento
+
+        return None
+
+    @property
+    def dentista(self):
+
+        tratamento = self.tratamento
+
+        if tratamento:
+
+            return tratamento.dentista
+
+        return None
+
+    @property
+    def possui_comissao(self):
+
+        return hasattr(self, "comissao")
+
     def __str__(self):
 
         return (
+
             f'{self.paciente.nome} - '
+
             f'Parcela {self.parcela}/{self.total_parcelas} - '
+
             f'R$ {self.valor}'
+
         )
-    
+        
 # =========================================
 # CAIXA
 # =========================================

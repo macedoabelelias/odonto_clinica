@@ -707,20 +707,7 @@ def dashboard_view(request):
         context,
     )
 
-    # =========================================
-    # DADOS DO DENTISTA
-    # =========================================
-
-    profissional = None
-
-    if dashboard_tipo == "dentista":
-
-        profissional = getattr(
-            request.user,
-            "profissional",
-            None
-        )
-
+  
 # =========================================
 # PACIENTES
 # =========================================
@@ -2614,6 +2601,18 @@ def orcamento(request, id):
                     .strip()
                 )
 
+                desconto = (
+                    request.POST.get("desconto", "0")
+                    .replace(",", ".")
+                    .strip()
+                )
+
+                acrescimo = (
+                    request.POST.get("acrescimo", "0")
+                    .replace(",", ".")
+                    .strip()
+                )
+
                 parcelas = request.POST.get(
                     "parcelas",
                     "1"
@@ -2628,6 +2627,15 @@ def orcamento(request, id):
                     entrada or "0"
                 )
 
+                # Agora representam PERCENTUAIS
+                orcamento.desconto = Decimal(
+                    desconto or "0"
+                )
+
+                orcamento.acrescimo = Decimal(
+                    acrescimo or "0"
+                )
+
                 orcamento.parcelas = max(
                     1,
                     int(parcelas or 1)
@@ -2635,14 +2643,92 @@ def orcamento(request, id):
 
                 orcamento.forma_pagamento = forma_pagamento
 
+                # =============================
+                # VALIDAÇÕES
+                # =============================
+
+                if orcamento.desconto < 0:
+
+                    messages.warning(
+                        request,
+                        "O desconto não pode ser negativo."
+                    )
+
+                    return redirect(
+                        "orcamento",
+                        id=paciente.id
+                    )
+
+                if orcamento.desconto > 100:
+
+                    messages.warning(
+                        request,
+                        "O desconto não pode ser maior que 100%."
+                    )
+
+                    return redirect(
+                        "orcamento",
+                        id=paciente.id
+                    )
+
+                if orcamento.acrescimo < 0:
+
+                    messages.warning(
+                        request,
+                        "O acréscimo não pode ser negativo."
+                    )
+
+                    return redirect(
+                        "orcamento",
+                        id=paciente.id
+                    )
+
+                if orcamento.entrada < 0:
+
+                    messages.warning(
+                        request,
+                        "A entrada não pode ser negativa."
+                    )
+
+                    return redirect(
+                        "orcamento",
+                        id=paciente.id
+                    )
+
+                # Agora utiliza a property TOTAL do model,
+                # que já calcula desconto e acréscimo em %.
+
+                if orcamento.entrada > orcamento.total:
+
+                    messages.warning(
+                        request,
+                        "A entrada não pode ser maior que o valor total do orçamento."
+                    )
+
+                    return redirect(
+                        "orcamento",
+                        id=paciente.id
+                    )
+                print("=" * 50)
+                print("DESCONTO:", orcamento.desconto)
+                print("ACRESCIMO:", orcamento.acrescimo)
+                print("ENTRADA:", orcamento.entrada)
+                print("PARCELAS:", orcamento.parcelas)
+                print("=" * 50)
                 orcamento.save()
 
-                # Atualiza o objeto em memória
                 orcamento.refresh_from_db()
 
                 messages.success(
                     request,
                     "Dados financeiros salvos com sucesso."
+                )
+
+            except (ValueError, InvalidOperation) as erro:
+
+                messages.error(
+                    request,
+                    f"Valor inválido: {erro}"
                 )
 
             except Exception as erro:
@@ -2657,6 +2743,7 @@ def orcamento(request, id):
                 id=paciente.id
             )
 
+        
         # =====================================
         # ADICIONAR PROCEDIMENTO
         # =====================================
@@ -2735,33 +2822,28 @@ def orcamento(request, id):
 # APROVAR ORÇAMENTO
 # =========================================
 
-@login_required
-@perfil_required(
-    "Administrador",
-    "Secretária",
-)
+@login_required(login_url="/")
+@permissao_required("orcamentos", "aprovar")
 def aprovar_orcamento(request, id):
+
     orcamento = get_object_or_404(
         Orcamento,
         id=id
     )
 
     # =========================================
-
-
-    # =========================================
     # VERIFICA STATUS
     # =========================================
 
-    if orcamento.status == 'aprovado':
+    if orcamento.status == "aprovado":
 
         messages.warning(
             request,
-            'Este orçamento já foi aprovado.'
+            "Este orçamento já foi aprovado."
         )
 
         return redirect(
-            'orcamento',
+            "orcamento",
             id=orcamento.paciente.id
         )
 
@@ -2769,14 +2851,14 @@ def aprovar_orcamento(request, id):
     # APROVA ORÇAMENTO
     # =========================================
 
-    orcamento.status = 'aprovado'
-    orcamento.save(update_fields=['status'])
+    orcamento.status = "aprovado"
+    orcamento.save(update_fields=["status"])
 
     # =========================================
     # CÁLCULOS
     # =========================================
 
-    valor_entrada = orcamento.entrada or Decimal('0.00')
+    valor_entrada = orcamento.entrada or Decimal("0.00")
 
     quantidade_parcelas = max(
         1,
@@ -2786,29 +2868,12 @@ def aprovar_orcamento(request, id):
     saldo = orcamento.total - valor_entrada
 
     if saldo < 0:
-        saldo = Decimal('0.00')
+        saldo = Decimal("0.00")
 
     valor_parcela = (
         saldo /
         quantidade_parcelas
     )
-
-    # =========================================
-    # GERA CONTAS A RECEBER
-    # =========================================
-
-    # Garante que apenas orçamentos aprovados gerem contas
-    if orcamento.status != "aprovado":
-
-        messages.warning(
-            request,
-            "Somente orçamentos aprovados podem gerar contas a receber."
-        )
-
-        return redirect(
-            "orcamento",
-            id=orcamento.paciente.id
-        )
 
     # =========================================
     # GERA ENTRADA
@@ -2863,8 +2928,8 @@ def aprovar_orcamento(request, id):
                 "total_parcelas": quantidade_parcelas,
 
                 "vencimento": (
-                    timezone.now().date()
-                    + timedelta(days=30 * numero)
+                    timezone.now().date() +
+                    timedelta(days=30 * numero)
                 ),
 
                 "status": "PENDENTE",
@@ -2872,10 +2937,6 @@ def aprovar_orcamento(request, id):
             }
 
         )
-
-    # =========================================
-    # SUCESSO
-    # =========================================
 
     messages.success(
 
@@ -2892,7 +2953,6 @@ def aprovar_orcamento(request, id):
         id=orcamento.paciente.id
 
     )
-
 # =========================================
 # EXCLUIR ORÇAMENTO
 # =========================================
@@ -8857,7 +8917,38 @@ def contas_receber(request):
 
     hoje = timezone.now().date()
 
-    # Atualiza automaticamente contas vencidas
+    # =========================================
+    # PERFIL DO USUÁRIO
+    # =========================================
+
+    perfil_usuario = getattr(request.user, "perfil", None)
+
+    perfil_acesso = getattr(perfil_usuario, "perfil_acesso", None)
+
+    perfil_nome = (
+        perfil_acesso.nome
+        if perfil_acesso
+        else ""
+    )
+
+    dashboard_tipo = {
+        "Administrador": "admin",
+        "Gestor": "gestor",
+        "Dentista": "dentista",
+        "Secretária": "secretaria",
+        "Auxiliar de Saúde Bucal": "acd",
+        "Contabilidade": "contabilidade",
+        "Marketing": "marketing",
+        "Auditoria": "auditoria",
+    }.get(
+        perfil_nome,
+        "admin"
+    )
+
+    # =========================================
+    # ATUALIZA CONTAS VENCIDAS
+    # =========================================
+
     ContaReceber.objects.filter(
         status='PENDENTE',
         vencimento__lt=hoje
@@ -8865,15 +8956,39 @@ def contas_receber(request):
         status='VENCIDO'
     )
 
-    # Não exibe contas canceladas
-    contas = ContaReceber.objects.select_related(
-        'paciente',
-        'orcamento'
-    ).exclude(
-        status='CANCELADO'
-    ).order_by(
+    # =========================================
+    # CONSULTA
+    # =========================================
+
+    contas = (
+        ContaReceber.objects
+        .select_related(
+            'paciente',
+            'orcamento',
+            'orcamento__tratamento',
+        )
+        .exclude(
+            status='CANCELADO'
+        )
+    )
+
+    # =========================================
+    # FILTRO DO DENTISTA
+    # =========================================
+
+    if dashboard_tipo == "dentista":
+
+        contas = contas.filter(
+            orcamento__tratamento__dentista=request.user
+        )
+
+    contas = contas.order_by(
         'vencimento'
     )
+
+    # =========================================
+    # TOTAIS
+    # =========================================
 
     contas_pendentes = contas.filter(
         status='PENDENTE'
@@ -8918,29 +9033,52 @@ def contas_receber(request):
 
     )
 
+
 # =========================================
 # RECEBER CONTA
 # =========================================
 
+from decimal import Decimal
+from django.db import transaction
+
+@transaction.atomic
 @login_required(login_url='/')
 @permissao_required("contas_receber", "financeiro")
 def receber_conta(request, conta_id):
 
     conta = get_object_or_404(
-
         ContaReceber,
-
         id=conta_id
-
     )
 
-    if conta.status != 'RECEBIDO':
+    # =========================================
+    # EVITA RECEBIMENTO DUPLICADO
+    # =========================================
 
-        conta.status = 'RECEBIDO'
+    if conta.status == "RECEBIDO":
 
-        conta.data_recebimento = timezone.now().date()
+        messages.warning(
+            request,
+            "Esta conta já foi recebida."
+        )
 
-        conta.save()
+        return redirect("contas_receber")
+
+    # =========================================
+    # RECEBE A CONTA
+    # =========================================
+
+    conta.status = "RECEBIDO"
+    conta.data_recebimento = timezone.now().date()
+    conta.save()
+
+    # =========================================
+    # LANÇA NO CAIXA
+    # =========================================
+
+    if not Caixa.objects.filter(
+        conta_receber=conta
+    ).exists():
 
         Caixa.objects.create(
 
@@ -8948,7 +9086,7 @@ def receber_conta(request, conta_id):
 
             descricao=conta.descricao,
 
-            tipo='ENTRADA',
+            tipo="ENTRADA",
 
             valor=conta.valor,
 
@@ -8956,17 +9094,82 @@ def receber_conta(request, conta_id):
 
         )
 
-        messages.success(
+    # =========================================
+    # GERA COMISSÃO DO DENTISTA
+    # =========================================
 
-            request,
+    tratamento = getattr(conta.orcamento, "tratamento", None)
 
-            'Conta recebida com sucesso.'
+    if tratamento and tratamento.dentista:
 
-        )
+        try:
+
+            perfil = PerfilUsuario.objects.get(
+                usuario=tratamento.dentista
+            )
+
+        except PerfilUsuario.DoesNotExist:
+
+            perfil = None
+
+        if perfil:
+
+            # Evita comissão duplicada
+            if not ContaPagar.objects.filter(
+                conta_receber=conta
+            ).exists():
+
+                percentual = Decimal(
+                    perfil.percentual_comissao or 0
+                )
+
+                valor_comissao = (
+                    (conta.valor * percentual) /
+                    Decimal("100")
+                ).quantize(
+                    Decimal("0.01")
+                )
+
+                ContaPagar.objects.create(
+
+                    profissional=perfil,
+
+                    conta_receber=conta,
+
+                    descricao=(
+                        f"Comissão do tratamento "
+                        f"- {tratamento.paciente.nome}"
+                    ),
+
+                    valor=valor_comissao,
+
+                    vencimento=timezone.now().date(),
+
+                    status="PENDENTE",
+
+                    observacao=(
+                        f"Comissão automática referente "
+                        f"à Conta a Receber "
+                        f"#{conta.id}"
+                    )
+
+                )
+
+    # =========================================
+    # MENSAGEM
+    # =========================================
+
+    messages.success(
+
+        request,
+
+        "Conta recebida com sucesso."
+
+    )
 
     return redirect(
 
-        'contas_receber'
+        "contas_receber"
 
     )
 
