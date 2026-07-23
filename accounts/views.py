@@ -310,9 +310,23 @@ def dashboard_view(request):
     # PACIENTES
     # =========================================
 
-    total_pacientes = Paciente.objects.filter(
-        ativo=True
-    ).count()
+    if dashboard_tipo == "dentista":
+
+        total_pacientes = (
+            Tratamento.objects.filter(
+                dentista=request.user,
+                status="ATIVO",
+            )
+            .values("paciente")
+            .distinct()
+            .count()
+        )
+
+    else:
+
+        total_pacientes = Paciente.objects.filter(
+            ativo=True
+        ).count()
 
     # =========================================
     # FORNECEDORES
@@ -322,6 +336,7 @@ def dashboard_view(request):
         ativo=True
     ).count()
 
+
     # =========================================
     # CONTAS A RECEBER
     # =========================================
@@ -330,6 +345,27 @@ def dashboard_view(request):
         status="PENDENTE"
     )
 
+    print("=" * 60)
+    print("DASHBOARD TIPO:", dashboard_tipo)
+    print("ANTES:", contas_receber.count())
+
+    if dashboard_tipo == "dentista":
+
+        contas_receber = contas_receber.filter(
+            orcamento__tratamento__dentista=request.user
+        )
+
+    print("DEPOIS:", contas_receber.count())
+
+    for conta in contas_receber:
+
+        print(
+            conta.id,
+            conta.paciente.nome,
+            conta.valor,
+            conta.orcamento_id
+        )
+
     receber_pendente = (
         contas_receber.aggregate(
             total=Sum("valor")
@@ -337,6 +373,11 @@ def dashboard_view(request):
         or Decimal("0.00")
     )
 
+    print("RECEBER PENDENTE =", receber_pendente)
+    print("TIPO =", dashboard_tipo)
+
+    print("TOTAL FILTRADO:", receber_pendente)
+    print("=" * 60)
     # =========================================
     # CONTAS A PAGAR
     # =========================================
@@ -658,11 +699,27 @@ def dashboard_view(request):
 
     }
 
+    
+
     return render(
         request,
         "accounts/dashboard.html",
         context,
     )
+
+    # =========================================
+    # DADOS DO DENTISTA
+    # =========================================
+
+    profissional = None
+
+    if dashboard_tipo == "dentista":
+
+        profissional = getattr(
+            request.user,
+            "profissional",
+            None
+        )
 
 # =========================================
 # PACIENTES
@@ -1582,14 +1639,15 @@ def salvar_procedimento_geral(request, id):
     # =====================================
 
     tratamento = paciente.tratamentos.filter(
-        status='ATIVO'
+        status="ATIVO"
     ).first()
 
     if tratamento is None:
 
         tratamento = Tratamento.objects.create(
             paciente=paciente,
-            titulo='Tratamento Inicial'
+            dentista=request.user,
+            titulo="Tratamento Inicial"
         )
 
     # =====================================
@@ -2501,6 +2559,7 @@ def orcamento(request, id):
 
             tratamento = Tratamento.objects.create(
                 paciente=paciente,
+                dentista=request.user,
                 titulo="Tratamento Inicial"
             )
 
@@ -9249,6 +9308,8 @@ def novo_tratamento(request, paciente_id):
     tratamento = Tratamento.objects.create(
 
         paciente=paciente,
+
+        dentista=request.user,
 
         titulo=titulo,
 

@@ -1275,12 +1275,13 @@ class Tratamento(models.Model):
 
     def save(self, *args, **kwargs):
 
-        # Define automaticamente o dentista responsável
-        # com base no paciente no primeiro salvamento.
+        """
+        Regras do tratamento:
 
-        if not self.dentista and self.paciente:
-
-            self.dentista = self.paciente.dentista
+        - Apenas um tratamento ativo por paciente.
+        - O dentista responsável deve ser informado na criação
+        do tratamento.
+        """
 
         # Garante apenas um tratamento ativo por paciente.
 
@@ -3267,51 +3268,33 @@ class ContaReceber(models.Model):
     STATUS_CHOICES = [
 
         ('PENDENTE', 'Pendente'),
-
         ('RECEBIDO', 'Recebido'),
-
         ('VENCIDO', 'Vencido'),
-
         ('CANCELADO', 'Cancelado'),
 
     ]
 
     paciente = models.ForeignKey(
-
         Paciente,
-
         on_delete=models.PROTECT,
-
         related_name='contas_receber'
-
     )
 
     orcamento = models.ForeignKey(
-
         Orcamento,
-
         on_delete=models.SET_NULL,
-
         blank=True,
-
         null=True,
-
         related_name='contas_receber'
-
     )
 
     descricao = models.CharField(
-
         max_length=255
-
     )
 
     valor = models.DecimalField(
-
         max_digits=12,
-
         decimal_places=2
-
     )
 
     # =========================================
@@ -3319,87 +3302,62 @@ class ContaReceber(models.Model):
     # =========================================
 
     parcela = models.IntegerField(
-
         default=1
-
     )
 
     total_parcelas = models.IntegerField(
-
         default=1
-
     )
 
     vencimento = models.DateField()
 
     data_recebimento = models.DateField(
-
         blank=True,
-
         null=True
-
     )
 
     status = models.CharField(
-
         max_length=20,
-
         choices=STATUS_CHOICES,
-
         default='PENDENTE'
-
     )
 
     observacao = models.TextField(
-
         blank=True,
-
         null=True
-
     )
 
     criado_em = models.DateTimeField(
-
         auto_now_add=True
-
     )
 
     atualizado_em = models.DateTimeField(
-
         auto_now=True
-
     )
 
     class Meta:
 
         ordering = ['vencimento']
-
         verbose_name = 'Conta a Receber'
-
         verbose_name_plural = 'Contas a Receber'
-
 
     @property
     def forma_pagamento(self):
 
         if self.orcamento:
-
             return self.orcamento.get_forma_pagamento_display()
 
         return "-"
 
-
     def __str__(self):
 
         return (
-
             f'{self.paciente.nome} - '
-
             f'Parcela {self.parcela}/{self.total_parcelas} - '
-
             f'R$ {self.valor}'
-
-        )# =========================================
+        )
+    
+# =========================================
 # CAIXA
 # =========================================
 

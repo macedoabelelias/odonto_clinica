@@ -286,9 +286,21 @@ ANIVERSARIANTES
 
 {% block content %}
 
-{% include "accounts/dashboard/ativos/_cards.html" %}
-{% include "accounts/dashboard/ativos/_content_grid.html" %}
-{% include "accounts/dashboard/ativos/_content_bottom.html" %}
+{% if dashboard_tipo == "dentista" %}
+
+
+
+    {% include "accounts/dashboard/dentista/_cards.html" %}
+    {% include "accounts/dashboard/dentista/_content_grid.html" %}
+    {% include "accounts/dashboard/dentista/_content_bottom.html" %}
+
+{% else %}
+
+    {% include "accounts/dashboard/ativos/_cards.html" %}
+    {% include "accounts/dashboard/ativos/_content_grid.html" %}
+    {% include "accounts/dashboard/ativos/_content_bottom.html" %}
+
+{% endif %}
 
 
 <script>

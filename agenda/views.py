@@ -72,7 +72,8 @@ def novo_agendamento_paciente(request, paciente_id):
 
         tratamento = Tratamento.objects.create(
             paciente=paciente,
-            titulo='Tratamento Inicial'
+            dentista=agendamento.profissional.usuario,
+            titulo="Tratamento Inicial"
         )
 
     # =========================================

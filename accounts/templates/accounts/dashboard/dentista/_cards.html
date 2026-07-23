@@ -1,14 +1,6 @@
-
-
-
-
-<!-- =========================================
-KPIs DO DENTISTA
-========================================= -->
-
 <div class="stats-grid">
 
-    <!-- Pacientes Ativos -->
+    {% if dashboard.mostrar_pacientes %}
     <div class="stats-card">
         <div class="stats-icon blue">
             <i class="bi bi-people-fill"></i>
@@ -19,8 +11,10 @@ KPIs DO DENTISTA
             <h3>{{ total_pacientes }}</h3>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Contas a Receber -->
+
+    {% if dashboard.mostrar_receber %}
     <div class="stats-card">
         <div class="stats-icon green">
             <i class="bi bi-cash-stack"></i>
@@ -31,8 +25,9 @@ KPIs DO DENTISTA
             <h3>R$ {{ receber_pendente|floatformat:2 }}</h3>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Minha Produção -->
+
     <div class="stats-card">
         <div class="stats-icon orange">
             <i class="bi bi-graph-up-arrow"></i>
