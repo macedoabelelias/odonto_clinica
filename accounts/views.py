@@ -313,6 +313,37 @@ def dashboard_view(request):
 
         })
 
+
+    # =========================================
+    # AUXILIAR DE SAÚDE BUCAL
+    # =========================================
+
+    elif dashboard_tipo == "acd":
+
+        dashboard_config.update({
+
+            # Cards superiores
+            "mostrar_pacientes": True,
+            "mostrar_receber": False,
+            "mostrar_pagar": False,
+            "mostrar_saldo_caixa": False,
+
+            # Segunda linha
+            "mostrar_recebimentos": False,
+            "mostrar_pagamentos": False,
+            "mostrar_lucro": False,
+            "mostrar_fornecedores": False,
+
+            # Conteúdo
+            "mostrar_faturamento": False,
+            "mostrar_consultas": True,
+            "mostrar_aniversariantes": True,
+            "mostrar_ranking": False,
+            "mostrar_movimentacoes": True,
+
+        })
+
+
     # =========================================
     # PACIENTES
     # =========================================
@@ -329,12 +360,18 @@ def dashboard_view(request):
             .count()
         )
 
-    else:
+    elif dashboard_tipo == "auxiliar":
 
         total_pacientes = Paciente.objects.filter(
             ativo=True
         ).count()
 
+    else:
+
+        total_pacientes = Paciente.objects.filter(
+            ativo=True
+        ).count()
+        
     # =========================================
     # FORNECEDORES
     # =========================================

@@ -8,63 +8,112 @@ PERMISSOES_PADRAO = {
 
     "Administrador": {
 
-        "Dashboard": ("v","i","e","x","p"),
+        # =================================================
+        # GERAL
+        # =================================================
 
-        "Agenda": ("v","i","e","x","p"),
-        "Pacientes": ("v","i","e","x","p"),
-        "Anamnese": ("v","i","e","x","p"),
-        "Odontograma": ("v","i","e","x","p"),
-        "Tratamentos": ("v","i","e","x","p"),
-        "Orçamentos": ("v","i","e","x","p"),
+        "dashboard": ("v", "i", "e", "x", "p"),
 
-        "Financeiro": ("v","i","e","x","p"),
-        "Livro Caixa": ("v","i","e","x","p"),
-        "Contas a Receber": ("v","i","e","x","p"),
-        "Contas a Pagar": ("v","i","e","x","p"),
-        "Fluxo de Caixa": ("v","i","e","x","p"),
-        "DRE": ("v","i","e","x","p"),
-        "Fechamento Mensal": ("v","i","e","x","p"),
+        # =================================================
+        # ATENDIMENTO
+        # =================================================
 
-        "Fornecedores": ("v","i","e","x","p"),
-        "Produtos": ("v","i","e","x","p"),
-        "Compras": ("v","i","e","x","p"),
-        "Estoque": ("v","i","e","x","p"),
+        "agenda": ("v", "i", "e", "x", "p"),
+        "pacientes": ("v", "i", "e", "x", "p"),
+        "tratamentos": ("v", "i", "e", "x", "p"),
+        "odontograma": ("v", "i", "e", "x", "p"),
+        "anamnese": ("v", "i", "e", "x", "p"),
+        "evolucoes": ("v", "i", "e", "x", "p"),
+        "orcamentos": ("v", "i", "e", "x", "p"),
 
-        "Relatórios": ("v","i","e","x","p"),
-        "Auditoria": ("v","i","e","x","p"),
+        # =================================================
+        # FINANCEIRO
+        # =================================================
 
-        "Usuários": ("v","i","e","x","p"),
-        "Perfis": ("v","i","e","x","p"),
-        "Clínica": ("v","i","e","x","p"),
+        "contas_receber": ("v", "i", "e", "x", "p"),
+        "contas_pagar": ("v", "i", "e", "x", "p"),
+        "caixa": ("v", "i", "e", "x", "p"),
+        "livro_caixa": ("v", "i", "e", "x", "p"),
+        "fluxo_caixa": ("v", "i", "e", "x", "p"),
+        "dre": ("v", "i", "e", "x", "p"),
+        "fechamento_mensal": ("v", "i", "e", "x", "p"),
+
+        # =================================================
+        # COMPRAS
+        # =================================================
+
+        "fornecedores": ("v", "i", "e", "x", "p"),
+        "produtos": ("v", "i", "e", "x", "p"),
+        "compras": ("v", "i", "e", "x", "p"),
+        "estoque": ("v", "i", "e", "x", "p"),
+        "movimentacoes_estoque": ("v", "i", "e", "x", "p"),
+        "produtos_criticos": ("v", "i", "e", "x", "p"),
+        "lotes": ("v", "i", "e", "x", "p"),
+
+        # =================================================
+        # RELATÓRIOS
+        # =================================================
+
+        "relatorios": ("v", "i", "e", "x", "p"),
+        "minha_producao": ("v", "i", "e", "x", "p"),
+
+        # =================================================
+        # EQUIPE
+        # =================================================
+
+        "usuarios": ("v", "i", "e", "x", "p"),
+
+        # =================================================
+        # CONFIGURAÇÕES
+        # =================================================
+
+        "perfis": ("v", "i", "e", "x", "p"),
+        "configuracao_clinica": ("v", "i", "e", "x", "p"),
+
+        # =================================================
+        # MARKETING
+        # =================================================
+
+        "marketing": ("v", "i", "e", "x", "p"),
+
+        # =================================================
+        # AUDITORIA
+        # =================================================
+
+        "auditoria": ("v", "i", "e", "x", "p"),
     },
 
-    # =====================================================
+        # =====================================================
     # GESTOR
     # =====================================================
 
     "Gestor": {
 
-        "Dashboard": ("v",),
+        "dashboard": ("v",),
 
-        "Agenda": ("v","i","e"),
-        "Pacientes": ("v","i","e"),
-        "Orçamentos": ("v","i","e"),
-        "Tratamentos": ("v",),
+        # Atendimento
+        "agenda": ("v", "i", "e"),
+        "pacientes": ("v", "i", "e"),
+        "tratamentos": ("v",),
+        "orcamentos": ("v", "i", "e"),
 
-        "Financeiro": ("v",),
-        "Livro Caixa": ("v",),
-        "Contas a Receber": ("v",),
-        "Contas a Pagar": ("v",),
-        "Fluxo de Caixa": ("v",),
-        "DRE": ("v",),
-        "Fechamento Mensal": ("v",),
+        # Financeiro
+        "contas_receber": ("v",),
+        "contas_pagar": ("v",),
+        "caixa": ("v",),
+        "livro_caixa": ("v",),
+        "fluxo_caixa": ("v",),
+        "dre": ("v",),
+        "fechamento_mensal": ("v",),
 
-        "Fornecedores": ("v","i","e"),
-        "Produtos": ("v","i","e"),
-        "Compras": ("v","i","e"),
-        "Estoque": ("v","i","e"),
+        # Compras
+        "fornecedores": ("v", "i", "e"),
+        "produtos": ("v", "i", "e"),
+        "compras": ("v", "i", "e"),
+        "estoque": ("v", "i", "e"),
 
-        "Relatórios": ("v","p"),
+        # Relatórios
+        "relatorios": ("v", "p"),
     },
 
     # =====================================================
@@ -73,14 +122,15 @@ PERMISSOES_PADRAO = {
 
     "Dentista": {
 
-        "Dashboard": ("v",),
+        "dashboard": ("v",),
 
-        "Agenda": ("v",),
-        "Pacientes": ("v",),
-        "Anamnese": ("v","e"),
-        "Odontograma": ("v","e"),
-        "Tratamentos": ("v","i","e"),
-        "Orçamentos": ("v","i","e"),
+        # Atendimento
+        "agenda": ("v",),
+        "pacientes": ("v",),
+        "anamnese": ("v", "e"),
+        "odontograma": ("v", "e"),
+        "tratamentos": ("v", "i", "e"),
+        "orcamentos": ("v", "i", "e"),
     },
 
     # =====================================================
@@ -89,36 +139,42 @@ PERMISSOES_PADRAO = {
 
     "Secretária": {
 
-        "Dashboard": ("v",),
+        "dashboard": ("v",),
 
-        "Agenda": ("v","i","e"),
-        "Pacientes": ("v","i","e"),
-        "Orçamentos": ("v","i","e"),
+        # Atendimento
+        "agenda": ("v", "i", "e"),
+        "pacientes": ("v", "i", "e"),
+        "orcamentos": ("v", "i", "e"),
 
-        "Financeiro": ("v",),
-        "Contas a Receber": ("v","i","e"),
+        # Financeiro
+        "contas_receber": ("v", "i", "e"),
 
-        "Fornecedores": ("v",),
-        "Produtos": ("v",),
-        "Compras": ("v","i"),
-        "Estoque": ("v",),
+        # Compras
+        "fornecedores": ("v",),
+        "produtos": ("v",),
+        "compras": ("v", "i"),
+        "estoque": ("v",),
 
-        "Relatórios": ("v",),
+        # Relatórios
+        "relatorios": ("v",),
     },
 
-    # =====================================================
+        # =====================================================
     # AUXILIAR DE SAÚDE BUCAL
     # =====================================================
 
     "Auxiliar de Saúde Bucal": {
 
-        "Dashboard": ("v",),
+        "dashboard": ("v",),
 
-        "Agenda": ("v",),
-        "Pacientes": ("v",),
-        "Tratamentos": ("v",),
-        "Estoque": ("v",),
-        "Produtos": ("v",),
+        # Atendimento
+        "agenda": ("v",),
+        "pacientes": ("v",),
+        "tratamentos": ("v",),
+
+        # Compras
+        "estoque": ("v",),
+        "produtos": ("v",),
     },
 
     # =====================================================
@@ -127,17 +183,19 @@ PERMISSOES_PADRAO = {
 
     "Contabilidade": {
 
-        "Dashboard": ("v",),
+        "dashboard": ("v",),
 
-        "Financeiro": ("v","i","e","p"),
-        "Livro Caixa": ("v","i","e","p"),
-        "Contas a Receber": ("v","i","e","p"),
-        "Contas a Pagar": ("v","i","e","p"),
-        "Fluxo de Caixa": ("v","i","e","p"),
-        "DRE": ("v","p"),
-        "Fechamento Mensal": ("v","p"),
+        # Financeiro
+        "contas_receber": ("v", "i", "e", "p"),
+        "contas_pagar": ("v", "i", "e", "p"),
+        "caixa": ("v", "i", "e", "p"),
+        "livro_caixa": ("v", "i", "e", "p"),
+        "fluxo_caixa": ("v", "i", "e", "p"),
+        "dre": ("v", "p"),
+        "fechamento_mensal": ("v", "p"),
 
-        "Relatórios": ("v","p"),
+        # Relatórios
+        "relatorios": ("v", "p"),
     },
 
     # =====================================================
@@ -146,8 +204,13 @@ PERMISSOES_PADRAO = {
 
     "Marketing": {
 
-        "Dashboard": ("v",),
-        "Relatórios": ("v","p"),
+        "dashboard": ("v",),
+
+        # Marketing
+        "marketing": ("v", "i", "e"),
+
+        # Relatórios
+        "relatorios": ("v", "p"),
     },
 
     # =====================================================
@@ -156,34 +219,43 @@ PERMISSOES_PADRAO = {
 
     "Auditoria": {
 
-        "Dashboard": ("v",),
+        "dashboard": ("v",),
 
-        "Agenda": ("v",),
-        "Pacientes": ("v",),
-        "Anamnese": ("v",),
-        "Odontograma": ("v",),
-        "Tratamentos": ("v",),
-        "Orçamentos": ("v",),
+        # Atendimento
+        "agenda": ("v",),
+        "pacientes": ("v",),
+        "anamnese": ("v",),
+        "odontograma": ("v",),
+        "tratamentos": ("v",),
+        "orcamentos": ("v",),
 
-        "Financeiro": ("v",),
-        "Livro Caixa": ("v",),
-        "Contas a Receber": ("v",),
-        "Contas a Pagar": ("v",),
-        "Fluxo de Caixa": ("v",),
-        "DRE": ("v",),
-        "Fechamento Mensal": ("v",),
+        # Financeiro
+        "contas_receber": ("v",),
+        "contas_pagar": ("v",),
+        "caixa": ("v",),
+        "livro_caixa": ("v",),
+        "fluxo_caixa": ("v",),
+        "dre": ("v",),
+        "fechamento_mensal": ("v",),
 
-        "Fornecedores": ("v",),
-        "Produtos": ("v",),
-        "Compras": ("v",),
-        "Estoque": ("v",),
+        # Compras
+        "fornecedores": ("v",),
+        "produtos": ("v",),
+        "compras": ("v",),
+        "estoque": ("v",),
 
-        "Relatórios": ("v",),
-        "Auditoria": ("v",),
+        # Relatórios
+        "relatorios": ("v",),
 
-        "Usuários": ("v",),
-        "Perfis": ("v",),
-        "Clínica": ("v",),
+        # Auditoria
+        "auditoria": ("v",),
+
+        # Equipe
+        "usuarios": ("v",),
+        "perfis": ("v",),
+
+        # Configurações
+        "configuracao_clinica": ("v",),
     },
 }
 
@@ -198,18 +270,20 @@ def aplicar_permissoes_padrao(perfil):
     if not permissoes:
         return
 
-    for nome_modulo, acoes in permissoes.items():
+    for codigo_modulo, acoes in permissoes.items():
 
         try:
             modulo = Modulo.objects.get(
-                nome=nome_modulo,
+                codigo=codigo_modulo,
                 ativo=True
             )
 
         except Modulo.DoesNotExist:
+
+            print(f'⚠️ Módulo "{codigo_modulo}" não encontrado.')
             continue
 
-        permissao, _ = Permissao.objects.get_or_create(
+        permissao, criado = Permissao.objects.get_or_create(
             perfil=perfil,
             modulo=modulo
         )
