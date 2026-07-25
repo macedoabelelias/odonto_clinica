@@ -663,6 +663,16 @@ path(
     name='caixa'
 ),
 
+# =========================================
+# LIVRO CAIXA
+# =========================================
+
+path(
+    "financeiro/livro-caixa/",
+    views.livro_caixa,
+    name="livro_caixa",
+),
+
 path(
     'orcamentos/central/',
     views.central_orcamentos,
@@ -1130,6 +1140,8 @@ path(
     views.gerar_pdf_relatorio_aniversariantes,
     name='pdf_relatorio_aniversariantes'
 ),
+
+
 
 ]
 

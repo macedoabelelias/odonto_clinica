@@ -3694,8 +3694,199 @@ class Caixa(models.Model):
             f'{self.descricao}'
 
         )
-    
 
+# =========================================
+# LIVRO CAIXA
+# =========================================
+
+class LivroCaixa(models.Model):
+
+    TIPO_CHOICES = [
+
+        ('ENTRADA', 'Entrada'),
+        ('SAIDA', 'Saída'),
+
+    ]
+
+    ORIGEM_CHOICES = [
+
+        ('CONTA_RECEBER', 'Conta a Receber'),
+        ('CONTA_PAGAR', 'Conta a Pagar'),
+        ('COMPRA', 'Compra'),
+        ('COMISSAO', 'Comissão'),
+        ('AJUSTE', 'Ajuste'),
+        ('MANUAL', 'Manual'),
+
+    ]
+
+    # =========================================
+    # DADOS DO LANÇAMENTO
+    # =========================================
+
+    data = models.DateField()
+
+    tipo = models.CharField(
+        max_length=10,
+        choices=TIPO_CHOICES
+    )
+
+    origem = models.CharField(
+        max_length=30,
+        choices=ORIGEM_CHOICES
+    )
+
+    descricao = models.CharField(
+        max_length=255
+    )
+
+    entrada = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
+
+    saida = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
+
+    saldo = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
+
+    # =========================================
+    # RELACIONAMENTOS
+    # =========================================
+
+    paciente = models.ForeignKey(
+
+        Paciente,
+
+        on_delete=models.SET_NULL,
+
+        null=True,
+
+        blank=True,
+
+        related_name="livro_caixa"
+
+    )
+
+    fornecedor = models.ForeignKey(
+
+        Fornecedor,
+
+        on_delete=models.SET_NULL,
+
+        null=True,
+
+        blank=True,
+
+        related_name="livro_caixa"
+
+    )
+
+    profissional = models.ForeignKey(
+
+        PerfilUsuario,
+
+        on_delete=models.SET_NULL,
+
+        null=True,
+
+        blank=True,
+
+        related_name="livro_caixa"
+
+    )
+
+    compra = models.ForeignKey(
+
+        Compra,
+
+        on_delete=models.SET_NULL,
+
+        null=True,
+
+        blank=True,
+
+        related_name="livro_caixa"
+
+    )
+
+    conta_receber = models.ForeignKey(
+
+        'ContaReceber',
+
+        on_delete=models.SET_NULL,
+
+        null=True,
+
+        blank=True,
+
+        related_name="lancamentos_livro_caixa"
+
+    )
+
+    conta_pagar = models.ForeignKey(
+
+        'ContaPagar',
+
+        on_delete=models.SET_NULL,
+
+        null=True,
+
+        blank=True,
+
+        related_name="lancamentos_livro_caixa"
+
+    )
+
+    # =========================================
+    # OBSERVAÇÕES
+    # =========================================
+
+    observacao = models.TextField(
+
+        blank=True,
+
+        null=True
+
+    )
+
+    criado_em = models.DateTimeField(
+
+        auto_now_add=True
+
+    )
+
+    # =========================================
+    # CONFIGURAÇÕES
+    # =========================================
+
+    class Meta:
+
+        ordering = [
+
+            "-data",
+            "-id"
+
+        ]
+
+        verbose_name = "Livro Caixa"
+
+        verbose_name_plural = "Livro Caixa"
+
+    def __str__(self):
+
+        return (
+            f"{self.data} - "
+            f"{self.descricao}"
+        )
+    
 # =========================================
 # AUDITORIA
 # =========================================

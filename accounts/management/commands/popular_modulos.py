@@ -40,9 +40,13 @@ class Command(BaseCommand):
         ("contas_receber", "Contas a Receber", "Financeiro", "fa-hand-holding-dollar", 30),
         ("contas_pagar", "Contas a Pagar", "Financeiro", "fa-file-invoice-dollar", 31),
         ("caixa", "Caixa", "Financeiro", "fa-cash-register", 32),
+
+        # NOVA ETAPA 4
         ("livro_caixa", "Livro Caixa", "Financeiro", "fa-book", 33),
+
+        # ETAPAS FUTURAS
         ("fluxo_caixa", "Fluxo de Caixa", "Financeiro", "fa-chart-line", 34),
-        ("dre", "DRE", "Financeiro", "fa-chart-pie", 35),
+        ("dre", "DRE Simplificada", "Financeiro", "fa-chart-pie", 35),
         ("fechamento_mensal", "Fechamento Mensal", "Financeiro", "fa-calendar-check", 36),
 
         # =====================================================
@@ -88,6 +92,7 @@ class Command(BaseCommand):
         # =====================================================
 
         ("auditoria", "Auditoria", "Auditoria", "fa-user-shield", 90),
+
     ]
 
     def handle(self, *args, **options):
@@ -105,7 +110,7 @@ class Command(BaseCommand):
                     "icone": icone,
                     "ordem": ordem,
                     "ativo": True,
-                }
+                },
             )
 
             if criado:
@@ -113,20 +118,24 @@ class Command(BaseCommand):
             else:
                 atualizados += 1
 
+        total = len(self.MODULOS)
+
         self.stdout.write(
-            self.style.SUCCESS(
-                f"✔ {criados} módulos criados."
-            )
+            self.style.SUCCESS("=" * 60)
         )
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"✔ {atualizados} módulos atualizados."
-            )
+            self.style.SUCCESS(f"✔ Módulos criados: {criados}")
         )
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"✔ Total de módulos processados: {len(self.MODULOS)}."
-            )
+            self.style.SUCCESS(f"✔ Módulos atualizados: {atualizados}")
+        )
+
+        self.stdout.write(
+            self.style.SUCCESS(f"✔ Total processado: {total}")
+        )
+
+        self.stdout.write(
+            self.style.SUCCESS("=" * 60)
         )

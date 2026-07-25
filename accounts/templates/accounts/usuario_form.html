@@ -396,27 +396,47 @@
 
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
+
+    <label class="form-label">
+        Especialidade
+    </label>
+
+    <input
+        type="text"
+        name="especialidade"
+        class="form-control"
+        value="{{ perfil.especialidade|default:'' }}">
+
+</div>
+
+                <div class="col-md-2">
 
                     <label class="form-label">
-
-                        Especialidade
-
+                        Comissão (%)
                     </label>
 
                     <input
-                        type="text"
-                        name="especialidade"
-                        class="form-control">
+                        type="number"
+                        name="percentual_comissao"
+                        class="form-control"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value="{{ perfil.percentual_comissao|default:'40.00' }}">
+
+                    <small class="text-muted">
+
+                        Percentual sobre os tratamentos.
+
+                    </small>
 
                 </div>
 
                 <div class="col-md-4">
 
                     <label class="form-label">
-
                         Assinatura Digital
-
                     </label>
 
                     <input

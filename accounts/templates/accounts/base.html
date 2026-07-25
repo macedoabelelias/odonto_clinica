@@ -1,6 +1,7 @@
 {% load static %}
 {% load permissions_tags %}
 
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -164,7 +165,7 @@ ATENDIMENTO
         </li>
         {% endif %}
 
-        <!-- {% possui_permissao request.user 'orcamentos' as pode_ver_orcamentos %}
+        {% possui_permissao request.user 'orcamentos' as pode_ver_orcamentos %}
         {% if pode_ver_orcamentos %}
         <li class="{% if 'central_orcamentos' in request.path %}active{% endif %}">
             <a href="{% url 'central_orcamentos' %}">
@@ -172,7 +173,7 @@ ATENDIMENTO
                 <span>Orçamentos</span>
             </a>
         </li>
-        {% endif %} -->
+        {% endif %}
 
         {% possui_permissao request.user 'relatorios' as pode_ver_relatorios %}
         {% if pode_ver_relatorios %}
@@ -313,6 +314,17 @@ FINANCEIRO
 
         </li>
 
+        {% endif %}
+
+       {% possui_permissao request.user "livro_caixa" "visualizar" as pode_ver_livro_caixa %}
+
+        {% if pode_ver_livro_caixa %}
+        <li>
+            <a href="{% url 'livro_caixa' %}">
+                <i class="fa-solid fa-book"></i>
+                Livro Caixa
+            </a>
+        </li>
         {% endif %}
 
     </ul>

@@ -67,12 +67,16 @@ from .models import (
     LoteProduto,
     ContaPagar,
     ContaReceber,
-    Caixa, 
+    Caixa,
+    LivroCaixa, 
     Perfil,
     PerfilUsuario,
     Modulo,
     Permissao,
 )
+
+from .services import registrar_auditoria
+from .financeiro import registrar_livro_caixa
 
 from .permissoes_padrao import aplicar_permissoes_padrao
 from .permissions import tem_permissao
@@ -121,6 +125,9 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Border, Side
 
 from django.contrib.auth.models import User
+
+
+
 
 # =========================================
 # LOGIN
@@ -585,7 +592,7 @@ def dashboard_view(request):
         )
     )
 
-        # =========================================
+    # =========================================
     # RANKING DOS DENTISTAS
     # =========================================
 
@@ -601,27 +608,9 @@ def dashboard_view(request):
         Tratamento.objects.filter(
             dentista__isnull=False
         )
-        .select_related(
-            "dentista"
-        )
-        .prefetch_related(
-            "orcamentos"
-        )
+        .select_related("dentista")
+        .prefetch_related("orcamentos")
     )
-
-    # =========================================
-    # FILTRO POR PERFIL
-    # =========================================
-
-    if dashboard_tipo == "dentista":
-
-        tratamentos = tratamentos.filter(
-            dentista=request.user
-        )
-
-    # =========================================
-    # CÁLCULO DA PRODUÇÃO
-    # =========================================
 
     for tratamento in tratamentos:
 
@@ -631,9 +620,7 @@ def dashboard_view(request):
 
         for orcamento in orcamentos:
 
-            ranking_dict[
-                tratamento.dentista
-            ] += orcamento.total
+            ranking_dict[tratamento.dentista] += orcamento.total
 
     ranking_dentistas = sorted(
         ranking_dict.items(),
@@ -641,12 +628,52 @@ def dashboard_view(request):
         reverse=True,
     )
 
-    # Administrador e Gestor veem o Top 5.
+    # Administrador e Gestor exibem apenas o Top 5
     if dashboard_tipo != "dentista":
-
         ranking_dentistas = ranking_dentistas[:5]
 
-        # =========================================
+    # =========================================
+    # MINHA PRODUÇÃO
+    # =========================================
+
+    minha_producao = Decimal("0.00")
+
+    if dashboard_tipo == "dentista":
+
+        minha_producao = ranking_dict.get(
+            request.user,
+            Decimal("0.00")
+        )
+
+    # =========================================
+    # POSIÇÃO DO DENTISTA
+    # =========================================
+
+    minha_posicao = None
+    total_dentistas = len(ranking_dentistas)
+    barra_percentual = 0
+
+    if dashboard_tipo == "dentista":
+
+        for indice, (dentista, producao) in enumerate(
+            ranking_dentistas,
+            start=1
+        ):
+
+            if dentista == request.user:
+
+                minha_posicao = indice
+                break
+
+        if minha_posicao and total_dentistas > 0:
+
+            barra_percentual = int(
+                (
+                    (total_dentistas - minha_posicao + 1)
+                    / total_dentistas
+                ) * 100
+            )
+    # =========================================
     # CONTEXT
     # =========================================
 
@@ -680,13 +707,22 @@ def dashboard_view(request):
 
         "lucro_hoje": lucro_hoje,
 
-        # =========================================
+                # =========================================
         # DASHBOARD
         # =========================================
 
         "ultimas_movimentacoes": ultimas_movimentacoes,
         "proximas_consultas": proximas_consultas,
+
+        # Ranking
         "ranking_dentistas": ranking_dentistas,
+        "minha_producao": minha_producao,
+
+        "minha_posicao": minha_posicao,
+        "total_dentistas": total_dentistas,
+        "barra_percentual": barra_percentual,
+
+        # Listas
         "aniversariantes": aniversariantes,
 
         # =========================================
@@ -6363,12 +6399,10 @@ def novo_usuario(request):
 # =========================================
 # EDITAR USUÁRIO
 # =========================================
-
 @login_required
 def editar_usuario(request, id):
 
     usuario = get_object_or_404(User, id=id)
-
     perfil = usuario.perfil
 
     if request.method == "POST":
@@ -6378,20 +6412,17 @@ def editar_usuario(request, id):
         # =========================================
 
         usuario.first_name = request.POST.get("nome")
-
         usuario.username = request.POST.get("username")
-
         usuario.email = request.POST.get("email")
-
         usuario.save()
 
         # =========================================
         # DADOS DO PERFIL
         # =========================================
 
-        perfil.perfil_acesso_id = request.POST.get(
-            "perfil_acesso"
-        ) or None
+        perfil.perfil_acesso_id = (
+            request.POST.get("perfil_acesso") or None
+        )
 
         # =========================================
         # COMPATIBILIDADE COM O CAMPO ANTIGO
@@ -6400,7 +6431,6 @@ def editar_usuario(request, id):
         if perfil.perfil_acesso:
 
             mapa = {
-
                 "Administrador": PerfilUsuario.ADMIN,
                 "Gestor": PerfilUsuario.GESTOR,
                 "Dentista": PerfilUsuario.DENTISTA,
@@ -6409,15 +6439,11 @@ def editar_usuario(request, id):
                 "Contabilidade": PerfilUsuario.CONTABILIDADE,
                 "Marketing": PerfilUsuario.MARKETING,
                 "Auditoria": PerfilUsuario.AUDITORIA,
-
             }
 
             perfil.tipo_usuario = mapa.get(
-
                 perfil.perfil_acesso.nome,
-
                 perfil.tipo_usuario
-
             )
 
         # =========================================
@@ -6425,81 +6451,38 @@ def editar_usuario(request, id):
         # =========================================
 
         perfil.cro = request.POST.get("cro")
-
         perfil.cro_uf = request.POST.get("cro_uf")
-
-        perfil.especialidade = request.POST.get(
-            "especialidade"
+        perfil.especialidade = request.POST.get("especialidade")
+        perfil.percentual_comissao = (
+            request.POST.get("percentual_comissao") or None
         )
-
-        perfil.telefone = request.POST.get(
-            "telefone"
+        perfil.telefone = request.POST.get("telefone")
+        perfil.celular = request.POST.get("celular")
+        perfil.cpf = request.POST.get("cpf")
+        perfil.rg = request.POST.get("rg")
+        perfil.data_nascimento = (
+            request.POST.get("data_nascimento") or None
         )
-
-        perfil.celular = request.POST.get(
-            "celular"
-        )
-
-        perfil.cpf = request.POST.get(
-            "cpf"
-        )
-
-        perfil.rg = request.POST.get(
-            "rg"
-        )
-
-        perfil.data_nascimento = request.POST.get(
-            "data_nascimento"
-        ) or None
-
-        perfil.sexo = request.POST.get(
-            "sexo"
-        )
-
-        perfil.cep = request.POST.get(
-            "cep"
-        )
-
-        perfil.logradouro = request.POST.get(
-            "logradouro"
-        )
-
-        perfil.numero = request.POST.get(
-            "numero"
-        )
-
-        perfil.complemento = request.POST.get(
-            "complemento"
-        )
-
-        perfil.bairro = request.POST.get(
-            "bairro"
-        )
-
-        perfil.cidade = request.POST.get(
-            "cidade"
-        )
-
-        perfil.uf = request.POST.get(
-            "uf"
-        )
+        perfil.sexo = request.POST.get("sexo")
+        perfil.cep = request.POST.get("cep")
+        perfil.logradouro = request.POST.get("logradouro")
+        perfil.numero = request.POST.get("numero")
+        perfil.complemento = request.POST.get("complemento")
+        perfil.bairro = request.POST.get("bairro")
+        perfil.cidade = request.POST.get("cidade")
+        perfil.uf = request.POST.get("uf")
 
         if request.FILES.get("foto"):
-
             perfil.foto = request.FILES["foto"]
 
         if request.FILES.get("assinatura"):
-
             perfil.assinatura = request.FILES["assinatura"]
 
         perfil.save()
 
         messages.success(
-
             request,
-
             "Usuário atualizado com sucesso."
-
         )
 
         return redirect("usuarios")
@@ -6508,35 +6491,24 @@ def editar_usuario(request, id):
     # PERFIS DE ACESSO
     # =========================================
 
-    perfis = Perfil.objects.filter(
-
-        ativo=True
-
-    ).order_by(
-
-        "nome"
-
+    perfis = (
+        Perfil.objects
+        .filter(ativo=True)
+        .order_by("nome")
     )
 
     context = {
-
         "usuario": usuario,
-
         "perfil": perfil,
-
         "perfis": perfis,
-
     }
 
     return render(
-
         request,
-
         "accounts/usuario_form.html",
-
         context
-
     )
+
 # ==============================================================
 
 @login_required
@@ -6740,9 +6712,27 @@ def meu_perfil(request):
         # DADOS PROFISSIONAIS
         # =====================================
 
-        perfil.cro = request.POST.get('cro')
-        perfil.cro_uf = request.POST.get('cro_uf')
-        perfil.especialidade = request.POST.get('especialidade')
+        perfil.cro = request.POST.get("cro")
+
+        perfil.cro_uf = request.POST.get("cro_uf")
+
+        perfil.especialidade = request.POST.get(
+            "especialidade"
+        )
+
+        # =========================================
+        # COMISSÃO
+        # =========================================
+
+        percentual = request.POST.get("percentual_comissao")
+
+        if percentual:
+
+            perfil.percentual_comissao = percentual
+
+        perfil.telefone = request.POST.get(
+            "telefone"
+        )
 
         # =====================================
         # FOTO
@@ -8731,15 +8721,10 @@ def contas_pagar(request):
     )
 
     # Filtro por status
-    status = request.GET.get(
-        'status'
-    )
+    status = request.GET.get('status')
 
     if status:
-
-        contas = contas.filter(
-            status=status
-        )
+        contas = contas.filter(status=status)
 
     contas_pendentes = ContaPagar.objects.filter(
         status='PENDENTE'
@@ -8789,13 +8774,9 @@ def contas_pagar(request):
     }
 
     return render(
-
         request,
-
         'accounts/contas_pagar.html',
-
         context
-
     )
 
 # =========================================
@@ -8863,7 +8844,7 @@ def nova_conta_pagar(request):
 # PAGAR CONTA
 # =========================================
 
-@login_required
+@login_required(login_url="/")
 @permissao_required("contas_pagar", "financeiro")
 def pagar_conta(request, conta_id):
 
@@ -8872,22 +8853,44 @@ def pagar_conta(request, conta_id):
         id=conta_id
     )
 
-    if conta.status != 'PAGO':
+    # =========================================
+    # EVITA PAGAMENTO DUPLICADO
+    # =========================================
 
-        conta.status = 'PAGO'
+    if conta.status == "PAGO":
 
-        conta.data_pagamento = timezone.now().date()
+        messages.warning(
+            request,
+            "Esta conta já foi paga."
+        )
 
-        conta.save()
+        return redirect("contas_pagar")
 
-        # Lança saída no Caixa
+    # =========================================
+    # PAGA A CONTA
+    # =========================================
+
+    conta.status = "PAGO"
+
+    conta.data_pagamento = timezone.now().date()
+
+    conta.save()
+
+    # =========================================
+    # LANÇA SAÍDA NO CAIXA
+    # =========================================
+
+    if not Caixa.objects.filter(
+        conta_pagar=conta
+    ).exists():
+
         Caixa.objects.create(
 
-            data=timezone.now().date(),
+            data=conta.data_pagamento,
 
             descricao=conta.descricao,
 
-            tipo='SAIDA',
+            tipo="SAIDA",
 
             valor=conta.valor,
 
@@ -8895,16 +8898,49 @@ def pagar_conta(request, conta_id):
 
         )
 
-        messages.success(
+    # =========================================
+    # LANÇA NO LIVRO CAIXA
+    # =========================================
 
-            request,
+    registrar_livro_caixa(
 
-            'Conta paga com sucesso.'
+        data=conta.data_pagamento,
 
+        tipo="SAIDA",
+
+        origem="CONTA_PAGAR",
+
+        descricao=conta.descricao,
+
+        valor=conta.valor,
+
+        fornecedor=conta.fornecedor,
+
+        profissional=conta.profissional,
+
+        conta_pagar=conta,
+
+        observacao=(
+            f"Pagamento da Conta a Pagar "
+            f"#{conta.id}"
         )
 
+    )
+
+    # =========================================
+    # MENSAGEM
+    # =========================================
+
+    messages.success(
+
+        request,
+
+        "Conta paga com sucesso."
+
+    )
+
     return redirect(
-        'contas_pagar'
+        "contas_pagar"
     )
 
 # =========================================
@@ -9039,10 +9075,15 @@ def contas_receber(request):
 # =========================================
 
 from decimal import Decimal
+
 from django.db import transaction
+from django.utils import timezone
+
+from .financeiro import registrar_livro_caixa
+
 
 @transaction.atomic
-@login_required(login_url='/')
+@login_required(login_url="/")
 @permissao_required("contas_receber", "financeiro")
 def receber_conta(request, conta_id):
 
@@ -9082,7 +9123,7 @@ def receber_conta(request, conta_id):
 
         Caixa.objects.create(
 
-            data=timezone.now().date(),
+            data=conta.data_recebimento,
 
             descricao=conta.descricao,
 
@@ -9095,10 +9136,43 @@ def receber_conta(request, conta_id):
         )
 
     # =========================================
+    # LANÇA NO LIVRO CAIXA
+    # =========================================
+
+    registrar_livro_caixa(
+
+        data=conta.data_recebimento,
+
+        tipo="ENTRADA",
+
+        origem="CONTA_RECEBER",
+
+        descricao=conta.descricao,
+
+        valor=conta.valor,
+
+        paciente=conta.paciente,
+
+        profissional=conta.dentista,
+
+        conta_receber=conta,
+
+        observacao=(
+            f"Recebimento da parcela "
+            f"{conta.numero_parcela}"
+        )
+
+    )
+
+    # =========================================
     # GERA COMISSÃO DO DENTISTA
     # =========================================
 
-    tratamento = getattr(conta.orcamento, "tratamento", None)
+    tratamento = getattr(
+        conta.orcamento,
+        "tratamento",
+        None
+    )
 
     if tratamento and tratamento.dentista:
 
@@ -9114,7 +9188,6 @@ def receber_conta(request, conta_id):
 
         if perfil:
 
-            # Evita comissão duplicada
             if not ContaPagar.objects.filter(
                 conta_receber=conta
             ).exists():
@@ -9123,9 +9196,15 @@ def receber_conta(request, conta_id):
                     perfil.percentual_comissao or 0
                 )
 
+                print("=" * 60)
+                print("Dentista:", tratamento.dentista)
+                print("Perfil:", perfil)
+                print("Percentual:", perfil.percentual_comissao)
+                print("Valor da Conta:", conta.valor)
+                print("=" * 60)
+
                 valor_comissao = (
-                    (conta.valor * percentual) /
-                    Decimal("100")
+                    conta.valor * percentual / Decimal("100")
                 ).quantize(
                     Decimal("0.01")
                 )
@@ -9149,8 +9228,7 @@ def receber_conta(request, conta_id):
 
                     observacao=(
                         f"Comissão automática referente "
-                        f"à Conta a Receber "
-                        f"#{conta.id}"
+                        f"à Conta a Receber #{conta.id}"
                     )
 
                 )
@@ -9160,18 +9238,15 @@ def receber_conta(request, conta_id):
     # =========================================
 
     messages.success(
-
         request,
-
         "Conta recebida com sucesso."
-
     )
 
     return redirect(
-
         "contas_receber"
-
     )
+
+
 
 # =========================================
 # CAIXA
@@ -9219,6 +9294,49 @@ def caixa(request):
         context
 
     )
+
+# =========================================
+# LIVRO CAIXA
+# =========================================
+
+@login_required(login_url="/")
+@permissao_required("livro_caixa", "financeiro")
+def livro_caixa(request):
+
+    data_inicio = request.GET.get("data_inicio")
+    data_final = request.GET.get("data_final")
+
+    lancamentos = LivroCaixa.objects.all()
+
+    if data_inicio:
+        lancamentos = lancamentos.filter(
+            data__gte=data_inicio
+        )
+
+    if data_final:
+        lancamentos = lancamentos.filter(
+            data__lte=data_final
+        )
+
+    context = {
+
+        "lancamentos": lancamentos,
+
+        "data_inicio": data_inicio,
+
+        "data_final": data_final,
+
+    }
+
+    return render(
+
+        request,
+
+        "accounts/livro_caixa.html",
+
+        context
+
+    )  
 
 # =========================================
 # CENTRAL ORÇAMENTO
