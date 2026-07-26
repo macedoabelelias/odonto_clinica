@@ -2599,7 +2599,6 @@ class PerfilUsuario(models.Model):
         null=True
 
     )
-
     # =========================================
     # COMISSÃO
     # =========================================
@@ -2615,6 +2614,24 @@ class PerfilUsuario(models.Model):
         default=40.00,
 
         help_text="Percentual de comissão do dentista."
+
+    )
+
+    # =========================================
+    # META MENSAL
+    # =========================================
+
+    meta_mensal = models.DecimalField(
+
+        "Meta Mensal (R$)",
+
+        max_digits=10,
+
+        decimal_places=2,
+
+        default=0.00,
+
+        help_text="Meta mensal de produção do dentista."
 
     )
 
@@ -2637,6 +2654,7 @@ class PerfilUsuario(models.Model):
         null=True
 
     )
+    
     # =========================================
     # DADOS PESSOAIS
     # =========================================

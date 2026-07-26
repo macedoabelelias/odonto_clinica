@@ -277,6 +277,8 @@ ANIVERSARIANTES
 }
 
 
+
+
 </style>
 
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -288,11 +290,15 @@ ANIVERSARIANTES
 
 {% if dashboard_tipo == "dentista" %}
 
-
-
     {% include "accounts/dashboard/dentista/_cards.html" %}
     {% include "accounts/dashboard/dentista/_content_grid.html" %}
     {% include "accounts/dashboard/dentista/_content_bottom.html" %}
+
+{% elif dashboard_tipo == "acd" %}
+
+    {% include "accounts/dashboard/acd/_cards.html" %}
+    {% include "accounts/dashboard/acd/_content_grid.html" %}
+    {% include "accounts/dashboard/acd/_content_bottom.html" %}
 
 {% else %}
 
@@ -301,7 +307,6 @@ ANIVERSARIANTES
     {% include "accounts/dashboard/ativos/_content_bottom.html" %}
 
 {% endif %}
-
 
 <script>
 
