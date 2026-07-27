@@ -1,16 +1,16 @@
 from django import forms
+from django.contrib.auth.models import User
 
 from .models import (
-
     Procedimento,
     Orcamento,
     ItemOrcamento,
     Convenio,
     Perfil,
-
+    Receita,
+    ModeloReceita,
+    MetaDentista,
 )
-
-from .models import Receita, ModeloReceita
 
 # =========================================
 # FORM PROCEDIMENTO
@@ -410,4 +410,112 @@ class PerfilForm(forms.ModelForm):
 
             ),
 
-        }     
+        }  
+
+# =========================================
+# FORM META DOS DENTISTAS
+# =========================================
+
+class MetaDentistaForm(forms.ModelForm):
+
+    class Meta:
+
+        model = MetaDentista
+
+        fields = [
+
+            "dentista",
+
+            "mes",
+
+            "ano",
+
+            "meta_financeira",
+
+            "observacoes",
+
+        ]
+
+        widgets = {
+
+            "dentista": forms.Select(
+
+                attrs={
+
+                    "class": "form-select shadow-sm",
+
+                }
+
+            ),
+
+            "mes": forms.NumberInput(
+
+                attrs={
+
+                    "class": "form-control shadow-sm",
+
+                    "min": 1,
+
+                    "max": 12,
+
+                }
+
+            ),
+
+            "ano": forms.NumberInput(
+
+                attrs={
+
+                    "class": "form-control shadow-sm",
+
+                }
+
+            ),
+
+            "meta_financeira": forms.NumberInput(
+
+                attrs={
+
+                    "class": "form-control shadow-sm",
+
+                    "step": "0.01",
+
+                }
+
+            ),
+
+            "observacoes": forms.Textarea(
+
+                attrs={
+
+                    "class": "form-control shadow-sm",
+
+                    "rows": 3,
+
+                }
+
+            ),
+
+        }
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.fields["dentista"].queryset = (
+
+            User.objects.filter(
+
+                perfilusuario__tipo_usuario="DENTISTA"
+
+            )
+
+            .order_by(
+
+                "first_name",
+
+                "last_name",
+
+            )
+
+        )   

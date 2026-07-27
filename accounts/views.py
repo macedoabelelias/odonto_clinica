@@ -68,7 +68,8 @@ from .models import (
     ContaPagar,
     ContaReceber,
     Caixa,
-    LivroCaixa, 
+    CaixaDiario,
+    LivroCaixa,
     Perfil,
     PerfilUsuario,
     Modulo,
@@ -757,6 +758,62 @@ def dashboard_view(request):
     )
 
     # =========================================
+    # DESEMPENHO DOS DENTISTAS
+    # =========================================
+
+    desempenho_dentistas = []
+
+    for dentista, producao in ranking_dentistas:
+
+        if (
+            dashboard_tipo == "dentista"
+            and dentista != request.user
+        ):
+            continue
+
+        perfil = getattr(
+            dentista,
+            "perfil",
+            None
+        )
+
+        meta = Decimal("0.00")
+        percentual = 0
+        comissao = Decimal("0.00")
+
+        if perfil:
+
+            meta = perfil.meta_mensal or Decimal("0.00")
+
+            percentual_comissao = (
+                perfil.percentual_comissao
+                or Decimal("0.00")
+            )
+
+            comissao = (
+                producao * percentual_comissao
+            ) / Decimal("100")
+
+            if meta > 0:
+
+                percentual = int(
+                    min(
+                        (producao / meta) * 100,
+                        100
+                    )
+                )
+
+        desempenho_dentistas.append({
+
+            "dentista": dentista,
+            "producao": producao,
+            "meta": meta,
+            "percentual": percentual,
+            "comissao": comissao,
+
+        })
+
+    # =========================================
     # POSIÇÃO DO DENTISTA
     # =========================================
 
@@ -1022,6 +1079,7 @@ def dashboard_view(request):
         # =========================================
 
         "ranking_dentistas": ranking_dentistas,
+        "desempenho_dentistas": desempenho_dentistas,
         "minha_producao": minha_producao,
 
         "minha_posicao": minha_posicao,
@@ -9215,7 +9273,9 @@ def pagar_conta(request, conta_id):
 
             valor=conta.valor,
 
-            conta_pagar=conta
+            conta_pagar=conta,
+
+            usuario=request.user
 
         )
 
@@ -9414,6 +9474,42 @@ def receber_conta(request, conta_id):
     )
 
     # =========================================
+    # VERIFICA SE EXISTE ALGUM CAIXA ABERTO
+    # =========================================
+
+    caixa_aberto = CaixaDiario.objects.filter(
+
+        status="ABERTO"
+
+    ).order_by("data").first()
+
+    if caixa_aberto:
+
+        if caixa_aberto.data < hoje:
+
+            messages.error(
+
+                request,
+
+                f"Existe um Caixa aberto do dia "
+                f"{caixa_aberto.data.strftime('%d/%m/%Y')}. "
+                f"Feche-o antes de abrir um novo Caixa."
+
+            )
+
+        else:
+
+            messages.warning(
+
+                request,
+
+                "Já existe um Caixa aberto para hoje."
+
+            )
+
+        return redirect("caixa")
+
+    # =========================================
     # EVITA RECEBIMENTO DUPLICADO
     # =========================================
 
@@ -9446,13 +9542,21 @@ def receber_conta(request, conta_id):
 
             data=conta.data_recebimento,
 
-            descricao=conta.descricao,
+            descricao=(
+
+                f"{conta.paciente.nome} • "
+                f"{conta.descricao} "
+                f"(Parcela {conta.numero_parcela})"
+
+            ),
 
             tipo="ENTRADA",
 
             valor=conta.valor,
 
-            conta_receber=conta
+            conta_receber=conta,
+
+            usuario=request.user
 
         )
 
@@ -9575,34 +9679,196 @@ def receber_conta(request, conta_id):
 
 @login_required
 @permissao_required("caixa", "visualizar")
-
 def caixa(request):
 
-    movimentacoes = Caixa.objects.all()
+    # =========================================
+    # DATA ATUAL
+    # =========================================
 
-    total_entradas = sum(
-        item.valor
-        for item in movimentacoes
-        if item.tipo == 'ENTRADA'
+    hoje = timezone.localdate()
+
+    # =========================================
+    # CAIXA PENDENTE
+    # =========================================
+
+    caixa_pendente = CaixaDiario.objects.filter(
+
+        status="ABERTO",
+
+        data__lt=hoje
+
+    ).order_by(
+
+        "data"
+
+    ).first()
+
+    # =========================================
+    # FILTROS
+    # =========================================
+
+    data_inicial = request.GET.get("data_inicial")
+    data_final = request.GET.get("data_final")
+    tipo = request.GET.get("tipo")
+    descricao = request.GET.get("descricao")
+
+    # =========================================
+    # MOVIMENTAÇÕES
+    # =========================================
+
+    movimentacoes = Caixa.objects.all().order_by(
+
+        "-data",
+
+        "-id"
+
     )
 
-    total_saidas = sum(
-        item.valor
-        for item in movimentacoes
-        if item.tipo == 'SAIDA'
-    )
+    # =========================================
+    # APLICA FILTROS
+    # =========================================
+
+    if data_inicial:
+
+        movimentacoes = movimentacoes.filter(
+
+            data__gte=data_inicial
+
+        )
+
+    if data_final:
+
+        movimentacoes = movimentacoes.filter(
+
+            data__lte=data_final
+
+        )
+
+    if tipo:
+
+        movimentacoes = movimentacoes.filter(
+
+            tipo=tipo
+
+        )
+
+    if descricao:
+
+        movimentacoes = movimentacoes.filter(
+
+            descricao__icontains=descricao
+
+        )
+
+    # =========================================
+    # TOTAIS
+    # =========================================
+
+    total_entradas = movimentacoes.filter(
+
+        tipo="ENTRADA"
+
+    ).aggregate(
+
+        total=Sum("valor")
+
+    )["total"] or Decimal("0.00")
+
+    total_saidas = movimentacoes.filter(
+
+        tipo="SAIDA"
+
+    ).aggregate(
+
+        total=Sum("valor")
+
+    )["total"] or Decimal("0.00")
 
     saldo = total_entradas - total_saidas
 
+    # =========================================
+    # CAIXA DIÁRIO
+    # =========================================
+
+    caixa_aberto = CaixaDiario.objects.filter(
+
+        data=hoje,
+
+        status="ABERTO"
+
+    ).first()
+
+    caixa_fechado = CaixaDiario.objects.filter(
+
+        data=hoje,
+
+        status="FECHADO"
+
+    ).first()
+
+    caixa_dia = caixa_aberto or caixa_fechado
+
+    # =========================================
+    # ÚLTIMO CAIXA FECHADO
+    # =========================================
+
+    ultimo_caixa = CaixaDiario.objects.filter(
+
+        data_fechamento__isnull=False
+
+    ).order_by(
+
+        "-data_fechamento",
+
+        "-id"
+
+    ).first()
+
+    saldo_sugerido = Decimal("0.00")
+
+    if ultimo_caixa:
+
+        saldo_sugerido = ultimo_caixa.saldo_final
+
+    # =========================================
+    # HISTÓRICO DE FECHAMENTOS
+    # =========================================
+
+    historico_caixa = CaixaDiario.objects.filter(
+
+        data_fechamento__isnull=False
+
+    ).order_by(
+
+        "-data_fechamento",
+
+        "-id"
+
+    )
+
+    # =========================================
+    # CONTEXT
+    # =========================================
+
     context = {
 
-        'movimentacoes': movimentacoes,
+        "movimentacoes": movimentacoes,
 
-        'total_entradas': total_entradas,
+        "total_entradas": total_entradas,
 
-        'total_saidas': total_saidas,
+        "total_saidas": total_saidas,
 
-        'saldo': saldo,
+        "saldo": saldo,
+
+        "caixa_aberto": caixa_aberto,
+
+        "caixa_fechado": caixa_fechado,
+
+        "caixa_dia": caixa_dia,
+
+        "saldo_sugerido": saldo_sugerido,
+
+        "historico_caixa": historico_caixa,
 
     }
 
@@ -9610,11 +9876,223 @@ def caixa(request):
 
         request,
 
-        'accounts/caixa.html',
+        "accounts/caixa.html",
 
         context
 
     )
+
+# =========================================
+# ABRIR CAIXA
+# =========================================
+
+@login_required
+@permissao_required("caixa", "inserir")
+def abrir_caixa(request):
+
+    if request.method != "POST":
+
+        return redirect("caixa")
+
+    hoje = timezone.localdate()
+
+    caixa_aberto = CaixaDiario.objects.filter(
+
+        data=hoje,
+
+        status="ABERTO"
+
+    ).first()
+
+    if caixa_aberto:
+
+        messages.warning(
+
+            request,
+
+            "Você já possui um Caixa aberto."
+
+        )
+
+        return redirect("caixa")
+
+    saldo_inicial = request.POST.get(
+        "saldo_inicial",
+        0
+    )
+
+    observacoes = request.POST.get(
+        "observacoes",
+        ""
+    )
+
+    CaixaDiario.objects.create(
+
+        data=hoje,
+
+        usuario=request.user,
+
+        saldo_inicial=saldo_inicial,
+
+        observacoes=observacoes,
+
+        status="ABERTO"
+
+    )
+
+    messages.success(
+
+        request,
+
+        "Caixa aberto com sucesso."
+
+    )
+
+    return redirect("caixa")
+
+# =========================================
+# FECHAR CAIXA
+# =========================================
+
+@login_required
+@permissao_required("caixa", "editar")
+def fechar_caixa(request):
+
+    if request.method != "POST":
+        return redirect("caixa")
+
+
+    caixa = CaixaDiario.objects.filter(
+
+        data=timezone.localdate(),
+
+        status="ABERTO"
+
+    ).first()
+
+    if not caixa:
+
+        messages.warning(
+
+            request,
+
+             "Não existe um Caixa aberto para hoje."
+
+        )
+
+        return redirect("caixa")
+
+    entradas = Caixa.objects.filter(
+
+        data=caixa.data,
+
+        tipo="ENTRADA"
+
+    ).aggregate(
+
+        total=Sum("valor")
+
+    )["total"] or Decimal("0.00")
+
+    saidas = Caixa.objects.filter(
+
+        data=caixa.data,
+
+        tipo="SAIDA"
+
+    ).aggregate(
+
+        total=Sum("valor")
+
+    )["total"] or Decimal("0.00")
+
+    print("=" * 60)
+    print("SALDO INICIAL:", caixa.saldo_inicial)
+    print("ENTRADAS:", entradas)
+    print("SAÍDAS:", saidas)
+    print("=" * 60)
+
+    caixa.saldo_final = (
+
+        caixa.saldo_inicial +
+
+        entradas -
+
+        saidas
+
+    )
+
+    print("SALDO FINAL:", caixa.saldo_final)
+    print("=" * 60)
+
+    caixa.data_fechamento = timezone.now()
+
+    caixa.status = "FECHADO"
+
+    caixa.save()
+
+    messages.success(
+
+        request,
+
+        "Caixa fechado com sucesso."
+
+    )
+
+    return redirect("caixa")
+
+# =========================================
+# REABRIR CAIXA
+# =========================================
+
+@login_required
+@permissao_required("caixa", "editar")
+def reabrir_caixa(request):
+
+    if request.method != "POST":
+
+        return redirect("caixa")
+
+    caixa = CaixaDiario.objects.filter(
+
+        data=timezone.localdate(),
+
+        status="FECHADO"
+
+    ).first()
+
+    if not caixa:
+
+        messages.warning(
+
+            request,
+
+            "Não existe um Caixa fechado para hoje."
+
+        )
+
+        return redirect("caixa")
+
+    # =========================================
+    # REABRE O CAIXA
+    # =========================================
+
+    caixa.status = "ABERTO"
+
+    # NÃO APAGAR O HISTÓRICO
+    # caixa.data_fechamento = None
+
+    caixa.save()
+
+    messages.success(
+
+        request,
+
+        "Caixa reaberto com sucesso."
+
+    )
+
+    return redirect("caixa")
 
 # =========================================
 # LIVRO CAIXA

@@ -663,6 +663,24 @@ path(
     name='caixa'
 ),
 
+path(
+    'financeiro/caixa/abrir/',
+    views.abrir_caixa,
+    name='abrir_caixa'
+),
+
+path(
+    'financeiro/caixa/fechar/',
+    views.fechar_caixa,
+    name='fechar_caixa'
+),
+
+path(
+    "financeiro/caixa/reabrir/",
+    views.reabrir_caixa,
+    name="reabrir_caixa",
+),
+
 # =========================================
 # LIVRO CAIXA
 # =========================================

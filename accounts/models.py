@@ -2842,6 +2842,103 @@ class PerfilUsuario(models.Model):
             return f"{nome} ({self.get_tipo_usuario_display()})"
 
         return f"{self.usuario.username} ({self.get_tipo_usuario_display()})"
+
+
+# =========================================
+# META DOS DENTISTAS
+# =========================================
+
+class MetaDentista(models.Model):
+
+    dentista = models.ForeignKey(
+
+        User,
+
+        on_delete=models.CASCADE,
+
+        related_name="metas_dentista",
+
+        verbose_name="Dentista",
+
+    )
+
+    mes = models.PositiveSmallIntegerField(
+
+        verbose_name="Mês",
+
+    )
+
+    ano = models.PositiveSmallIntegerField(
+
+        verbose_name="Ano",
+
+    )
+
+    meta_financeira = models.DecimalField(
+
+        "Meta Financeira",
+
+        max_digits=12,
+
+        decimal_places=2,
+
+    )
+
+    observacoes = models.TextField(
+
+        "Observações",
+
+        blank=True,
+
+    )
+
+    criado_em = models.DateTimeField(
+
+        auto_now_add=True,
+
+    )
+
+    atualizado_em = models.DateTimeField(
+
+        auto_now=True,
+
+    )
+
+    class Meta:
+
+        verbose_name = "Meta do Dentista"
+
+        verbose_name_plural = "Metas dos Dentistas"
+
+        ordering = [
+
+            "-ano",
+
+            "-mes",
+
+            "dentista__first_name",
+
+        ]
+
+        unique_together = (
+
+            "dentista",
+
+            "mes",
+
+            "ano",
+
+        )
+
+    def __str__(self):
+
+        return (
+
+            f"{self.dentista.get_full_name() or self.dentista.username}"
+
+            f" - {self.mes:02d}/{self.ano}"
+
+        )
     
 # =========================================
 # FORNECEDORES
@@ -3686,6 +3783,24 @@ class Caixa(models.Model):
 
     )
 
+    # =========================================
+    # USUÁRIO RESPONSÁVEL PELA MOVIMENTAÇÃO
+    # =========================================
+
+    usuario = models.ForeignKey(
+
+        User,
+
+        on_delete=models.SET_NULL,
+
+        null=True,
+
+        blank=True,
+
+        related_name='movimentacoes_caixa'
+
+    )
+
     criado_em = models.DateTimeField(
         auto_now_add=True
     )
@@ -3713,6 +3828,100 @@ class Caixa(models.Model):
 
         )
 
+# =========================================
+# CAIXA DIÁRIO
+# =========================================
+
+class CaixaDiario(models.Model):
+
+    STATUS_CHOICES = [
+
+        ("ABERTO", "Aberto"),
+
+        ("FECHADO", "Fechado"),
+
+    ]
+
+    data = models.DateField()
+
+    usuario = models.ForeignKey(
+
+        User,
+
+        on_delete=models.PROTECT,
+
+        related_name="caixas_diarios",
+
+    )
+
+    saldo_inicial = models.DecimalField(
+
+        max_digits=12,
+
+        decimal_places=2,
+
+        default=0
+
+    )
+
+    saldo_final = models.DecimalField(
+
+        max_digits=12,
+
+        decimal_places=2,
+
+        default=0
+
+    )
+
+    data_abertura = models.DateTimeField(
+
+        auto_now_add=True
+
+    )
+
+    data_fechamento = models.DateTimeField(
+
+        null=True,
+
+        blank=True
+
+    )
+
+    status = models.CharField(
+
+        max_length=10,
+
+        choices=STATUS_CHOICES,
+
+        default="ABERTO"
+
+    )
+
+    observacoes = models.TextField(
+
+        blank=True
+
+    )
+
+    class Meta:
+
+        ordering = [
+
+            "-data",
+
+            "-id"
+
+        ]
+
+        verbose_name = "Caixa Diário"
+
+        verbose_name_plural = "Caixas Diários"
+
+    def __str__(self):
+
+        return f"{self.data} - {self.get_status_display()}"
+        
 # =========================================
 # LIVRO CAIXA
 # =========================================

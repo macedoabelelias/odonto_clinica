@@ -366,90 +366,92 @@
 
             <div class="row g-3">
 
-                <div class="col-md-2">
+    <div class="col-md-2">
 
-                    <label class="form-label">
+        <label class="form-label">
+            CRO
+        </label>
 
-                        CRO
+        <input
+            type="text"
+            name="cro"
+            class="form-control"
+            value="{{ perfil.cro|default:'' }}">
 
-                    </label>
+    </div>
 
-                    <input
-                        type="text"
-                        name="cro"
-                        class="form-control">
+    <div class="col-md-1">
 
-                </div>
+        <label class="form-label">
+            UF CRO
+        </label>
 
-                <div class="col-md-2">
+        <input
+            type="text"
+            name="cro_uf"
+            class="form-control"
+            value="{{ perfil.cro_uf|default:'' }}">
 
-                    <label class="form-label">
+    </div>
 
-                        UF CRO
+    <div class="col-md-2">
 
-                    </label>
+        <label class="form-label">
+            Especialidade
+        </label>
 
-                    <input
-                        type="text"
-                        name="cro_uf"
-                        class="form-control">
+        <input
+            type="text"
+            name="especialidade"
+            class="form-control"
+            value="{{ perfil.especialidade|default:'' }}">
 
-                </div>
+    </div>
 
-                <div class="col-md-3">
+    <div class="col-md-2">
 
-    <label class="form-label">
-        Especialidade
-    </label>
+        <label class="form-label">
+            Comissão (%)
+        </label>
 
-    <input
-        type="text"
-        name="especialidade"
-        class="form-control"
-        value="{{ perfil.especialidade|default:'' }}">
+        <input
+            type="number"
+            name="percentual_comissao"
+            class="form-control"
+            min="0"
+            max="100"
+            step="0.01"
+            value="{{ perfil.percentual_comissao|default:'40.00' }}">
 
-</div>
+    </div>
 
-                <div class="col-md-2">
+    <div class="col-md-2">
 
-                    <label class="form-label">
-                        Comissão (%)
-                    </label>
+        <label class="form-label">
+            Meta Mensal (R$)
+        </label>
 
-                    <input
-                        type="number"
-                        name="percentual_comissao"
-                        class="form-control"
-                        min="0"
-                        max="100"
-                        step="0.01"
-                        value="{{ perfil.percentual_comissao|default:'40.00' }}">
+        <input
+            type="number"
+            name="meta_mensal"
+            class="form-control"
+            min="0"
+            step="0.01"
+            value="{{ perfil.meta_mensal|default:'0.00' }}">
 
-                    <small class="text-muted">
+    </div>
 
-                        Percentual sobre os tratamentos.
+    <div class="col-md-3">
 
-                    </small>
+        <label class="form-label">
+            Assinatura
+        </label>
 
-                </div>
-
-                <div class="col-md-4">
-
-                    <label class="form-label">
-                        Assinatura Digital
-                    </label>
-
-                    <input
-                        type="file"
-                        name="assinatura"
-                        class="form-control"
-                        accept="image/png,image/jpeg">
-
-                </div>
-
-            </div>
-
-        </div>
+        <input
+            type="file"
+            name="assinatura"
+            class="form-control"
+            accept="image/png,image/jpeg">
 
     </div>
 
