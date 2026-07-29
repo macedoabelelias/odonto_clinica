@@ -131,25 +131,33 @@ TERCEIRA LINHA DO DASHBOARD
 .dashboard-row-3{
 
     display:grid;
+
     grid-template-columns:2fr 1fr 1fr;
+
     gap:24px;
-    align-items:stretch;
+
+    align-items:start;
 
 }
 
 .dashboard-row-3 > div{
 
-    height:100%;
+    height:auto;
 
 }
 
 .birthday-card{
 
     background:#fff;
+
     border-radius:16px;
+
     padding:20px;
+
     box-shadow:0 2px 12px rgba(0,0,0,.08);
+
     display:flex;
+
     flex-direction:column;
 
 }
@@ -157,7 +165,9 @@ TERCEIRA LINHA DO DASHBOARD
 .birthday-card .card-header{
 
     display:flex;
+
     align-items:center;
+
     margin-bottom:15px;
 
 }
@@ -165,11 +175,17 @@ TERCEIRA LINHA DO DASHBOARD
 .birthday-card .card-header h5{
 
     margin:0;
-    font-size:1.25rem;
+
+    font-size:18px;
+
     font-weight:700;
+
     color:#111827;
+
     display:flex;
+
     align-items:center;
+
     gap:8px;
 
 }
@@ -177,18 +193,25 @@ TERCEIRA LINHA DO DASHBOARD
 .birthday-card .card-header i{
 
     color:#f59e0b;
+
     font-size:18px;
 
 }
 
 .birthday-empty{
 
-    flex:1;
     display:flex;
+
     align-items:center;
+
     justify-content:center;
+
+    min-height:120px;
+
     color:#6c757d;
+
     font-size:14px;
+
     text-align:center;
 
 }
@@ -200,7 +223,9 @@ ANIVERSARIANTES
 .birthday-list{
 
     display:flex;
+
     flex-direction:column;
+
     gap:12px;
 
 }
@@ -208,9 +233,13 @@ ANIVERSARIANTES
 .birthday-item{
 
     display:flex;
+
     align-items:center;
+
     justify-content:space-between;
+
     padding:10px 0;
+
     border-bottom:1px solid #edf2f7;
 
 }
@@ -224,8 +253,11 @@ ANIVERSARIANTES
 .birthday-date{
 
     width:55px;
+
     font-size:13px;
+
     font-weight:700;
+
     color:#2563eb;
 
 }
@@ -233,6 +265,7 @@ ANIVERSARIANTES
 .birthday-info{
 
     flex:1;
+
     margin-left:10px;
 
 }
@@ -240,7 +273,9 @@ ANIVERSARIANTES
 .birthday-info strong{
 
     display:block;
+
     font-size:14px;
+
     color:#111827;
 
 }
@@ -248,6 +283,7 @@ ANIVERSARIANTES
 .birthday-info small{
 
     font-size:12px;
+
     color:#6b7280;
 
 }
@@ -258,30 +294,38 @@ ANIVERSARIANTES
 
 }
 
-.birthday-card .card-header h5{
-
-    margin:0;
-
-    font-size:18px;
-
-    font-weight:700;
-
-    color:#111827;
-
-    display:flex;
-
-    align-items:center;
-
-    gap:8px;
-
-}
-
-
 
 
 </style>
 
+<!-- =========================================
+CSS PRINCIPAL
+========================================= -->
+
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+
+<!-- =========================================
+CSS POR PERFIL
+========================================= -->
+
+{% if dashboard_tipo == "secretaria" %}
+
+<link rel="stylesheet" href="{% static 'css/secretaria.css' %}">
+
+{% elif dashboard_tipo == "dentista" %}
+
+<!-- Futuramente:
+<link rel="stylesheet" href="{% static 'css/dentista.css' %}">
+-->
+
+{% elif dashboard_tipo == "acd" %}
+
+<!-- Futuramente:
+<link rel="stylesheet" href="{% static 'css/acd.css' %}">
+-->
+
+{% endif %}
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 {% endblock %}
@@ -293,6 +337,12 @@ ANIVERSARIANTES
     {% include "accounts/dashboard/dentista/_cards.html" %}
     {% include "accounts/dashboard/dentista/_content_grid.html" %}
     {% include "accounts/dashboard/dentista/_content_bottom.html" %}
+
+{% elif dashboard_tipo == "secretaria" %}
+
+    {% include "accounts/dashboard/secretaria/_cards.html" %}
+    {% include "accounts/dashboard/secretaria/_content_grid.html" %}
+    {% include "accounts/dashboard/secretaria/_content_bottom.html" %}
 
 {% elif dashboard_tipo == "acd" %}
 

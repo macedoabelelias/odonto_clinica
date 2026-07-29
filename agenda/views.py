@@ -401,21 +401,31 @@ def mover_agendamento(request):
 @permissao_required("agenda", "inserir")
 def novo_agendamento(request):
 
-    form = AgendamentoForm(
-        request.POST or None
-    )
+    paciente_id = request.GET.get("paciente")
 
-    if form.is_valid():
+    if request.method == "POST":
 
-        form.save()
+        form = AgendamentoForm(request.POST)
 
-        return redirect(
-            'agenda'
-        )
+        if form.is_valid():
+
+            form.save()
+
+            return redirect("agenda")
+
+    else:
+
+        initial = {}
+
+        if paciente_id:
+
+            initial["paciente"] = paciente_id
+
+        form = AgendamentoForm(initial=initial)
 
     context = {
 
-        'form': form
+        "form": form,
 
     }
 
@@ -423,12 +433,11 @@ def novo_agendamento(request):
 
         request,
 
-        'agenda/agendamento_form.html',
+        "agenda/agendamento_form.html",
 
-        context
+        context,
 
     )
-
 
 # =========================================
 # EVENTOS FULLCALENDAR

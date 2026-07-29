@@ -12,51 +12,66 @@ from .models import Modulo, Permissao
 
 def tem_permissao(usuario, codigo_modulo, acao="visualizar"):
 
-    # Usuário não autenticado
+    print("=" * 60)
+    print("USUÁRIO:", usuario.username)
+    print("MÓDULO:", codigo_modulo)
+    print("AÇÃO:", acao)
+
     if not usuario.is_authenticated:
+        print("Usuário não autenticado")
         return False
 
-    # Superusuário sempre possui acesso total
     if usuario.is_superuser:
+        print("Superusuário")
         return True
 
-    # Usuário sem perfil
     if not hasattr(usuario, "perfil"):
+        print("Sem perfil")
         return False
 
     perfil = usuario.perfil.perfil_acesso
 
-    # Perfil não definido
     if perfil is None:
+        print("Perfil inexistente")
         return False
 
-    # Administrador possui acesso total
+    print("PERFIL:", perfil.nome)
+
     if perfil.nome == "Administrador":
+        print("Administrador")
         return True
 
-    # Procura o módulo
     try:
+
         modulo = Modulo.objects.get(
             codigo=codigo_modulo.lower(),
             ativo=True
         )
 
+        print("MÓDULO ENCONTRADO:", modulo.codigo)
+
     except Modulo.DoesNotExist:
+
+        print("MÓDULO NÃO ENCONTRADO")
+
         return False
 
-    # Procura a permissão
     try:
+
         permissao = Permissao.objects.get(
             perfil=perfil,
             modulo=modulo
         )
 
+        print("PERMISSÃO ENCONTRADA")
+
     except Permissao.DoesNotExist:
+
+        print("PERMISSÃO NÃO ENCONTRADA")
+
         return False
 
-    # Ação inválida
-    if not hasattr(permissao, acao):
-        return False
+    print("VALOR:", getattr(permissao, acao, "AÇÃO INVÁLIDA"))
 
     return getattr(permissao, acao)
 

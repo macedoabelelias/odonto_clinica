@@ -331,6 +331,34 @@ def dashboard_view(request):
 
         })
 
+    # =========================================
+    # SECRETÁRIA
+    # =========================================
+
+    elif dashboard_tipo == "secretaria":
+
+        dashboard_config.update({
+
+            # Cards
+            "mostrar_pacientes": False,
+            "mostrar_receber": False,
+            "mostrar_pagar": False,
+            "mostrar_saldo_caixa": False,
+
+            # Segunda linha
+            "mostrar_recebimentos": False,
+            "mostrar_pagamentos": False,
+            "mostrar_lucro": False,
+            "mostrar_fornecedores": False,
+
+            # Conteúdo
+            "mostrar_faturamento": False,
+            "mostrar_consultas": True,
+            "mostrar_aniversariantes": True,
+            "mostrar_ranking": False,
+            "mostrar_movimentacoes": False,
+
+        })
 
     # =========================================
     # AUXILIAR DE SAÚDE BUCAL (ACD)
@@ -599,21 +627,11 @@ def dashboard_view(request):
         )
     )
 
-
     # =========================================
     # FILTRO DO DENTISTA
     # =========================================
 
-    print("=" * 60)
-    print("Dashboard Tipo:", dashboard_tipo)
-    print("Perfil:", perfil_nome)
-    print("Usuário:", request.user.username)
-    print("Profissional:", getattr(request.user, "profissional", None))
-    print("=" * 60)
-
     if dashboard_tipo == "dentista":
-
-        print(">>> ENTROU NO FILTRO DO DENTISTA <<<")
 
         profissional = getattr(
             request.user,
@@ -623,28 +641,20 @@ def dashboard_view(request):
 
         if profissional:
 
-            print("Profissional encontrado:", profissional)
-
             consultas = consultas.filter(
                 profissional=profissional
             )
 
-            print("Total consultas:", consultas.count())
-
         else:
 
-            print("Profissional NÃO encontrado")
-
             consultas = consultas.none()
-
 
     # =========================================
     # PRÓXIMAS CONSULTAS
     # =========================================
 
     proximas_consultas = consultas[:5]
-
-
+    
     # =========================================
     # CARDS DO DASHBOARD
     # =========================================
@@ -664,6 +674,10 @@ def dashboard_view(request):
 
     proxima_consulta_hora = "--:--"
 
+    # =========================================
+    # PRÓXIMO ATENDIMENTO
+    # =========================================
+
     proxima_consulta = (
         consultas.filter(
             data=hoje,
@@ -673,12 +687,34 @@ def dashboard_view(request):
         .first()
     )
 
+    proximo_paciente = "-"
+    proximo_procedimento = "-"
+    proxima_duracao = 0
+    proximo_status = ""
+
     if proxima_consulta:
 
         proxima_consulta_hora = (
             proxima_consulta.hora_inicio.strftime("%H:%M")
         )
 
+        proximo_paciente = (
+            proxima_consulta.paciente.nome
+        )
+
+        if proxima_consulta.procedimento:
+
+            proximo_procedimento = (
+                proxima_consulta.procedimento.nome
+            )
+
+        proxima_duracao = (
+            proxima_consulta.duracao
+        )
+
+        proximo_status = (
+            proxima_consulta.get_status_display()
+        )
 
     # =========================================
     # PROFISSIONAL DE PLANTÃO
@@ -732,7 +768,8 @@ def dashboard_view(request):
             dentista__isnull=False
         )
         .select_related(
-            "dentista"
+            "dentista",
+            "dentista__perfil",
         )
         .prefetch_related(
             "orcamentos"
@@ -763,7 +800,10 @@ def dashboard_view(request):
 
     desempenho_dentistas = []
 
-    for dentista, producao in ranking_dentistas:
+    for posicao, (dentista, producao) in enumerate(
+        ranking_dentistas,
+        start=1
+    ):
 
         if (
             dashboard_tipo == "dentista"
@@ -805,6 +845,7 @@ def dashboard_view(request):
 
         desempenho_dentistas.append({
 
+            "posicao": posicao,
             "dentista": dentista,
             "producao": producao,
             "meta": meta,
@@ -861,7 +902,40 @@ def dashboard_view(request):
             Decimal("0.00")
         )
 
+    # =========================================
+    # MINHA COMISSÃO
+    # =========================================
 
+    minha_comissao = Decimal("0.00")
+
+    if dashboard_tipo == "dentista":
+
+        for item in desempenho_dentistas:
+
+            if item["dentista"] == request.user:
+
+                minha_comissao = item["comissao"]
+
+                break
+
+    # =========================================
+    # MINHA META
+    # =========================================
+
+    minha_meta = Decimal("0.00")
+    meu_percentual = 0
+
+    if dashboard_tipo == "dentista":
+
+        for item in desempenho_dentistas:
+
+            if item["dentista"] == request.user:
+
+                minha_meta = item["meta"]
+                meu_percentual = item["percentual"]
+
+                break
+    
     # =========================================
     # POSIÇÃO DO DENTISTA
     # =========================================
@@ -1008,7 +1082,7 @@ def dashboard_view(request):
 
     ultima_atualizacao = "Atualizado agora"
 
-    # =========================================
+        # =========================================
     # DADOS DOS CARDS
     # =========================================
 
@@ -1017,9 +1091,106 @@ def dashboard_view(request):
     dashboard_config["proxima_consulta_hora"] = proxima_consulta_hora
     dashboard_config["profissional_plantao"] = profissional_plantao
 
-    
+    # =========================================
+    # PENDÊNCIAS
+    # =========================================
 
-        # =========================================
+    consultas_confirmar = (
+        consultas
+        .filter(
+            status="agendado",
+        )
+        .select_related(
+            "paciente",
+            "profissional",
+        )
+        .order_by(
+            "hora_inicio",
+        )
+    )
+
+    total_pendencias = consultas_confirmar.count()
+
+    # =========================================
+    # DASHBOARD SECRETÁRIA
+    # =========================================
+
+    from django.db.models import Sum
+
+    hoje = timezone.now().date()
+
+    # -----------------------------------------
+    # RECEBER HOJE
+    # -----------------------------------------
+
+    contas_receber_hoje = ContaReceber.objects.filter(
+        status="PENDENTE",
+        vencimento=hoje
+    )
+
+    receber_hoje = (
+        contas_receber_hoje.aggregate(
+            total=Sum("valor")
+        )["total"]
+        or 0
+    )
+
+    receber_hoje_qtd = contas_receber_hoje.count()
+
+    # -----------------------------------------
+    # PAGAR HOJE
+    # -----------------------------------------
+
+    contas_pagar_hoje = ContaPagar.objects.filter(
+        status="PENDENTE",
+        vencimento=hoje
+    )
+
+    pagar_hoje = (
+        contas_pagar_hoje.aggregate(
+            total=Sum("valor")
+        )["total"]
+        or 0
+    )
+
+    pagar_hoje_qtd = contas_pagar_hoje.count()
+
+    # -----------------------------------------
+    # ESTOQUE
+    # -----------------------------------------
+
+    produtos_criticos = Produto.objects.filter(
+        estoque__lte=F("estoque_minimo")
+    )
+
+    total_produtos_criticos = produtos_criticos.count()
+
+    # =========================================
+    # INDICADORES DA SECRETÁRIA
+    # =========================================
+
+    consultas_confirmadas = consultas.filter(
+        data=hoje,
+        status="confirmado",
+    ).count()
+
+    consultas_pendentes = consultas.filter(
+        data=hoje,
+        status="agendado",
+    ).count()
+
+    consultas_confirmar = (
+        consultas.filter(
+            status="agendado",
+        )
+        .select_related(
+            "paciente",
+            "profissional",
+        )
+        .order_by("hora_inicio")
+    )
+
+    # =========================================
     # CONTEXT
     # =========================================
 
@@ -1064,7 +1235,6 @@ def dashboard_view(request):
         "pendencias": pendencias,
         "criticas": criticas,
 
-        "total_pendencias": len(pendencias),
         "total_criticas": len(criticas),
 
         # =========================================
@@ -1073,6 +1243,31 @@ def dashboard_view(request):
 
         "ultimas_movimentacoes": ultimas_movimentacoes,
         "proximas_consultas": proximas_consultas,
+        "aniversariantes": aniversariantes,
+
+        # =========================================
+        # SECRETÁRIA
+        # =========================================
+
+        "consultas_hoje": consultas_hoje,
+
+        "consultas_confirmadas": consultas_confirmadas,
+
+        "consultas_pendentes": consultas_pendentes,
+
+        "pacientes_hoje": pacientes_hoje,
+
+        "consultas_confirmar": consultas_confirmar,
+
+        # Financeiro
+        "receber_hoje": receber_hoje,
+        "receber_hoje_qtd": receber_hoje_qtd,
+
+        "pagar_hoje": pagar_hoje,
+        "pagar_hoje_qtd": pagar_hoje_qtd,
+
+        # Estoque
+        "produtos_criticos": total_produtos_criticos,
 
         # =========================================
         # RANKING
@@ -1080,21 +1275,23 @@ def dashboard_view(request):
 
         "ranking_dentistas": ranking_dentistas,
         "desempenho_dentistas": desempenho_dentistas,
+
         "minha_producao": minha_producao,
+        "minha_comissao": minha_comissao,
+
+        "minha_meta": minha_meta,
+        "meu_percentual": meu_percentual,
 
         "minha_posicao": minha_posicao,
         "total_dentistas": total_dentistas,
         "barra_percentual": barra_percentual,
 
-        # NOVAS INFORMAÇÕES
+        # =========================================
+        # POSIÇÃO
+        # =========================================
+
         "posicao_ranking": posicao_ranking,
         "valor_para_proximo": valor_para_proximo,
-
-        # =========================================
-        # LISTAS
-        # =========================================
-
-        "aniversariantes": aniversariantes,
 
         # =========================================
         # GRÁFICOS
@@ -1111,6 +1308,168 @@ def dashboard_view(request):
         "accounts/dashboard.html",
         context,
     )
+
+# =========================================
+# DASHBOARD AJAX - SECRETÁRIA
+# =========================================
+
+@login_required(login_url="/")
+@permissao_required("Dashboard")
+def dashboard_secretaria_ajax(request):
+
+    from django.template.loader import render_to_string
+    from django.http import JsonResponse
+    from django.utils import timezone
+
+    hoje = timezone.localdate()
+    hora_atual = timezone.localtime().time()
+
+    # =========================================
+    # CONSULTAS
+    # =========================================
+
+    consultas = (
+        Agendamento.objects.filter(
+            status__in=[
+                "agendado",
+                "confirmado",
+                "atendimento",
+            ],
+            data__gte=hoje,
+        )
+        .select_related(
+            "paciente",
+            "procedimento",
+            "profissional",
+        )
+        .order_by(
+            "data",
+            "hora_inicio",
+        )
+    )
+
+    # =========================================
+    # CARDS
+    # =========================================
+
+    consultas_hoje_qs = consultas.filter(
+        data=hoje
+    )
+
+    consultas_hoje = consultas_hoje_qs.count()
+
+    # =========================================
+    # INDICADORES DA SECRETÁRIA
+    # =========================================
+
+    consultas_confirmadas = consultas.filter(
+        data=hoje,
+        status="confirmado",
+    ).count()
+
+    consultas_pendentes = consultas.filter(
+        data=hoje,
+        status="agendado",
+    ).count()
+
+    consultas_confirmar = (
+        consultas
+        .filter(
+            data=hoje,
+            status="agendado",
+        )
+        .select_related(
+            "paciente",
+            "profissional",
+        )
+        .order_by(
+            "hora_inicio",
+        )
+    )
+
+    total_pendencias = consultas_confirmar.count()
+
+    consultas_confirmadas = consultas.filter(
+        data=hoje,
+        status="confirmado",
+    ).count()
+
+    consultas_pendentes = Agendamento.objects.filter(
+        status="agendado"
+    ).count()
+
+    pacientes_hoje = (
+        consultas_hoje_qs
+        .values("paciente")
+        .distinct()
+        .count()
+    )
+
+    # =========================================
+    # AGENDA DO DIA
+    # =========================================
+
+    proximas_consultas = consultas[:5]
+
+    # =========================================
+    # PENDÊNCIAS
+    # =========================================
+
+    consultas_confirmar = (
+        consultas
+        .filter(
+            status="agendado",
+        )
+        .select_related(
+            "paciente",
+            "profissional",
+        )
+        .order_by(
+            "hora_inicio",
+        )
+    )
+
+    
+
+    context = {
+
+    "consultas_hoje": consultas_hoje,
+
+    "consultas_confirmadas": consultas_confirmadas,
+
+    "consultas_pendentes": consultas_pendentes,
+
+    "pacientes_hoje": pacientes_hoje,
+
+    "proximas_consultas": proximas_consultas,
+
+    "consultas_confirmar": consultas_confirmar,
+
+    "total_pendencias": total_pendencias,
+
+}
+
+    return JsonResponse({
+
+        "cards": render_to_string(
+            "accounts/dashboard/secretaria/_cards.html",
+            context,
+            request=request,
+        ),
+
+        "grid": render_to_string(
+            "accounts/dashboard/secretaria/_content_grid.html",
+            context,
+            request=request,
+        ),
+
+        "bottom": render_to_string(
+            "accounts/dashboard/secretaria/_content_bottom.html",
+            context,
+            request=request,
+        ),
+
+    })
   
 # =========================================
 # PACIENTES
@@ -9079,85 +9438,103 @@ def novo_lote(request):
 # CONTAS A PAGAR
 # =========================================
 
-@login_required
+@login_required(login_url="/")
 @permissao_required("contas_pagar", "visualizar")
 def contas_pagar(request):
 
     hoje = timezone.now().date()
 
-    # Atualiza contas vencidas automaticamente
+    # =========================================
+    # ATUALIZA CONTAS VENCIDAS
+    # =========================================
+
     ContaPagar.objects.filter(
-        status='PENDENTE',
+        status="PENDENTE",
         vencimento__lt=hoje
     ).update(
-        status='VENCIDO'
+        status="VENCIDO"
     )
 
-    contas = ContaPagar.objects.select_related(
-        'fornecedor'
-    ).order_by(
-        'vencimento'
+    # =========================================
+    # CONSULTA
+    # =========================================
+
+    contas = (
+        ContaPagar.objects
+        .select_related("fornecedor")
+        .exclude(status="CANCELADO")
     )
 
-    # Filtro por status
-    status = request.GET.get('status')
+    # =========================================
+    # FILTRO POR STATUS
+    # =========================================
+
+    status = request.GET.get("status")
 
     if status:
-        contas = contas.filter(status=status)
 
-    contas_pendentes = ContaPagar.objects.filter(
-        status='PENDENTE'
+        contas = contas.filter(
+            status=status
+        )
+
+    contas = contas.order_by(
+        "vencimento"
     )
 
-    contas_pagas = ContaPagar.objects.filter(
-        status='PAGO'
+    # =========================================
+    # TOTAIS
+    # =========================================
+
+    contas_pendentes = contas.filter(
+        status="PENDENTE"
     )
 
-    contas_vencidas = ContaPagar.objects.filter(
-        status='VENCIDO'
+    contas_pagas = contas.filter(
+        status="PAGO"
     )
 
-    total_pendente = sum(
-        conta.valor
-        for conta in contas_pendentes
-    )
-
-    total_pago = sum(
-        conta.valor
-        for conta in contas_pagas
-    )
-
-    total_vencido = sum(
-        conta.valor
-        for conta in contas_vencidas
+    contas_vencidas = contas.filter(
+        status="VENCIDO"
     )
 
     context = {
 
-        'contas': contas,
+        "contas": contas,
 
-        'status': status,
+        "status": status,
 
-        'total_pendente': total_pendente,
+        "total_pendente": sum(
+            conta.valor
+            for conta in contas_pendentes
+        ),
 
-        'total_pago': total_pago,
+        "total_pago": sum(
+            conta.valor
+            for conta in contas_pagas
+        ),
 
-        'total_vencido': total_vencido,
+        "total_vencido": sum(
+            conta.valor
+            for conta in contas_vencidas
+        ),
 
-        'quantidade_pendentes': contas_pendentes.count(),
+        "quantidade_pendentes": contas_pendentes.count(),
 
-        'quantidade_pagas': contas_pagas.count(),
+        "quantidade_pagas": contas_pagas.count(),
 
-        'quantidade_vencidas': contas_vencidas.count(),
+        "quantidade_vencidas": contas_vencidas.count(),
 
     }
 
     return render(
-        request,
-        'accounts/contas_pagar.html',
-        context
-    )
 
+        request,
+
+        "accounts/contas_pagar.html",
+
+        context
+
+    )
 # =========================================
 # NOVA CONTA A PAGAR
 # =========================================
@@ -9224,7 +9601,7 @@ def nova_conta_pagar(request):
 # =========================================
 
 @login_required(login_url="/")
-@permissao_required("contas_pagar", "financeiro")
+@permissao_required("contas_pagar", "editar")
 def pagar_conta(request, conta_id):
 
     conta = get_object_or_404(
@@ -9328,8 +9705,8 @@ def pagar_conta(request, conta_id):
 # CONTAS A RECEBER
 # =========================================
 
-@login_required(login_url='/')
-@permissao_required("contas_receber")
+@login_required(login_url="/")
+@permissao_required("contas_receber", "visualizar")
 def contas_receber(request):
 
     hoje = timezone.now().date()
@@ -9465,7 +9842,7 @@ from .financeiro import registrar_livro_caixa
 
 @transaction.atomic
 @login_required(login_url="/")
-@permissao_required("contas_receber", "financeiro")
+@permissao_required("contas_receber", "editar")
 def receber_conta(request, conta_id):
 
     conta = get_object_or_404(
@@ -9824,6 +10201,22 @@ def caixa(request):
 
     ).first()
 
+    print("=" * 60)
+
+    print("ÚLTIMO CAIXA:", ultimo_caixa)
+
+    if ultimo_caixa:
+
+        print("STATUS:", ultimo_caixa.status)
+        print("SALDO FINAL:", ultimo_caixa.saldo_final)
+        print("DATA FECHAMENTO:", ultimo_caixa.data_fechamento)
+
+    else:
+
+        print("NENHUM CAIXA FECHADO ENCONTRADO")
+
+    print("=" * 60)
+
     saldo_sugerido = Decimal("0.00")
 
     if ultimo_caixa:
@@ -9865,6 +10258,8 @@ def caixa(request):
         "caixa_fechado": caixa_fechado,
 
         "caixa_dia": caixa_dia,
+
+        "caixa_pendente": caixa_pendente,
 
         "saldo_sugerido": saldo_sugerido,
 
@@ -9916,9 +10311,16 @@ def abrir_caixa(request):
 
         return redirect("caixa")
 
-    saldo_inicial = request.POST.get(
-        "saldo_inicial",
-        0
+    saldo_inicial = Decimal(
+
+        request.POST.get(
+
+            "saldo_inicial",
+
+            "0"
+
+        ).replace(",", ".")
+
     )
 
     observacoes = request.POST.get(

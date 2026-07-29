@@ -8,6 +8,9 @@ from django.conf import settings
 
 from django.utils import timezone
 
+import re
+from urllib.parse import quote
+
 # =========================================
 # PACIENTES
 # =========================================
@@ -280,10 +283,41 @@ class Paciente(models.Model):
             status="ATIVO"
         ).first()
 
+        # =========================================
+    # WHATSAPP
+    # =========================================
+
+    @property
+    def whatsapp_limpo(self):
+
+        numero = self.whatsapp or self.telefone or ""
+
+        return re.sub(r"\D", "", numero)
+
+    @property
+    def whatsapp_url(self):
+
+        numero = self.whatsapp_limpo
+
+        if not numero:
+
+            return ""
+
+        mensagem = (
+            f"Olá, {self.nome}! 😊\n\n"
+            f"Estamos confirmando sua consulta na "
+            f"AM Systems Odontologia."
+        )
+
+        return (
+            f"https://wa.me/55{numero}"
+            f"?text={quote(mensagem)}"
+        )
+
     # =========================================
     # STRING
     # =========================================
-
+    
     def __str__(self):
 
         return self.nome 

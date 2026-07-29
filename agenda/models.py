@@ -64,6 +64,10 @@ class Profissional(models.Model):
 # AGENDAMENTOS
 # =========================================
 
+# =========================================
+# AGENDAMENTOS
+# =========================================
+
 class Agendamento(models.Model):
 
     STATUS_CHOICES = [
@@ -132,4 +136,9 @@ class Agendamento(models.Model):
         verbose_name_plural = "Agendamentos"
 
     def __str__(self):
-        return f"{self.paciente.nome} - {self.data}"
+
+        return (
+            f"{self.paciente.nome} - "
+            f"{self.data.strftime('%d/%m/%Y')} "
+            f"às {self.hora_inicio.strftime('%H:%M')}"
+        )

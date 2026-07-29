@@ -17,8 +17,6 @@ body{
 }
 
 
-
-
 /* LOGO */
 
 .logo-area{
@@ -340,6 +338,12 @@ APPOINTMENTS
 
     box-shadow:
         0 4px 16px rgba(15,23,42,.06);
+
+    height:460px;
+
+    display:flex;
+
+    flex-direction:column;
 
 }
 
@@ -829,6 +833,8 @@ MENU CLÍNICO
     color:#fff;
 
 }
+
+
 
 /* =========================================
 RESPONSIVO MENU CLÍNICO

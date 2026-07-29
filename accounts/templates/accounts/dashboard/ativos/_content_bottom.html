@@ -1,3 +1,18 @@
+<style>
+
+/* =========================================
+RANKING DOS DENTISTAS
+========================================= */
+
+.medalha{
+
+    font-size:22px;
+    line-height:1;
+
+}
+
+</style>
+
 <div class="content-grid-bottom mt-4">
     
     <!-- RANKING DOS DENTISTAS -->
@@ -15,7 +30,7 @@
             {% else %}
 
             <h5>
-                🏆 Produção por Dentista
+                🏆 Ranking dos Dentistas
             </h5>
 
             {% endif %}
@@ -24,57 +39,96 @@
 
         <div class="table-responsive dashboard-scroll">
 
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 dashboard-table">
 
-                <thead>
+    <thead>
 
-                    <tr>
+        <thead>
 
-                        <th>Dentista</th>
+<tr>
 
-                        <th class="text-end">Produção</th>
+    <th style="width:8%;">#</th>
 
-                    </tr>
+    <th>Dentista</th>
 
-                </thead>
+    <th class="text-end" style="width:130px;">
+        Produção
+    </th>
 
-                <tbody>
+    <th class="text-end" style="width:130px;">
+        Comissão
+    </th>
 
-                    {% for dentista, total in ranking_dentistas %}
+</tr>
 
-                    <tr>
+</thead>
 
-                        <td>
+    </thead>
 
-                            {{ dentista.get_full_name|default:dentista.username }}
+    <tbody>
 
-                        </td>
+        {% for item in desempenho_dentistas %}
 
-                        <td class="text-end fw-bold text-success">
+        <tr>
 
-                            R$ {{ total|floatformat:2 }}
+            <td class="ranking-medalha">
 
-                        </td>
+                {% if item.posicao == 1 %}
+                    <span class="medalha">🥇</span>
+                {% elif item.posicao == 2 %}
+                    <span class="medalha">🥈</span>
+                {% elif item.posicao == 3 %}
+                    <span class="medalha">🥉</span>
+                {% else %}
+                    {{ item.posicao }}º
+                {% endif %}
 
-                    </tr>
+            </td>
 
-                    {% empty %}
+            <td>
 
-                    <tr>
+                {{ item.dentista.get_full_name|default:item.dentista.username }}
 
-                        <td colspan="2" class="text-center py-4">
+            </td>
 
-                            Nenhuma produção encontrada.
+            <td class="pe-2 text-end">
 
-                        </td>
+    <span class="d-block text-end">
 
-                    </tr>
+        R$ {{ item.producao|floatformat:2 }}
 
-                    {% endfor %}
+    </span>
 
-                </tbody>
+</td>
 
-            </table>
+<td class="pe-2 text-end">
+
+    <span class="d-block text-end">
+
+        R$ {{ item.comissao|floatformat:2 }}
+
+    </span>
+
+</td>
+        </tr>
+
+        {% empty %}
+
+        <tr>
+
+            <td colspan="4" class="text-center py-4">
+
+                Nenhuma produção encontrada.
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
 
         </div>
 
