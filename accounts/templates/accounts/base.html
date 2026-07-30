@@ -633,23 +633,38 @@ Perfis={{ pode_perfis }}
 
     </div>
 
-    <!-- Bootstrap JS -->
+        <!-- =========================================
+    BOOTSTRAP
+    ========================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- =========================================
+    CHART.JS
+    ========================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- =========================================
+    MENU LATERAL
+    ========================================== -->
+
     <script>
 
-        document.querySelectorAll('.menu-toggle').forEach(btn => {
+        document.querySelectorAll(".menu-toggle").forEach(btn => {
 
-            btn.addEventListener('click', function () {
+            btn.addEventListener("click", function () {
 
-                this.parentElement.classList.toggle('open');
+                this.parentElement.classList.toggle("open");
 
             });
 
         });
 
     </script>
+
+    {% block extra_js %}
+    {% endblock %}
 
 </body>
 

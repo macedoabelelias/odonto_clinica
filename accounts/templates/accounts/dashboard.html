@@ -350,6 +350,18 @@ CSS POR PERFIL
     {% include "accounts/dashboard/acd/_content_grid.html" %}
     {% include "accounts/dashboard/acd/_content_bottom.html" %}
 
+{% elif dashboard_tipo == "contabilidade" %}
+
+    {% include "accounts/dashboard/contabilidade/_cards.html" %}
+    {% include "accounts/dashboard/contabilidade/_content_grid.html" %}
+    {% include "accounts/dashboard/contabilidade/_content_bottom.html" %}
+
+{% elif dashboard_tipo == "gestor" %}
+
+    {% include "accounts/dashboard/gestor/_cards.html" %}
+    {% include "accounts/dashboard/gestor/_content_grid.html" %}
+    {% include "accounts/dashboard/gestor/_content_bottom.html" %}
+
 {% else %}
 
     {% include "accounts/dashboard/ativos/_cards.html" %}
@@ -358,73 +370,20 @@ CSS POR PERFIL
 
 {% endif %}
 
-<script>
+{% endblock %}
 
-    const ctx = document.getElementById('revenueChart');
 
-    if (ctx) {
+{% block extra_js %}
 
-        new Chart(ctx, {
+    {% if dashboard_tipo == "contabilidade" %}
 
-            type: 'line',
+        {% include "accounts/dashboard/contabilidade/_charts.html" %}
 
-            data: {
+    {% elif dashboard_tipo == "gestor" %}
 
-                labels: [
-                    'Jan',
-                    'Fev',
-                    'Mar',
-                    'Abr',
-                    'Mai',
-                    'Jun'
-                ],
+        {% include "accounts/dashboard/gestor/_charts.html" %}
 
-                datasets: [
-
-                    {
-
-                        label: 'Entradas',
-
-                        data: [0, 0, 0, 0, 0, 558.87],
-
-                        borderColor: '#16a34a',
-
-                        tension: .4,
-
-                        fill: false
-
-                    },
-
-                    {
-
-                        label: 'Saídas',
-
-                        data: [0, 0, 0, 0, 0, 350],
-
-                        borderColor: '#dc2626',
-
-                        tension: .4,
-
-                        fill: false
-
-                    }
-
-                ]
-
-            },
-
-            options: {
-
-                responsive: true,
-
-                maintainAspectRatio: false
-
-            }
-
-        });
-
-    }
-
-</script>
+    {% endif %}
 
 {% endblock %}
+

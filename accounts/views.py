@@ -389,6 +389,31 @@ def dashboard_view(request):
 
         })
 
+    elif dashboard_tipo == "contabilidade":
+
+        dashboard_config.update({
+
+            # Cards Superiores
+            "mostrar_pacientes": False,
+            "mostrar_receber": True,
+            "mostrar_pagar": True,
+            "mostrar_saldo_caixa": True,
+
+            # Segunda Linha
+            "mostrar_recebimentos": True,
+            "mostrar_pagamentos": True,
+            "mostrar_lucro": True,
+            "mostrar_fornecedores": False,
+
+            # Conteúdo
+            "mostrar_faturamento": True,
+            "mostrar_consultas": False,
+            "mostrar_aniversariantes": False,
+            "mostrar_ranking": False,
+            "mostrar_movimentacoes": True,
+
+        })
+
 
     # =========================================
     # PACIENTES
@@ -514,18 +539,31 @@ def dashboard_view(request):
     saldo_caixa = total_entradas - total_saidas
 
 
-    # =========================================
+        # =========================================
     # MOVIMENTAÇÃO HOJE
     # =========================================
 
-    movimentacao_entradas_hoje = Caixa.objects.filter(
-        tipo="ENTRADA",
-        data=hoje
+    movimentacao_entradas_hoje = (
+        Caixa.objects.filter(
+            tipo="ENTRADA",
+            data=hoje
+        )
+        .select_related(
+            "conta_receber",
+            "conta_receber__paciente",
+        )
+        .order_by("-id")
     )
 
-    movimentacao_saidas_hoje = Caixa.objects.filter(
-        tipo="SAIDA",
-        data=hoje
+    movimentacao_saidas_hoje = (
+        Caixa.objects.filter(
+            tipo="SAIDA",
+            data=hoje
+        )
+        .select_related(
+            "conta_pagar",
+        )
+        .order_by("-id")
     )
 
     entradas_hoje = (
@@ -549,13 +587,19 @@ def dashboard_view(request):
     # ÚLTIMAS MOVIMENTAÇÕES
     # =========================================
 
-    movimentacoes = Caixa.objects.order_by(
-        "-data",
-        "-id"
+    movimentacoes = (
+        Caixa.objects
+        .select_related(
+            "conta_receber",
+            "conta_pagar",
+        )
+        .order_by(
+            "-data",
+            "-id",
+        )
     )
 
     ultimas_movimentacoes = movimentacoes[:20]
-
     # =========================================
     # GRÁFICO FINANCEIRO
     # =========================================
@@ -978,7 +1022,8 @@ def dashboard_view(request):
     # =========================================
 
     consultas_pendentes = Agendamento.objects.filter(
-        status="agendado"
+        status="agendado",
+        data__gte=hoje
     ).count()
 
     if consultas_pendentes:
@@ -1195,8 +1240,12 @@ def dashboard_view(request):
         )
         .order_by("hora_inicio")
     )
-
+    
     # =========================================
+    # CONTEXT
+    # =========================================
+
+        # =========================================
     # CONTEXT
     # =========================================
 
@@ -1231,6 +1280,15 @@ def dashboard_view(request):
         "lucro_hoje": lucro_hoje,
 
         # =========================================
+        # MOVIMENTAÇÃO DO DIA
+        # =========================================
+
+        "movimentacao_entradas_hoje": movimentacao_entradas_hoje[:5],
+        "movimentacao_saidas_hoje": movimentacao_saidas_hoje[:5],
+
+        "ultimas_movimentacoes": ultimas_movimentacoes,
+
+        # =========================================
         # STATUS DA CLÍNICA
         # =========================================
 
@@ -1245,35 +1303,37 @@ def dashboard_view(request):
         "total_criticas": len(criticas),
 
         # =========================================
-        # DASHBOARD
+        # CONSULTAS
         # =========================================
 
-        "ultimas_movimentacoes": ultimas_movimentacoes,
         "proximas_consultas": proximas_consultas,
+        "consultas_hoje": consultas_hoje,
+        "consultas_confirmadas": consultas_confirmadas,
+        "consultas_pendentes": consultas_pendentes,
+        "consultas_confirmar": consultas_confirmar,
+
+        "pacientes_hoje": pacientes_hoje,
+
+        # =========================================
+        # ANIVERSARIANTES
+        # =========================================
+
         "aniversariantes": aniversariantes,
 
         # =========================================
         # SECRETÁRIA
         # =========================================
 
-        "consultas_hoje": consultas_hoje,
-
-        "consultas_confirmadas": consultas_confirmadas,
-
-        "consultas_pendentes": consultas_pendentes,
-
-        "pacientes_hoje": pacientes_hoje,
-
-        "consultas_confirmar": consultas_confirmar,
-
-        # Financeiro
         "receber_hoje": receber_hoje,
         "receber_hoje_qtd": receber_hoje_qtd,
 
         "pagar_hoje": pagar_hoje,
         "pagar_hoje_qtd": pagar_hoje_qtd,
 
-        # Estoque
+        # =========================================
+        # ESTOQUE
+        # =========================================
+
         "produtos_criticos": total_produtos_criticos,
 
         # =========================================
@@ -9836,44 +9896,53 @@ from .financeiro import registrar_livro_caixa
 @permissao_required("contas_receber", "editar")
 def receber_conta(request, conta_id):
 
+    # =========================================
+    # DATA ATUAL
+    # =========================================
+
+    hoje = timezone.localdate()
+
     conta = get_object_or_404(
         ContaReceber,
         id=conta_id
     )
 
     # =========================================
-    # VERIFICA SE EXISTE ALGUM CAIXA ABERTO
+    # VERIFICA O CAIXA DIÁRIO
     # =========================================
 
-    caixa_aberto = CaixaDiario.objects.filter(
+    caixa_aberto = (
+        CaixaDiario.objects
+        .filter(status="ABERTO")
+        .order_by("-data", "-id")
+        .first()
+    )
 
-        status="ABERTO"
+    # Não existe Caixa aberto
+    if not caixa_aberto:
 
-    ).order_by("data").first()
+        messages.error(
 
-    if caixa_aberto:
+            request,
 
-        if caixa_aberto.data < hoje:
+            "Não existe um Caixa aberto. Abra o Caixa antes de realizar um recebimento."
 
-            messages.error(
+        )
 
-                request,
+        return redirect("caixa")
 
-                f"Existe um Caixa aberto do dia "
-                f"{caixa_aberto.data.strftime('%d/%m/%Y')}. "
-                f"Feche-o antes de abrir um novo Caixa."
+    # Existe Caixa aberto de outro dia
+    if caixa_aberto.data < hoje:
 
-            )
+        messages.error(
 
-        else:
+            request,
 
-            messages.warning(
+            f"Existe um Caixa aberto do dia "
+            f"{caixa_aberto.data.strftime('%d/%m/%Y')}. "
+            f"Feche-o antes de continuar."
 
-                request,
-
-                "Já existe um Caixa aberto para hoje."
-
-            )
+        )
 
         return redirect("caixa")
 
@@ -9884,8 +9953,11 @@ def receber_conta(request, conta_id):
     if conta.status == "RECEBIDO":
 
         messages.warning(
+
             request,
+
             "Esta conta já foi recebida."
+
         )
 
         return redirect("contas_receber")
@@ -9895,7 +9967,9 @@ def receber_conta(request, conta_id):
     # =========================================
 
     conta.status = "RECEBIDO"
-    conta.data_recebimento = timezone.now().date()
+
+    conta.data_recebimento = hoje
+
     conta.save()
 
     # =========================================
@@ -9951,8 +10025,10 @@ def receber_conta(request, conta_id):
         conta_receber=conta,
 
         observacao=(
+
             f"Recebimento da parcela "
             f"{conta.numero_parcela}"
+
         )
 
     )
@@ -9962,9 +10038,13 @@ def receber_conta(request, conta_id):
     # =========================================
 
     tratamento = getattr(
+
         conta.orcamento,
+
         "tratamento",
+
         None
+
     )
 
     if tratamento and tratamento.dentista:
@@ -9972,7 +10052,9 @@ def receber_conta(request, conta_id):
         try:
 
             perfil = PerfilUsuario.objects.get(
+
                 usuario=tratamento.dentista
+
             )
 
         except PerfilUsuario.DoesNotExist:
@@ -9997,9 +10079,13 @@ def receber_conta(request, conta_id):
                 print("=" * 60)
 
                 valor_comissao = (
+
                     conta.valor * percentual / Decimal("100")
+
                 ).quantize(
+
                     Decimal("0.01")
+
                 )
 
                 ContaPagar.objects.create(
@@ -10009,19 +10095,23 @@ def receber_conta(request, conta_id):
                     conta_receber=conta,
 
                     descricao=(
+
                         f"Comissão do tratamento "
                         f"- {tratamento.paciente.nome}"
+
                     ),
 
                     valor=valor_comissao,
 
-                    vencimento=timezone.now().date(),
+                    vencimento=hoje,
 
                     status="PENDENTE",
 
                     observacao=(
+
                         f"Comissão automática referente "
                         f"à Conta a Receber #{conta.id}"
+
                     )
 
                 )
@@ -10031,15 +10121,18 @@ def receber_conta(request, conta_id):
     # =========================================
 
     messages.success(
+
         request,
+
         "Conta recebida com sucesso."
+
     )
 
     return redirect(
+
         "contas_receber"
+
     )
-
-
 
 # =========================================
 # CAIXA
@@ -10492,7 +10585,7 @@ def reabrir_caixa(request):
 # =========================================
 
 @login_required(login_url="/")
-@permissao_required("livro_caixa", "financeiro")
+@permissao_required("livro_caixa", "visualizar")
 def livro_caixa(request):
 
     data_inicio = request.GET.get("data_inicio")

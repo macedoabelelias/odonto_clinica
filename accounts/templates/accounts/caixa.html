@@ -16,45 +16,45 @@
 
     </div>
 
-<!-- ========================================= -->
-<!-- STATUS DO CAIXA -->
-<!-- ========================================= -->
+    <!-- ========================================= -->
+    <!-- STATUS DO CAIXA -->
+    <!-- ========================================= -->
 
-{% if caixa_pendente %}
+    {% if caixa_pendente %}
 
-<div class="alert alert-danger shadow-sm mb-4">
+    <div class="alert alert-danger shadow-sm mb-4">
 
-    <i class="fas fa-exclamation-triangle"></i>
+        <i class="fas fa-exclamation-triangle"></i>
 
-    <strong>Caixa Pendente</strong>
+        <strong>Caixa Pendente</strong>
 
-    Existe um Caixa aberto do dia
+        Existe um Caixa aberto do dia
 
-    <strong>{{ caixa_pendente.data|date:"d/m/Y" }}</strong>.
+        <strong>{{ caixa_pendente.data|date:"d/m/Y" }}</strong>.
 
-    É necessário encerrá-lo antes de abrir um novo Caixa.
+        É necessário encerrá-lo antes de abrir um novo Caixa.
 
-</div>
+    </div>
 
-{% endif %}
+    {% endif %}
 
-<div class="card shadow-sm border-0 mb-4">
+    <div class="card shadow-sm border-0 mb-4">
 
-    <div class="card-body">
+        <div class="card-body">
 
-        <div class="row align-items-center">
+            <div class="row align-items-center">
 
-            <div class="col-md-8">
+                <div class="col-md-8">
 
-                <h5 class="mb-3">
+                    <h5 class="mb-3">
 
-                    <i class="fas fa-cash-register text-success"></i>
+                        <i class="fas fa-cash-register text-success"></i>
 
-                    Caixa Diário
+                        Caixa Diário
 
-                </h5>
+                    </h5>
 
-                {% if caixa_dia %}
+                    {% if caixa_dia %}
 
                     <div class="row">
 
@@ -64,19 +64,19 @@
 
                             {% if caixa_dia.status == "ABERTO" %}
 
-                                <span class="badge bg-success">
+                            <span class="badge bg-success">
 
-                                    🟢 Aberto
+                                🟢 Aberto
 
-                                </span>
+                            </span>
 
                             {% else %}
 
-                                <span class="badge bg-danger">
+                            <span class="badge bg-danger">
 
-                                    🔴 Fechado
+                                🔴 Fechado
 
-                                </span>
+                            </span>
 
                             {% endif %}
 
@@ -116,19 +116,19 @@
 
                         {% if caixa_dia.status == "FECHADO" %}
 
-                            <div class="col-md-6 mb-2">
+                        <div class="col-md-6 mb-2">
 
-                                <strong>Saldo Final:</strong>
+                            <strong>Saldo Final:</strong>
 
-                                R$ {{ caixa_dia.saldo_final }}
+                            R$ {{ caixa_dia.saldo_final }}
 
-                            </div>
+                        </div>
 
                         {% endif %}
 
                     </div>
 
-                {% else %}
+                    {% else %}
 
                     <div class="alert alert-warning mb-0">
 
@@ -136,18 +136,15 @@
 
                     </div>
 
-                {% endif %}
+                    {% endif %}
 
-            </div>
+                </div>
 
-            <div class="col-md-4 text-end align-self-center">
+                <div class="col-md-4 text-end align-self-center">
 
-                {% if not caixa_dia %}
+                    {% if not caixa_dia %}
 
-                    <button
-                        type="button"
-                        class="btn btn-success"
-                        data-bs-toggle="modal"
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal"
                         data-bs-target="#modalAbrirCaixa">
 
                         <i class="fas fa-lock-open"></i>
@@ -156,28 +153,24 @@
 
                     </button>
 
-                {% elif caixa_dia.status == "ABERTO" %}
+                    {% elif caixa_dia.status == "ABERTO" %}
 
-                    <form method="post"
-                          action="{% url 'fechar_caixa' %}"
-                          class="d-inline">
+                    <form method="post" action="{% url 'fechar_caixa' %}" class="d-inline">
 
                         {% csrf_token %}
 
-                        <button
-                            type="submit"
-                            class="btn btn-danger"
+                        <button type="submit" class="btn btn-danger"
                             onclick="return confirm('Deseja realmente fechar este Caixa?');">
 
                             <i class="fas fa-lock"></i>
 
                             {% if caixa_pendente %}
 
-                                Fechar Caixa Pendente
+                            Fechar Caixa Pendente
 
                             {% else %}
 
-                                Fechar Caixa
+                            Fechar Caixa
 
                             {% endif %}
 
@@ -185,17 +178,13 @@
 
                     </form>
 
-                {% else %}
+                    {% else %}
 
-                    <form method="post"
-                          action="{% url 'reabrir_caixa' %}"
-                          class="d-inline">
+                    <form method="post" action="{% url 'reabrir_caixa' %}" class="d-inline">
 
                         {% csrf_token %}
 
-                        <button
-                            type="submit"
-                            class="btn btn-warning"
+                        <button type="submit" class="btn btn-warning"
                             onclick="return confirm('Deseja realmente reabrir o Caixa do dia?');">
 
                             <i class="fas fa-lock-open"></i>
@@ -206,7 +195,9 @@
 
                     </form>
 
-                {% endif %}
+                    {% endif %}
+
+                </div>
 
             </div>
 
@@ -214,146 +205,123 @@
 
     </div>
 
-</div>
+    <!-- ========================================= -->
+    <!-- FILTROS -->
+    <!-- ========================================= -->
 
-<!-- ========================================= -->
-<!-- FILTROS -->
-<!-- ========================================= -->
+    <div class="card shadow-sm border-0 mb-4">
 
-<div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white">
 
-    <div class="card-header bg-white">
+            <h6 class="mb-0">
 
-        <h6 class="mb-0">
+                <i class="fas fa-filter text-primary"></i>
 
-            <i class="fas fa-filter text-primary"></i>
+                Filtros
 
-            Filtros
+            </h6>
 
-        </h6>
+        </div>
+
+        <div class="card-body">
+
+            <form method="GET">
+
+                <div class="row">
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+
+                            Data Inicial
+
+                        </label>
+
+                        <input type="date" name="data_inicial" class="form-control"
+                            value="{{ request.GET.data_inicial }}">
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+
+                            Data Final
+
+                        </label>
+
+                        <input type="date" name="data_final" class="form-control" value="{{ request.GET.data_final }}">
+
+                    </div>
+
+                    <div class="col-md-2">
+
+                        <label class="form-label">
+
+                            Tipo
+
+                        </label>
+
+                        <select name="tipo" class="form-select">
+
+                            <option value="">Todos</option>
+
+                            <option value="ENTRADA" {% if request.GET.tipo == "ENTRADA" %}selected{% endif %}>
+
+                                Entradas
+
+                            </option>
+
+                            <option value="SAIDA" {% if request.GET.tipo == "SAIDA" %}selected{% endif %}>
+
+                                Saídas
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label class="form-label">
+
+                            Descrição
+
+                        </label>
+
+                        <input type="text" name="descricao" class="form-control" placeholder="Pesquisar descrição..."
+                            value="{{ request.GET.descricao }}">
+
+                    </div>
+
+                </div>
+
+                <div class="mt-3 text-end">
+
+                    <a href="{% url 'caixa' %}" class="btn btn-outline-secondary">
+
+                        <i class="fas fa-eraser"></i>
+
+                        Limpar
+
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+
+                        <i class="fas fa-search"></i>
+
+                        Pesquisar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
 
     </div>
-
-    <div class="card-body">
-
-        <form method="GET">
-
-            <div class="row">
-
-                <div class="col-md-3">
-
-                    <label class="form-label">
-
-                        Data Inicial
-
-                    </label>
-
-                    <input
-                        type="date"
-                        name="data_inicial"
-                        class="form-control"
-                        value="{{ request.GET.data_inicial }}">
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <label class="form-label">
-
-                        Data Final
-
-                    </label>
-
-                    <input
-                        type="date"
-                        name="data_final"
-                        class="form-control"
-                        value="{{ request.GET.data_final }}">
-
-                </div>
-
-                <div class="col-md-2">
-
-                    <label class="form-label">
-
-                        Tipo
-
-                    </label>
-
-                    <select
-                        name="tipo"
-                        class="form-select">
-
-                        <option value="">Todos</option>
-
-                        <option
-                            value="ENTRADA"
-                            {% if request.GET.tipo == "ENTRADA" %}selected{% endif %}>
-
-                            Entradas
-
-                        </option>
-
-                        <option
-                            value="SAIDA"
-                            {% if request.GET.tipo == "SAIDA" %}selected{% endif %}>
-
-                            Saídas
-
-                        </option>
-
-                    </select>
-
-                </div>
-
-                <div class="col-md-4">
-
-                    <label class="form-label">
-
-                        Descrição
-
-                    </label>
-
-                    <input
-                        type="text"
-                        name="descricao"
-                        class="form-control"
-                        placeholder="Pesquisar descrição..."
-                        value="{{ request.GET.descricao }}">
-
-                </div>
-
-            </div>
-
-            <div class="mt-3 text-end">
-
-                <a
-                    href="{% url 'caixa' %}"
-                    class="btn btn-outline-secondary">
-
-                    <i class="fas fa-eraser"></i>
-
-                    Limpar
-
-                </a>
-
-                <button
-                    type="submit"
-                    class="btn btn-primary">
-
-                    <i class="fas fa-search"></i>
-
-                    Pesquisar
-
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
 
     <!-- ========================================= -->
     <!-- RESUMO -->
@@ -468,145 +436,154 @@
 
                         {% for item in movimentacoes %}
 
-                            <tr>
+                        <tr>
 
-                                <td>
+                            <td>
 
-                                    {{ item.data|date:"d/m/Y" }}
+                                {{ item.data|date:"d/m/Y" }}
 
-                                </td>
+                            </td>
 
-                                <td>
+                            <td>
 
-                                    {% if item.conta_receber %}
+                                {% if item.conta_receber %}
 
-                                        <span class="badge bg-success">
+                                <span class="badge bg-success">
 
-                                            Conta a Receber
+                                    Conta a Receber
 
-                                        </span>
+                                </span>
 
-                                    {% elif item.conta_pagar %}
+                                {% elif item.conta_pagar %}
 
-                                        <span class="badge bg-danger">
 
-                                            Conta a Pagar
+                                <span class="badge bg-danger">
 
-                                        </span>
+                                    Conta a Pagar
 
-                                    {% elif "Comissão" in item.descricao %}
+                                </span>
 
-                                        <span class="badge bg-warning text-dark">
+                                {% elif "Comissão" in item.descricao %}
 
-                                            Comissão
+                                <span class="badge bg-warning text-dark">
 
-                                        </span>
+                                    Comissão
 
-                                    {% else %}
+                                </span>
 
-                                        <span class="badge bg-secondary">
+                                {% else %}
 
-                                            Manual
+                                <span class="badge bg-secondary">
 
-                                        </span>
+                                    Manual
 
-                                    {% endif %}
+                                </span>
 
-                                </td>
+                                {% endif %}
 
-                                <td>
+                            </td>
 
-                                    {% if item.conta_receber %}
+                            <td>
 
-                                        <strong>
+                                {% if item.conta_receber %}
 
-                                            {{ item.conta_receber.paciente.nome }}
+                                <strong>
 
-                                        </strong>
+                                    {{ item.conta_receber.paciente.nome }}
 
-                                        <br>
+                                </strong>
 
-                                        <small class="text-muted">
+                                <br>
 
-                                            {{ item.conta_receber.descricao }}
+                                <small class="text-muted">
 
-                                            {% if item.conta_receber.numero_parcela %}
+                                    {{ item.conta_receber.descricao }}
 
-                                                • Parcela {{ item.conta_receber.numero_parcela }}
+                                    {% if item.conta_receber.numero_parcela %}
 
-                                            {% endif %}
-
-                                        </small>
-
-                                    {% elif item.conta_pagar %}
-
-                                        <strong>
-
-                                            {{ item.conta_pagar.profissional.usuario.get_full_name|default:item.conta_pagar.profissional.usuario.username }}
-
-                                        </strong>
-
-                                        <br>
-
-                                        <small class="text-muted">
-
-                                            {{ item.conta_pagar.descricao }}
-
-                                        </small>
-
-                                    {% else %}
-
-                                        {{ item.descricao }}
+                                    • Parcela {{ item.conta_receber.numero_parcela }}
 
                                     {% endif %}
 
-                                </td>
+                                </small>
 
-                                <td>
+                                {% elif item.conta_pagar %}
 
-                                    {% if item.tipo == 'ENTRADA' %}
+                                <strong>
 
-                                        <span class="badge bg-success">
+                                    {% if item.conta_pagar.profissional %}
 
-                                            Entrada
-
-                                        </span>
+                                    {{ item.conta_pagar.profissional.nome }}
 
                                     {% else %}
 
-                                        <span class="badge bg-danger">
-
-                                            Saída
-
-                                        </span>
+                                    Não informado
 
                                     {% endif %}
 
-                                </td>
+                                </strong>
 
-                                <td class="text-end">
+                                <br>
 
-                                    <strong>
+                                <small class="text-muted">
 
-                                        R$ {{ item.valor }}
+                                    {{ item.conta_pagar.descricao }}
 
-                                    </strong>
+                                </small>
 
-                                </td>
+                                {% else %}
 
-                            </tr>
+                                {{ item.descricao }}
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if item.tipo == 'ENTRADA' %}
+
+                                <span class="badge bg-success">
+
+                                    Entrada
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-danger">
+
+                                    Saída
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td class="text-end">
+
+                                <strong>
+
+                                    R$ {{ item.valor }}
+
+                                </strong>
+
+                            </td>
+
+                        </tr>
 
                         {% empty %}
 
-                            <tr>
+                        <tr>
 
-                                <td colspan="5" class="text-center py-4">
+                            <td colspan="5" class="text-center py-4">
 
-                                    Nenhuma movimentação encontrada.
+                                Nenhuma movimentação encontrada.
 
-                                </td>
+                            </td>
 
-                            </tr>
+                        </tr>
 
                         {% endfor %}
 
@@ -718,19 +695,19 @@ HISTÓRICO DE FECHAMENTOS
 
                             {% if caixa.status == "FECHADO" %}
 
-                                <span class="badge bg-danger">
+                            <span class="badge bg-danger">
 
-                                    Fechado
+                                Fechado
 
-                                </span>
+                            </span>
 
                             {% else %}
 
-                                <span class="badge bg-success">
+                            <span class="badge bg-success">
 
-                                    Aberto
+                                Aberto
 
-                                </span>
+                            </span>
 
                             {% endif %}
 
@@ -766,28 +743,19 @@ HISTÓRICO DE FECHAMENTOS
 <!-- MODAL ABRIR CAIXA -->
 <!-- ========================================= -->
 
-<div
-    class="modal fade"
-    id="modalAbrirCaixa"
-    tabindex="-1"
-    aria-labelledby="modalAbrirCaixaLabel"
-    aria-hidden="true">
+<div class="modal fade" id="modalAbrirCaixa" tabindex="-1" aria-labelledby="modalAbrirCaixaLabel" aria-hidden="true">
 
     <div class="modal-dialog">
 
         <div class="modal-content">
 
-            <form
-                method="POST"
-                action="{% url 'abrir_caixa' %}">
+            <form method="POST" action="{% url 'abrir_caixa' %}">
 
                 {% csrf_token %}
 
                 <div class="modal-header">
 
-                    <h5
-                        class="modal-title"
-                        id="modalAbrirCaixaLabel">
+                    <h5 class="modal-title" id="modalAbrirCaixaLabel">
 
                         <i class="fas fa-lock-open text-success"></i>
 
@@ -795,11 +763,7 @@ HISTÓRICO DE FECHAMENTOS
 
                     </h5>
 
-                    <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Fechar">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar">
                     </button>
 
                 </div>
@@ -822,13 +786,8 @@ HISTÓRICO DE FECHAMENTOS
 
                             </span>
 
-                            <input
-                                type="text"
-                                class="form-control"
-                                name="saldo_inicial"
-                                value="{{ saldo_sugerido }}"
-                                readonly
-                            >
+                            <input type="text" class="form-control" name="saldo_inicial" value="{{ saldo_sugerido }}"
+                                readonly>
 
 
                         </div>
@@ -843,10 +802,7 @@ HISTÓRICO DE FECHAMENTOS
 
                         </label>
 
-                        <textarea
-                            name="observacoes"
-                            rows="3"
-                            class="form-control"
+                        <textarea name="observacoes" rows="3" class="form-control"
                             placeholder="Observações sobre a abertura do caixa..."></textarea>
 
                     </div>
@@ -855,18 +811,13 @@ HISTÓRICO DE FECHAMENTOS
 
                 <div class="modal-footer">
 
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
 
                         Cancelar
 
                     </button>
 
-                    <button
-                        type="submit"
-                        class="btn btn-success">
+                    <button type="submit" class="btn btn-success">
 
                         <i class="fas fa-lock-open"></i>
 
