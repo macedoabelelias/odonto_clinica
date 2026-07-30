@@ -1,3 +1,63 @@
+<style>
+
+/* Card Próximas Consultas */
+
+.appointments-card{
+
+    display:flex;
+    flex-direction:column;
+
+}
+
+.appointments-body{
+    height:240px;          /* ajuste fino */
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding-right:6px;
+}
+
+/* Scroll */
+
+.appointments-body::-webkit-scrollbar{
+
+    width:6px;
+
+}
+
+.appointments-body::-webkit-scrollbar-thumb{
+
+    background:#d0d0d0;
+    border-radius:10px;
+
+}
+
+/* ==========================================
+ANIVERSARIANTES
+========================================== */
+
+.birthday-body{
+
+    height:240px;
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding-right:8px;
+
+}
+
+.birthday-body::-webkit-scrollbar{
+
+    width:6px;
+
+}
+
+.birthday-body::-webkit-scrollbar-thumb{
+
+    background:#d0d0d0;
+    border-radius:10px;
+
+}
+</style>
+
 <!-- =========================================
 CONTENT GRID
 ========================================== -->
@@ -439,13 +499,15 @@ MODAL - CRÍTICAS
 
     {% if dashboard.mostrar_consultas %}
 
-    <div class="appointments-card">
+<div class="appointments-card">
 
-        <div class="card-header">
+    <div class="card-header">
 
-            <h5>Próximas Consultas</h5>
+        <h5>Próximas Consultas</h5>
 
-        </div>
+    </div>
+
+    <div class="appointments-body">
 
         {% for consulta in proximas_consultas %}
 
@@ -507,21 +569,25 @@ MODAL - CRÍTICAS
 
     </div>
 
-    {% endif %}
+</div>
+
+{% endif %}
 
     <!-- ANIVERSARIANTES -->
 
-    {% if dashboard.mostrar_aniversariantes %}
+{% if dashboard.mostrar_aniversariantes %}
 
-    <div class="birthday-card">
+<div class="birthday-card">
 
-        <div class="card-header">
+    <div class="card-header">
 
-            <h5 style="text-align:center;">
-                🎂 Aniversariantes do Mês
-            </h5>
+        <h5 style="text-align:center;">
+            🎂 Aniversariantes do Mês
+        </h5>
 
-        </div>
+    </div>
+
+    <div class="birthday-body">
 
         {% if aniversariantes %}
 
@@ -559,6 +625,8 @@ MODAL - CRÍTICAS
 
     </div>
 
-    {% endif %}
+</div>
+
+{% endif %}
 
 </div>

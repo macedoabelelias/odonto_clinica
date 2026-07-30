@@ -1050,14 +1050,21 @@ def dashboard_view(request):
         })
 
     # =========================================
+    # TOTAIS
+    # =========================================
+
+    total_pendencias = len(pendencias)
+    total_criticas = len(criticas)
+
+    # =========================================
     # STATUS GERAL
     # =========================================
 
-    if criticas:
+    if total_criticas > 0:
 
         status_clinica = "Ocorrências Críticas"
 
-    elif pendencias:
+    elif total_pendencias > 0:
 
         status_clinica = "Atenção"
 
@@ -1069,10 +1076,11 @@ def dashboard_view(request):
     # ÍNDICE OPERACIONAL
     # =========================================
 
-    indice_operacional = 100
-
-    indice_operacional -= len(pendencias) * 10
-    indice_operacional -= len(criticas) * 25
+    indice_operacional = (
+        100
+        - (total_pendencias * 10)
+        - (total_criticas * 25)
+    )
 
     indice_operacional = max(indice_operacional, 0)
 
@@ -1082,7 +1090,7 @@ def dashboard_view(request):
 
     ultima_atualizacao = "Atualizado agora"
 
-        # =========================================
+    # =========================================
     # DADOS DOS CARDS
     # =========================================
 
@@ -1092,7 +1100,7 @@ def dashboard_view(request):
     dashboard_config["profissional_plantao"] = profissional_plantao
 
     # =========================================
-    # PENDÊNCIAS
+    # CONSULTAS AGUARDANDO CONFIRMAÇÃO
     # =========================================
 
     consultas_confirmar = (
@@ -1108,9 +1116,7 @@ def dashboard_view(request):
             "hora_inicio",
         )
     )
-
-    total_pendencias = consultas_confirmar.count()
-
+    
     # =========================================
     # DASHBOARD SECRETÁRIA
     # =========================================
@@ -1235,6 +1241,7 @@ def dashboard_view(request):
         "pendencias": pendencias,
         "criticas": criticas,
 
+        "total_pendencias": len(pendencias),
         "total_criticas": len(criticas),
 
         # =========================================
@@ -1372,23 +1379,7 @@ def dashboard_secretaria_ajax(request):
         status="agendado",
     ).count()
 
-    consultas_confirmar = (
-        consultas
-        .filter(
-            data=hoje,
-            status="agendado",
-        )
-        .select_related(
-            "paciente",
-            "profissional",
-        )
-        .order_by(
-            "hora_inicio",
-        )
-    )
-
-    total_pendencias = consultas_confirmar.count()
-
+    
     consultas_confirmadas = consultas.filter(
         data=hoje,
         status="confirmado",
