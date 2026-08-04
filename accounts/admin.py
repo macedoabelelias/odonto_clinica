@@ -1,11 +1,15 @@
 from django.contrib import admin
 
 from .models import (
+    Paciente,
+    Orcamento,
+    Tratamento,
     Auditoria,
     PerfilUsuario,
     Produto,
     TemplateDocumento,
     Tratamento,
+    MetaClinica,
 )
 
 
@@ -183,3 +187,24 @@ class AuditoriaAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
 
         return False
+
+
+@admin.register(MetaClinica)
+class MetaClinicaAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "mes",
+        "ano",
+        "valor",
+        "ativo",
+    )
+
+    list_filter = (
+        "ano",
+        "mes",
+        "ativo",
+    )
+
+    search_fields = (
+        "ano",
+    )

@@ -1,5 +1,7 @@
 import os
 
+import json
+
 from django.conf import settings
 
 from django.http import (
@@ -74,11 +76,12 @@ from .models import (
     PerfilUsuario,
     Modulo,
     Permissao,
+    MetaDentista,
+    MetaClinica,
 )
 
 from .services import registrar_auditoria
 from .financeiro import registrar_livro_caixa
-
 from .permissoes_padrao import aplicar_permissoes_padrao
 from .permissions import tem_permissao
 from .permissions import filtrar_escopo
@@ -268,6 +271,26 @@ def dashboard_view(request):
         perfil_nome,
         "admin"
     )
+
+   # =========================================
+    # DASHBOARD DO GESTOR
+    # =========================================
+
+    indicadores_gestor = {}
+    grafico_gestor = {}
+    ranking_gestor = {}
+    meta_clinica = {}
+
+    if dashboard_tipo == "gestor":
+
+        indicadores_gestor = obter_indicadores_dashboard_gestor()
+
+        grafico_gestor = obter_grafico_producao_gestor()
+
+        ranking_gestor = obter_ranking_dentistas_gestor()
+
+        meta_clinica = obter_meta_clinica()
+        
 
     # =========================================
     # CONFIGURAÇÃO DO DASHBOARD
@@ -1245,10 +1268,6 @@ def dashboard_view(request):
     # CONTEXT
     # =========================================
 
-        # =========================================
-    # CONTEXT
-    # =========================================
-
     context = {
 
         # =========================================
@@ -1368,7 +1387,25 @@ def dashboard_view(request):
         "entradas_mes": entradas_mes,
         "saidas_mes": saidas_mes,
 
+        # =========================================
+        # DASHBOARD DO GESTOR
+        # =========================================
+
+        **indicadores_gestor,
+        **grafico_gestor,
+        **ranking_gestor,
+
     }
+
+    # =========================================
+    # INDICADORES DO GESTOR
+    # =========================================
+
+    context.update(indicadores_gestor)
+    context.update(grafico_gestor)
+    context.update(ranking_gestor)
+    context.update(meta_clinica)
+
 
     return render(
         request,
@@ -17066,6 +17103,264 @@ def excel_tratamentos(request):
 
 
 # =========================================
+# DASHBOARD - INDICADORES DO GESTOR
+# =========================================
+
+from django.utils import timezone
+from decimal import Decimal
+from django.db.models import Sum
+
+def obter_indicadores_dashboard_gestor():
+
+    hoje = timezone.now()
+    ano = hoje.year
+    mes = hoje.month
+
+    # =========================================
+    # FATURAMENTO DO MÊS
+    # =========================================
+
+    orcamentos = Orcamento.objects.filter(
+        criado_em__year=ano,
+        criado_em__month=mes,
+    )
+
+    faturamento_mes = sum(
+        (orcamento.total for orcamento in orcamentos),
+        Decimal("0.00")
+    )
+
+    # =========================================
+    # PRODUÇÃO DO MÊS
+    # =========================================
+
+    procedimentos = ItemOrcamento.objects.filter(
+        status="realizado",
+        orcamento__criado_em__year=ano,
+        orcamento__criado_em__month=mes,
+    )
+
+    # Quantidade de procedimentos realizados no mês
+    producao_mes = procedimentos.count()
+
+    # =========================================
+    # CONSULTAS DE HOJE
+    # =========================================
+
+    consultas_hoje = Agendamento.objects.filter(
+        data=hoje.date()
+    ).count()
+
+    # =========================================
+    # PACIENTES ATENDIDOS
+    # =========================================
+
+    pacientes_mes = (
+        procedimentos
+        .values("orcamento__paciente")
+        .distinct()
+        .count()
+    )
+
+    # =========================================
+    # TICKET MÉDIO
+    # =========================================
+
+    ticket_medio = (
+        faturamento_mes / pacientes_mes
+        if pacientes_mes
+        else Decimal("0.00")
+    )
+
+    return {
+
+        "faturamento_mes": faturamento_mes,
+
+        "producao_mes": producao_mes,
+
+        "consultas_hoje": consultas_hoje,
+
+        "ticket_medio": ticket_medio,
+
+    }
+
+# =========================================
+# DASHBOARD - GRÁFICO PRODUÇÃO
+# =========================================
+
+from django.db.models.functions import ExtractMonth
+
+def obter_grafico_producao_gestor():
+
+    hoje = timezone.now()
+
+    ano = hoje.year
+
+    meses = [
+
+        "Jan",
+        "Fev",
+        "Mar",
+        "Abr",
+        "Mai",
+        "Jun",
+        "Jul",
+        "Ago",
+        "Set",
+        "Out",
+        "Nov",
+        "Dez",
+
+    ]
+
+    valores = []
+
+    for mes in range(1, 13):
+
+        quantidade = (
+
+            ItemOrcamento.objects
+
+            .filter(
+
+                status="realizado",
+
+                orcamento__criado_em__year=ano,
+
+                orcamento__criado_em__month=mes,
+
+            )
+
+            .count()
+
+        )
+
+        valores.append(quantidade)
+
+    return {
+
+        "grafico_labels": json.dumps(meses),
+
+        "grafico_valores": json.dumps(valores),
+
+    }
+
+ # =========================================
+# DASHBOARD - META DA CLÍNICA
+# =========================================
+
+from django.db.models import Sum
+from decimal import Decimal
+
+def obter_meta_clinica():
+
+    hoje = timezone.now()
+
+    meta = MetaClinica.objects.filter(
+        ano=hoje.year,
+        mes=hoje.month,
+        ativo=True
+    ).first()
+
+    if not meta:
+
+        return {
+
+            "meta_mes": Decimal("0.00"),
+            "faturado_mes": Decimal("0.00"),
+            "percentual_meta": 0,
+            "faltam_meta": Decimal("0.00"),
+
+        }
+
+    faturado = (
+
+        ContaReceber.objects.filter(
+
+            status="RECEBIDO",
+
+            data_pagamento__year=hoje.year,
+
+            data_pagamento__month=hoje.month,
+
+        ).aggregate(
+
+            total=Sum("valor")
+
+        )["total"]
+
+        or Decimal("0.00")
+
+    )
+
+    percentual = 0
+
+    if meta.valor > 0:
+
+        percentual = round(
+
+            (faturado / meta.valor) * 100,
+
+            1
+
+        )
+
+    faltam = max(
+
+        meta.valor - faturado,
+
+        Decimal("0.00")
+
+    )
+
+    return {
+
+        "meta_mes": meta.valor,
+
+        "faturado_mes": faturado,
+
+        "percentual_meta": percentual,
+
+        "faltam_meta": faltam,
+
+    }   
+
+from django.db.models import Count
+
+# =========================================
+# RANKING DOS DENTISTAS
+# =========================================
+
+def obter_ranking_dentistas_gestor():
+
+    ranking = (
+
+        User.objects
+
+        .filter(
+            pacientes__orcamentos__itens__status="realizado"
+        )
+
+        .annotate(
+
+            procedimentos=Count(
+                "pacientes__orcamentos__itens",
+                distinct=True
+            )
+
+        )
+
+        .order_by("-procedimentos")
+
+    )
+
+    return {
+
+        "ranking_dentistas": ranking[:5]
+
+    }
+
+# =========================================
 # FUNCIONÁRIOS DO PERFIL
 # =========================================
 
@@ -17107,3 +17402,66 @@ def funcionarios_perfil(request, perfil_id):
         context
 
     )
+
+# =========================================
+# META DA CLÍNICA
+# =========================================
+
+def obter_meta_clinica():
+
+    hoje = timezone.now()
+
+    meta = MetaClinica.objects.filter(
+
+        ano=hoje.year,
+        mes=hoje.month,
+        ativo=True
+
+    ).first()
+
+    if not meta:
+
+        return {
+
+            "meta_mes": 0,
+            "faturado": 0,
+            "percentual": 0,
+            "faltam": 0,
+
+        }
+
+    faturado = (
+        ContaReceber.objects.filter(
+            status="RECEBIDO",
+            data_pagamento__year=hoje.year,
+            data_pagamento__month=hoje.month,
+        ).aggregate(
+            total=Sum("valor")
+        )["total"] or Decimal("0.00")
+    )
+
+    percentual = 0
+
+    if meta.valor > 0:
+
+        percentual = round(
+            (faturado / meta.valor) * 100,
+            1
+        )
+
+    faltam = max(
+
+        meta.valor - faturado,
+
+        Decimal("0.00")
+
+    )
+
+    return {
+
+        "meta_mes": meta.valor,
+        "faturado": faturado,
+        "percentual": percentual,
+        "faltam": faltam,
+
+    }

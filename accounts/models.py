@@ -4374,3 +4374,53 @@ class Permissao(models.Model):
 
     def __str__(self):
         return f"{self.perfil.nome} - {self.modulo.nome}"
+
+# =========================================
+# META DA CLÍNICA
+# =========================================
+
+class MetaClinica(models.Model):
+
+    ano = models.PositiveIntegerField(
+        "Ano"
+    )
+
+    mes = models.PositiveIntegerField(
+        "Mês"
+    )
+
+    valor = models.DecimalField(
+        "Meta",
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    observacao = models.TextField(
+        "Observação",
+        blank=True
+    )
+
+    ativo = models.BooleanField(
+        default=True
+    )
+
+    criado_em = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+
+        verbose_name = "Meta da Clínica"
+        verbose_name_plural = "Metas da Clínica"
+
+        ordering = ["-ano", "-mes"]
+
+        unique_together = (
+            ("ano", "mes"),
+        )
+
+    def __str__(self):
+
+        return f"{self.mes:02}/{self.ano} - R$ {self.valor}"
+

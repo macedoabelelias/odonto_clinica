@@ -110,6 +110,8 @@ CORES DOS ÍCONES
     background:linear-gradient(135deg,#ef4444,#dc2626);
 
 }
+
+
 </style>
 
 <!-- =========================================
@@ -139,9 +141,7 @@ CARDS SUPERIORES
                     <h6>Faturamento do Mês</h6>
 
                     <h3>
-
-                        R$ {{ faturamento_mes|floatformat:2|default:"0,00" }}
-
+                        R$ {{ faturamento_mes|default:0|floatformat:2 }}
                     </h3>
 
                     <small class="text-muted">
@@ -178,11 +178,7 @@ CARDS SUPERIORES
 
                     <h6>Produção do Mês</h6>
 
-                    <h3>
-
-                        {{ producao_mes|default:"0" }}
-
-                    </h3>
+                    <h3>{{ producao_mes }}</h3>
 
                     <small class="text-muted">
 

@@ -359,7 +359,8 @@ CSS POR PERFIL
 {% elif dashboard_tipo == "gestor" %}
 
     {% include "accounts/dashboard/gestor/_cards.html" %}
-    {% include "accounts/dashboard/gestor/_content_grid.html" %}
+    {% include "accounts/dashboard/gestor/_charts.html" %}
+    {% include "accounts/dashboard/gestor/_content_grid.html" %}    
     {% include "accounts/dashboard/gestor/_content_bottom.html" %}
 
 {% else %}
@@ -381,9 +382,8 @@ CSS POR PERFIL
 
     {% elif dashboard_tipo == "gestor" %}
 
-        {% include "accounts/dashboard/gestor/_charts.html" %}
+        {% include "accounts/dashboard/gestor/_charts_js.html" %}
 
     {% endif %}
 
 {% endblock %}
-

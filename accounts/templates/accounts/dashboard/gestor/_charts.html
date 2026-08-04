@@ -1,0 +1,270 @@
+<style>
+    /* =========================================
+AGENDA DE HOJE
+========================================= */
+
+.agenda-scroll{
+
+    max-height:340px;
+
+    overflow-y:auto;
+
+    overflow-x:hidden;
+
+    padding-right:6px;
+
+}
+
+.agenda-item{
+
+    display:flex;
+
+    align-items:flex-start;
+
+    gap:12px;
+
+    padding:12px;
+
+    margin-bottom:10px;
+
+    border:1px solid #eef2f7;
+
+    border-radius:12px;
+
+    transition:.2s;
+
+    background:#fff;
+
+}
+
+.agenda-item:hover{
+
+    background:#f8fafc;
+
+    border-color:#dbeafe;
+
+}
+
+.agenda-hora{
+
+    min-width:58px;
+
+    font-weight:700;
+
+    color:#2563eb;
+
+    font-size:15px;
+
+}
+
+.agenda-info{
+
+    flex:1;
+
+}
+
+.agenda-info strong{
+
+    display:block;
+
+    color:#111827;
+
+    font-size:14px;
+
+}
+
+.agenda-info small{
+
+    color:#6b7280;
+
+    font-size:12px;
+
+}
+
+/* Scroll moderno */
+
+.agenda-scroll::-webkit-scrollbar{
+
+    width:6px;
+
+}
+
+.agenda-scroll::-webkit-scrollbar-track{
+
+    background:#f1f5f9;
+
+    border-radius:10px;
+
+}
+
+.agenda-scroll::-webkit-scrollbar-thumb{
+
+    background:#cbd5e1;
+
+    border-radius:10px;
+
+}
+
+.agenda-scroll::-webkit-scrollbar-thumb:hover{
+
+    background:#94a3b8;
+
+}
+
+/* =========================================
+GRÁFICO PRODUÇÃO
+========================================= */
+
+.grafico-container{
+
+    position: relative;
+
+    width: 100%;
+
+    height: 380px;
+
+}
+
+#graficoProducaoGestor{
+
+    width:100% !important;
+
+    height:100% !important;
+
+}
+
+</style>
+
+<div class="row mt-4">
+
+    <!-- ========================================= -->
+    <!-- PRODUÇÃO MENSAL -->
+    <!-- ========================================= -->
+
+    <div class="col-lg-8 mb-4">
+
+        <div class="card dashboard-card stats-card h-100">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+
+                    <div>
+
+                        <h5 class="mb-1">
+
+                            <i class="bi bi-bar-chart-line-fill text-primary me-2"></i>
+
+                            Produção Mensal
+
+                        </h5>
+
+                        <small class="text-muted">
+
+                            Evolução da produção da clínica
+
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <div class="grafico-container">
+
+                    <canvas id="graficoProducaoGestor"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================= -->
+<!-- AGENDA DE HOJE -->
+<!-- ========================================= -->
+
+<div class="col-lg-4 mb-4">
+
+    <div class="card dashboard-card stats-card h-100">
+
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <div>
+
+                    <h5 class="mb-1">
+
+                        <i class="bi bi-calendar-check-fill text-success me-2"></i>
+
+                        Agenda de Hoje
+
+                    </h5>
+
+                    <small class="text-muted">
+
+                        Próximos atendimentos
+
+                    </small>
+
+                </div>
+
+            </div>
+
+            <div class="agenda-scroll">
+
+                {% if proximas_consultas %}
+
+                    {% for consulta in proximas_consultas %}
+
+                        <div class="agenda-item">
+
+                            <div class="agenda-hora">
+
+                                {{ consulta.hora_inicio|time:"H:i" }}
+
+                            </div>
+
+                            <div class="agenda-info">
+
+                                <strong>
+
+                                    {{ consulta.paciente.nome }}
+
+                                </strong>
+
+                                <small>
+
+                                    {{ consulta.profissional.nome }}
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <div class="text-center py-5 text-muted">
+
+                        <i class="bi bi-calendar-x fs-1 d-block mb-3"></i>
+
+                        Nenhuma consulta agendada.
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
