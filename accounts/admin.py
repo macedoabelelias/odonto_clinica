@@ -8,8 +8,8 @@ from .models import (
     PerfilUsuario,
     Produto,
     TemplateDocumento,
-    Tratamento,
     MetaClinica,
+    MetaDentista,
 )
 
 
@@ -208,3 +208,32 @@ class MetaClinicaAdmin(admin.ModelAdmin):
     search_fields = (
         "ano",
     )
+
+@admin.register(MetaDentista)
+class MetaDentistaAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "dentista",
+        "mes",
+        "ano",
+        "meta_financeira",
+        "meta_procedimentos",
+        "meta_pacientes",
+        "ativo",
+    )
+
+    list_filter = (
+        "ano",
+        "mes",
+        "ativo",
+    )
+
+    search_fields = (
+
+    "dentista__usuario__first_name",
+
+    "dentista__usuario__last_name",
+
+    "dentista__usuario__username",
+
+)

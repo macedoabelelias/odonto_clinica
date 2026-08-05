@@ -1,134 +1,139 @@
 import os
-
 import json
+
+from datetime import timedelta
+from decimal import Decimal
 
 from django.conf import settings
 
-from django.http import (
-    HttpResponse,
-    JsonResponse
-)
-
-from django.shortcuts import (
-    render,
-    redirect,
-    get_object_or_404
-)
-
+from django.contrib import messages
 from django.contrib.auth import (
     authenticate,
     login,
-    logout
+    logout,
+    update_session_auth_hash,
+)
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+
+from django.db import transaction
+from django.db.models import (
+    Avg,
+    Count,
+    DecimalField,
+    ExpressionWrapper,
+    F,
+    Max,
+    Min,
+    Sum,
+)
+from django.db.models.deletion import ProtectedError
+from django.db.models.functions import ExtractMonth
+
+from django.http import (
+    HttpResponse,
+    JsonResponse,
 )
 
-from django.contrib.auth.decorators import (
-    login_required
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
 )
 
 from django.utils import timezone
 
-from django.db.models.deletion import ProtectedError
+from django.core.paginator import Paginator
 
 from reportlab.lib import colors
+from reportlab.lib.styles import (
+    ParagraphStyle,
+    getSampleStyleSheet,
+)
 from reportlab.lib.units import mm
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 
 from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer,
+    HRFlowable,
     Image,
-    HRFlowable
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+)
+
+from openpyxl import Workbook
+from openpyxl.styles import (
+    Alignment,
+    Border,
+    Font,
+    PatternFill,
+    Side,
+)
+from openpyxl.utils import get_column_letter
+
+from agenda.models import (
+    Agendamento,
+    Profissional,
+)
+
+from .financeiro import registrar_livro_caixa
+
+from .forms import (
+    ConvenioForm,
+    ItemOrcamentoForm,
+    MetaDentistaForm,
+    PerfilForm,
+    ProcedimentoForm,
 )
 
 from .models import (
-    Auditoria,
-    Convenio,
-    EvolucaoClinica,
-    ProntuarioClinico,
-    DocumentoClinico,
-    TemplateDocumento,
-    Paciente,
-    Tratamento,
     Anamnese,
-    Procedimento,
-    Orcamento,
-    ItemOrcamento,
     AnexoPaciente,
-    ConfiguracaoClinica,
-    Medicamento,
-    Receita,
-    ModeloReceita,
-    Exame,
-    SolicitacaoExame,
-    Fornecedor,
-    Produto,
-    Compra,
-    ItemCompra,
-    MovimentacaoEstoque,
-    LoteProduto,
-    ContaPagar,
-    ContaReceber,
+    Auditoria,
     Caixa,
     CaixaDiario,
+    Compra,
+    ConfiguracaoClinica,
+    ContaPagar,
+    ContaReceber,
+    Convenio,
+    DocumentoClinico,
+    EvolucaoClinica,
+    Exame,
+    Fornecedor,
+    ItemCompra,
+    ItemOrcamento,
     LivroCaixa,
+    LoteProduto,
+    Medicamento,
+    MetaClinica,
+    MetaDentista,
+    Modulo,
+    ModeloReceita,
+    MovimentacaoEstoque,
+    Orcamento,
+    Paciente,
     Perfil,
     PerfilUsuario,
-    Modulo,
     Permissao,
-    MetaDentista,
-    MetaClinica,
+    Procedimento,
+    Produto,
+    ProntuarioClinico,
+    Receita,
+    SolicitacaoExame,
+    TemplateDocumento,
+    Tratamento,
 )
 
-from .services import registrar_auditoria
-from .financeiro import registrar_livro_caixa
+from .permissions import (
+    filtrar_escopo,
+    perfil_required,
+    permissao_required,
+    tem_permissao,
+)
+
 from .permissoes_padrao import aplicar_permissoes_padrao
-from .permissions import tem_permissao
-from .permissions import filtrar_escopo
-from .permissions import permissao_required
-
-from .forms import (
-    ProcedimentoForm,
-    ItemOrcamentoForm,
-    ConvenioForm,
-    PerfilForm
-)
 
 from .services import registrar_auditoria
-
-from datetime import timedelta
-
-from django.contrib.auth.models import User
-from django.contrib import messages
-
-from .permissions import perfil_required
-from django.contrib.auth import update_session_auth_hash
-
-from decimal import Decimal
-
-from django.db.models import (
-    Sum,
-    Max,
-    Min,
-)
-
-from django.db.models import Count, Sum, F, DecimalField, ExpressionWrapper
-from django.db.models.functions import ExtractMonth
-
-from agenda.models import Profissional
-from agenda.models import Agendamento
-
-from django.db import transaction
-
-from django.core.paginator import Paginator
-
-from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment
-from openpyxl.utils import get_column_letter
-
-from openpyxl.styles import Border, Side
-
-from django.contrib.auth.models import User
 
 
 
@@ -17184,6 +17189,61 @@ def obter_indicadores_dashboard_gestor():
 
     }
 
+def obter_meta_dentista(usuario):
+
+    hoje = timezone.now()
+
+    ano = hoje.year
+    mes = hoje.month
+
+    meta = (
+        MetaDentista.objects.filter(
+            dentista__usuario=usuario,
+            ano=ano,
+            mes=mes,
+            ativo=True,
+        ).first()
+    )
+
+    if not meta:
+        return None
+
+    total_realizado = (
+        ItemOrcamento.objects.filter(
+            status="realizado",
+            orcamento__tratamento__dentista=usuario,
+            orcamento__criado_em__year=ano,
+            orcamento__criado_em__month=mes,
+        ).aggregate(
+            total=Sum(
+                ExpressionWrapper(
+                    F("quantidade") * F("valor_unitario"),
+                    output_field=DecimalField(
+                        max_digits=12,
+                        decimal_places=2,
+                    ),
+                )
+            )
+        )["total"] or Decimal("0.00")
+    )
+
+    percentual = 0
+
+    if meta.meta_financeira > 0:
+        percentual = min(
+            100,
+            round(
+                (total_realizado / meta.meta_financeira) * 100,
+                1,
+            ),
+        )
+
+    return {
+        "meta": meta,
+        "realizado": total_realizado,
+        "percentual": percentual,
+    }
+
 # =========================================
 # DASHBOARD - GRÁFICO PRODUÇÃO
 # =========================================
@@ -17361,6 +17421,125 @@ def obter_ranking_dentistas_gestor():
     }
 
 # =========================================
+# DASHBOARD - META DO DENTISTA
+# =========================================
+
+from django.utils import timezone
+from decimal import Decimal
+from django.db.models import Sum
+
+def obter_meta_dashboard_dentista(usuario):
+
+    hoje = timezone.now()
+    ano = hoje.year
+    mes = hoje.month
+
+    # =========================================
+    # PERFIL DO DENTISTA
+    # =========================================
+
+    try:
+
+        perfil = PerfilUsuario.objects.get(
+            usuario=usuario,
+            tipo_usuario=PerfilUsuario.DENTISTA,
+        )
+
+    except PerfilUsuario.DoesNotExist:
+
+        return None
+
+    # =========================================
+    # META DO MÊS
+    # =========================================
+
+    meta = (
+        MetaDentista.objects
+        .filter(
+            dentista=perfil,
+            ano=ano,
+            mes=mes,
+            ativo=True,
+        )
+        .first()
+    )
+
+    if not meta:
+
+        return None
+
+    # =========================================
+    # PRODUÇÃO FINANCEIRA
+    # =========================================
+
+    total_realizado = (
+        ItemOrcamento.objects.filter(
+            status="realizado",
+            orcamento__tratamento__dentista=usuario,
+            orcamento__criado_em__year=ano,
+            orcamento__criado_em__month=mes,
+        ).aggregate(
+            total=Sum("valor_total")
+        )["total"] or Decimal("0.00")
+    )
+
+    # =========================================
+    # PROCEDIMENTOS
+    # =========================================
+
+    procedimentos_realizados = (
+        ItemOrcamento.objects.filter(
+            status="realizado",
+            orcamento__tratamento__dentista=usuario,
+            orcamento__criado_em__year=ano,
+            orcamento__criado_em__month=mes,
+        ).count()
+    )
+
+    # =========================================
+    # NOVOS PACIENTES
+    # =========================================
+
+    novos_pacientes = (
+        Paciente.objects.filter(
+            dentista=usuario,
+            criado_em__year=ano,
+            criado_em__month=mes,
+        ).count()
+    )
+
+    # =========================================
+    # PERCENTUAL DA META
+    # =========================================
+
+    percentual = Decimal("0.00")
+
+    if meta.meta_financeira > 0:
+
+        percentual = (
+            total_realizado /
+            meta.meta_financeira
+        ) * 100
+
+    if percentual > 100:
+
+        percentual = Decimal("100")
+
+    return {
+
+        "meta": meta,
+
+        "realizado": total_realizado,
+
+        "procedimentos_realizados": procedimentos_realizados,
+
+        "novos_pacientes": novos_pacientes,
+
+        "percentual": percentual,
+
+    }
+
+# =========================================
 # FUNCIONÁRIOS DO PERFIL
 # =========================================
 
@@ -17465,3 +17644,165 @@ def obter_meta_clinica():
         "faltam": faltam,
 
     }
+
+
+# =========================================
+# METAS DOS DENTISTAS
+# =========================================
+
+@login_required(login_url="/")
+def metas_dentistas(request):
+
+    # =========================================
+    # CONSULTA
+    # =========================================
+
+    metas = (
+        MetaDentista.objects
+        .select_related(
+            "dentista",
+            "dentista__usuario",
+        )
+        .order_by(
+            "-ano",
+            "-mes",
+            "dentista__usuario__first_name",
+        )
+    )
+
+    # =========================================
+    # FORMULÁRIO
+    # =========================================
+
+    if request.method == "POST":
+
+        form = MetaDentistaForm(request.POST)
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Meta cadastrada com sucesso."
+            )
+
+            return redirect("metas_dentistas")
+
+        else:
+
+            messages.error(
+                request,
+                "Não foi possível salvar a meta. Verifique os dados informados."
+            )
+
+    else:
+
+        form = MetaDentistaForm()
+
+    # =========================================
+    # INDICADORES
+    # =========================================
+
+    hoje = timezone.now()
+
+    indicadores = metas.aggregate(
+
+        meta_total=Sum("meta_financeira"),
+
+        meta_media=Avg("meta_financeira"),
+
+    )
+
+    meta_total = indicadores["meta_total"] or Decimal("0.00")
+
+    meta_media = indicadores["meta_media"] or Decimal("0.00")
+
+    total_dentistas = (
+        metas.values("dentista")
+        .distinct()
+        .count()
+    )
+
+    # =========================================
+    # CONTEXT
+    # =========================================
+
+    context = {
+
+        "form": form,
+
+        "metas": metas,
+
+        "meta_total": meta_total,
+
+        "meta_media": meta_media,
+
+        "total_dentistas": total_dentistas,
+
+        "mes_atual": hoje,
+
+    }
+
+    return render(
+
+        request,
+
+        "accounts/metas_dentistas.html",
+
+        context,
+
+    )
+
+# =========================================
+# EDITAR META DO DENTISTA
+# =========================================
+
+@login_required(login_url="/")
+def editar_meta_dentista(request, pk):
+
+    meta = get_object_or_404(
+        MetaDentista,
+        pk=pk
+    )
+
+    if request.method == "POST":
+
+        form = MetaDentistaForm(
+            request.POST,
+            instance=meta
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Meta atualizada com sucesso."
+            )
+
+            return redirect("metas_dentistas")
+
+    else:
+
+        form = MetaDentistaForm(
+            instance=meta
+        )
+
+    context = {
+
+        "form": form,
+        "meta": meta,
+
+    }
+
+    return render(
+
+        request,
+
+        "accounts/editar_meta_dentista.html",
+
+        context,
+
+    )

@@ -1,7 +1,9 @@
 from django import forms
+from django.utils import timezone
 from django.contrib.auth.models import User
 
 from .models import (
+    PerfilUsuario,
     Procedimento,
     Orcamento,
     ItemOrcamento,
@@ -11,6 +13,8 @@ from .models import (
     ModeloReceita,
     MetaDentista,
 )
+
+
 
 # =========================================
 # FORM PROCEDIMENTO
@@ -416,7 +420,27 @@ class PerfilForm(forms.ModelForm):
 # FORM META DOS DENTISTAS
 # =========================================
 
+from django.utils import timezone
+
+
 class MetaDentistaForm(forms.ModelForm):
+
+    MESES = (
+
+        (1, "Janeiro"),
+        (2, "Fevereiro"),
+        (3, "Março"),
+        (4, "Abril"),
+        (5, "Maio"),
+        (6, "Junho"),
+        (7, "Julho"),
+        (8, "Agosto"),
+        (9, "Setembro"),
+        (10, "Outubro"),
+        (11, "Novembro"),
+        (12, "Dezembro"),
+
+    )
 
     class Meta:
 
@@ -425,41 +449,23 @@ class MetaDentistaForm(forms.ModelForm):
         fields = [
 
             "dentista",
-
             "mes",
-
             "ano",
-
             "meta_financeira",
-
-            "observacoes",
+            "meta_procedimentos",
+            "meta_pacientes",
+            "observacao",
 
         ]
 
         widgets = {
 
-            "dentista": forms.Select(
-
-                attrs={
-
-                    "class": "form-select shadow-sm",
-
-                }
-
-            ),
-
             "mes": forms.NumberInput(
-
                 attrs={
-
                     "class": "form-control shadow-sm",
-
                     "min": 1,
-
                     "max": 12,
-
                 }
-
             ),
 
             "ano": forms.NumberInput(
@@ -477,19 +483,39 @@ class MetaDentistaForm(forms.ModelForm):
                 attrs={
 
                     "class": "form-control shadow-sm",
-
                     "step": "0.01",
 
                 }
 
             ),
 
-            "observacoes": forms.Textarea(
+            "meta_procedimentos": forms.NumberInput(
 
                 attrs={
 
                     "class": "form-control shadow-sm",
+                    "min": 0,
 
+                }
+
+            ),
+
+            "meta_pacientes": forms.NumberInput(
+
+                attrs={
+
+                    "class": "form-control shadow-sm",
+                    "min": 0,
+
+                }
+
+            ),
+
+            "observacao": forms.Textarea(
+
+                attrs={
+
+                    "class": "form-control shadow-sm",
                     "rows": 3,
 
                 }
@@ -502,20 +528,79 @@ class MetaDentistaForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        self.fields["dentista"].queryset = (
+        # =========================================
+        # DENTISTAS
+        # =========================================
 
-            User.objects.filter(
+        queryset = PerfilUsuario.objects.filter(
 
-                perfilusuario__tipo_usuario="DENTISTA"
+            tipo_usuario=PerfilUsuario.DENTISTA,
 
-            )
+            ativo=True,
 
-            .order_by(
+        ).order_by(
 
-                "first_name",
+            "usuario__first_name",
 
-                "last_name",
+            "usuario__last_name",
 
-            )
+        )
 
-        )   
+        self.fields["dentista"].queryset = queryset
+
+        self.fields["dentista"].label_from_instance = (
+
+            lambda obj: obj.usuario.get_full_name() or obj.usuario.username
+
+        )
+
+        self.fields["dentista"].widget.attrs.update({
+
+            "class": "form-select shadow-sm",
+
+        })
+
+        # =========================================
+        # MÊS
+        # =========================================
+
+        self.fields["mes"].widget = forms.Select(
+
+            choices=[
+
+                (1, "Janeiro"),
+                (2, "Fevereiro"),
+                (3, "Março"),
+                (4, "Abril"),
+                (5, "Maio"),
+                (6, "Junho"),
+                (7, "Julho"),
+                (8, "Agosto"),
+                (9, "Setembro"),
+                (10, "Outubro"),
+                (11, "Novembro"),
+                (12, "Dezembro"),
+
+            ],
+
+            attrs={
+
+                "class": "form-select shadow-sm",
+
+            },
+
+        )
+
+        # =========================================
+        # VALORES PADRÃO
+        # =========================================
+
+        hoje = timezone.now()
+
+        self.fields["mes"].initial = hoje.month
+
+        self.fields["ano"].initial = hoje.year
+
+        if queryset.exists():
+
+            self.fields["dentista"].initial = queryset.first()

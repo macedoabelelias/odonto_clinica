@@ -1,0 +1,99 @@
+<div class="row mb-4">
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card dashboard-card">
+
+            <div class="card-body">
+
+                <small class="text-muted">
+
+                    Meta da Clínica
+
+                </small>
+
+                <h3 class="mt-2 mb-0 text-primary">
+
+                    R$ {{ meta_total|floatformat:2 }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card dashboard-card">
+
+            <div class="card-body">
+
+                <small class="text-muted">
+
+                    Dentistas
+
+                </small>
+
+                <h3 class="mt-2 mb-0">
+
+                    {{ total_dentistas }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card dashboard-card">
+
+            <div class="card-body">
+
+                <small class="text-muted">
+
+                    Meta Média
+
+                </small>
+
+                <h3 class="mt-2 mb-0 text-success">
+
+                    R$ {{ meta_media|floatformat:2 }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card dashboard-card">
+
+            <div class="card-body">
+
+                <small class="text-muted">
+
+                    Mês Atual
+
+                </small>
+
+                <h3 class="mt-2 mb-0">
+
+                    {{ mes_atual|date:"F/Y" }}
+
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

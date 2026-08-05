@@ -78,8 +78,14 @@ class Command(BaseCommand):
         # CONFIGURAÇÕES
         # =====================================================
 
+        # =====================================================
+        # CONFIGURAÇÕES
+        # =====================================================
+
         ("perfis", "Perfis de Acesso", "Configurações", "bi-shield-lock", 70),
         ("configuracao_clinica", "Clínica", "Configurações", "bi-hospital", 71),
+        ("metas_dentistas", "Metas dos Dentistas", "Configurações", "bi-bullseye", 72),
+        ("meta_clinica", "Meta da Clínica", "Configurações", "bi-graph-up-arrow", 73),
 
         # =====================================================
         # MARKETING

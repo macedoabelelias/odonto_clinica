@@ -1159,7 +1159,17 @@ path(
     name='pdf_relatorio_aniversariantes'
 ),
 
+path(
+    "metas-dentistas/",
+    views.metas_dentistas,
+    name="metas_dentistas",
+),
 
+path(
+    "metas-dentistas/<int:pk>/editar/",
+    views.editar_meta_dentista,
+    name="editar_meta_dentista",
+),
 
 ]
 

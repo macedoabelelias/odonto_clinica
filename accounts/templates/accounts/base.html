@@ -441,16 +441,13 @@ CONFIGURAÇÕES
 ====================================================== -->
 
 {% possui_permissao request.user 'configuracao_clinica' as pode_configuracao_clinica %}
+{% possui_permissao request.user 'metas_dentistas' as pode_metas_dentistas %}
 {% possui_permissao request.user 'usuarios' as pode_usuarios %}
 {% possui_permissao request.user 'perfis' as pode_perfis %}
 
-{% if pode_configuracao_clinica or pode_usuarios or pode_perfis %}
+{% if pode_configuracao_clinica or pode_metas_dentistas or pode_usuarios or pode_perfis %}
 
-<p style="display:none;">
-Config={{ pode_configuracao_clinica }}
-Usuarios={{ pode_usuarios }}
-Perfis={{ pode_perfis }}
-</p>
+
 
 <div class="sidebar-section">
     CONFIGURAÇÕES
@@ -470,24 +467,37 @@ Perfis={{ pode_perfis }}
     </button>
 
     <ul class="submenu">
+{% if pode_configuracao_clinica %}
+<li>
+    <a href="{% url 'configuracao_clinica' %}">
+        <i class="bi bi-hospital"></i>
+        <span>Clínica</span>
+    </a>
+</li>
+{% endif %}
 
-        {% if pode_configuracao_clinica %}
-        <li>
-            <a href="{% url 'configuracao_clinica' %}">
-                <i class="bi bi-hospital"></i>
-                <span>Clínica</span>
-            </a>
-        </li>
-        {% endif %}
+{% if pode_metas_dentistas %}
+<li class="{% if 'metas-dentistas' in request.path %}active{% endif %}">
 
-        {% if pode_usuarios %}
-        <li>
-            <a href="{% url 'usuarios' %}">
-                <i class="bi bi-people"></i>
-                <span>Usuários</span>
-            </a>
-        </li>
-        {% endif %}
+    <a href="{% url 'metas_dentistas' %}">
+
+        <i class="bi bi-bullseye"></i>
+
+        <span>Metas dos Dentistas</span>
+
+    </a>
+
+</li>
+{% endif %}
+
+{% if pode_usuarios %}
+<li>
+    <a href="{% url 'usuarios' %}">
+        <i class="bi bi-people"></i>
+        <span>Usuários</span>
+    </a>
+</li>
+{% endif %}
 
         {% if pode_perfis %}
         <li>

@@ -2877,102 +2877,6 @@ class PerfilUsuario(models.Model):
 
         return f"{self.usuario.username} ({self.get_tipo_usuario_display()})"
 
-
-# =========================================
-# META DOS DENTISTAS
-# =========================================
-
-class MetaDentista(models.Model):
-
-    dentista = models.ForeignKey(
-
-        User,
-
-        on_delete=models.CASCADE,
-
-        related_name="metas_dentista",
-
-        verbose_name="Dentista",
-
-    )
-
-    mes = models.PositiveSmallIntegerField(
-
-        verbose_name="Mês",
-
-    )
-
-    ano = models.PositiveSmallIntegerField(
-
-        verbose_name="Ano",
-
-    )
-
-    meta_financeira = models.DecimalField(
-
-        "Meta Financeira",
-
-        max_digits=12,
-
-        decimal_places=2,
-
-    )
-
-    observacoes = models.TextField(
-
-        "Observações",
-
-        blank=True,
-
-    )
-
-    criado_em = models.DateTimeField(
-
-        auto_now_add=True,
-
-    )
-
-    atualizado_em = models.DateTimeField(
-
-        auto_now=True,
-
-    )
-
-    class Meta:
-
-        verbose_name = "Meta do Dentista"
-
-        verbose_name_plural = "Metas dos Dentistas"
-
-        ordering = [
-
-            "-ano",
-
-            "-mes",
-
-            "dentista__first_name",
-
-        ]
-
-        unique_together = (
-
-            "dentista",
-
-            "mes",
-
-            "ano",
-
-        )
-
-    def __str__(self):
-
-        return (
-
-            f"{self.dentista.get_full_name() or self.dentista.username}"
-
-            f" - {self.mes:02d}/{self.ano}"
-
-        )
     
 # =========================================
 # FORNECEDORES
@@ -4423,4 +4327,77 @@ class MetaClinica(models.Model):
     def __str__(self):
 
         return f"{self.mes:02}/{self.ano} - R$ {self.valor}"
+
+
+# =========================================
+# META DO DENTISTA
+# =========================================
+
+class MetaDentista(models.Model):
+
+    dentista = models.ForeignKey(
+        PerfilUsuario,
+        on_delete=models.CASCADE,
+        limit_choices_to={
+            "tipo_usuario": PerfilUsuario.DENTISTA,
+            "ativo": True,
+        },
+        verbose_name="Dentista"
+    )
+
+    ano = models.PositiveIntegerField(
+        "Ano"
+    )
+
+    mes = models.PositiveIntegerField(
+        "Mês"
+    )
+
+    meta_financeira = models.DecimalField(
+        "Meta Financeira",
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+
+    meta_procedimentos = models.PositiveIntegerField(
+        "Meta de Procedimentos",
+        default=0
+    )
+
+    meta_pacientes = models.PositiveIntegerField(
+        "Meta de Novos Pacientes",
+        default=0
+    )
+
+    observacao = models.TextField(
+        "Observação",
+        blank=True
+    )
+
+    ativo = models.BooleanField(
+        default=True
+    )
+
+    criado_em = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+
+        verbose_name = "Meta do Dentista"
+        verbose_name_plural = "Metas dos Dentistas"
+
+        ordering = ["-ano", "-mes", "dentista"]
+
+        unique_together = (
+            ("dentista", "ano", "mes"),
+        )
+
+    def __str__(self):
+
+        return (
+            f"{self.dentista} - "
+            f"{self.mes:02}/{self.ano}"
+        )
 

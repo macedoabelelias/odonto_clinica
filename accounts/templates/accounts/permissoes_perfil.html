@@ -33,104 +33,188 @@ Permissões do Perfil
                     Esta tela será utilizada para configurar as permissões de acesso do perfil.
                 </p>
 
+                <!-- ========================================= -->
+                <!-- BOTÕES -->
+                <!-- ========================================= -->
+
+                <div class="mb-3 d-flex gap-2">
+
+                    <button
+                        type="button"
+                        id="marcarTudo"
+                        class="btn btn-success btn-sm">
+
+                        <i class="bi bi-check2-square"></i>
+
+                        Marcar Tudo
+
+                    </button>
+
+                    <button
+                        type="button"
+                        id="desmarcarTudo"
+                        class="btn btn-secondary btn-sm">
+
+                        <i class="bi bi-square"></i>
+
+                        Desmarcar Tudo
+
+                    </button>
+
+                </div>
+
                 <table class="table table-bordered align-middle">
 
-    <thead class="table-light">
+                    <thead class="table-light">
 
-        <tr>
+                        <tr>
 
-            <th>Módulo</th>
+                            <th width="320">
 
-            <th class="text-center">Visualizar</th>
-            <th class="text-center">Inserir</th>
-            <th class="text-center">Editar</th>
-            <th class="text-center">Excluir</th>
-            <th class="text-center">Exportar</th>
-            <th class="text-center">Aprovar</th>
+                                Módulo
 
-        </tr>
+                            </th>
 
-    </thead>
+                            <th class="text-center">Visualizar</th>
 
-    <tbody>
+                            <th class="text-center">Inserir</th>
 
-        {% for grupo, modulos in grupos.items %}
+                            <th class="text-center">Editar</th>
 
-        <tr class="table-secondary">
+                            <th class="text-center">Excluir</th>
 
-            <th colspan="7">
-                {{ grupo|upper }}
-            </th>
+                            <th class="text-center">Exportar</th>
 
-        </tr>
+                            <th class="text-center">Aprovar</th>
 
-        {% for modulo in modulos %}
+                        </tr>
 
-        <tr>
+                    </thead>
 
-            <td>
-                <i class="bi {{ modulo.icone }}"></i>
-                {{ modulo.nome }}
-            </td>
+                    <tbody>
 
-            <td class="text-center">
-                <input
-                    type="checkbox"
-                    name="visualizar_{{ modulo.id }}"
-                    {% if modulo.permissao and modulo.permissao.visualizar %}checked{% endif %}>
-            </td>
+                        {% for grupo, modulos in grupos.items %}
 
-            <td class="text-center">
-                <input
-                    type="checkbox"
-                    name="inserir_{{ modulo.id }}"
-                    {% if modulo.permissao and modulo.permissao.inserir %}checked{% endif %}>
-            </td>
+                        <!-- ========================================= -->
+                        <!-- GRUPO -->
+                        <!-- ========================================= -->
 
-            <td class="text-center">
-                <input
-                    type="checkbox"
-                    name="editar_{{ modulo.id }}"
-                    {% if modulo.permissao and modulo.permissao.editar %}checked{% endif %}>
-            </td>
+                        <tr class="table-secondary">
 
-            <td class="text-center">
-                <input
-                    type="checkbox"
-                    name="excluir_{{ modulo.id }}"
-                    {% if modulo.permissao and modulo.permissao.excluir %}checked{% endif %}>
-            </td>
+                            <th colspan="7">
 
-            <td class="text-center">
-                <input
-                    type="checkbox"
-                    name="exportar_{{ modulo.id }}"
-                    {% if modulo.permissao and modulo.permissao.exportar %}checked{% endif %}>
-            </td>
+                                <div class="d-flex align-items-center">
 
-            <td class="text-center">
-                <input
-                    type="checkbox"
-                    name="aprovar_{{ modulo.id }}"
-                    {% if modulo.permissao and modulo.permissao.aprovar %}checked{% endif %}>
-            </td>
+                                    <input
+                                        type="checkbox"
+                                        class="form-check-input me-2 grupo-checkbox"
+                                        data-grupo="{{ forloop.counter }}">
 
-        </tr>
+                                    <strong>
 
-        {% endfor %}
+                                        {{ grupo|upper }}
 
-        {% endfor %}
+                                    </strong>
 
-    </tbody>
+                                </div>
 
-</table>
+                            </th>
+
+                        </tr>
+
+                        <!-- ========================================= -->
+                        <!-- MÓDULOS -->
+                        <!-- ========================================= -->
+
+                        {% for modulo in modulos %}
+
+                        <tr>
+
+                            <td>
+
+                                <i class="{{ modulo.icone }}"></i>
+
+                                {{ modulo.nome }}
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input grupo-{{ forloop.parentloop.counter }}"
+                                    name="visualizar_{{ modulo.id }}"
+                                    {% if modulo.permissao and modulo.permissao.visualizar %}checked{% endif %}>
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input grupo-{{ forloop.parentloop.counter }}"
+                                    name="inserir_{{ modulo.id }}"
+                                    {% if modulo.permissao and modulo.permissao.inserir %}checked{% endif %}>
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input grupo-{{ forloop.parentloop.counter }}"
+                                    name="editar_{{ modulo.id }}"
+                                    {% if modulo.permissao and modulo.permissao.editar %}checked{% endif %}>
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input grupo-{{ forloop.parentloop.counter }}"
+                                    name="excluir_{{ modulo.id }}"
+                                    {% if modulo.permissao and modulo.permissao.excluir %}checked{% endif %}>
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input grupo-{{ forloop.parentloop.counter }}"
+                                    name="exportar_{{ modulo.id }}"
+                                    {% if modulo.permissao and modulo.permissao.exportar %}checked{% endif %}>
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input grupo-{{ forloop.parentloop.counter }}"
+                                    name="aprovar_{{ modulo.id }}"
+                                    {% if modulo.permissao and modulo.permissao.aprovar %}checked{% endif %}>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
 
             </div>
 
             <div class="card-footer bg-white d-flex justify-content-between">
 
-                <a href="{% url 'editar_perfil' perfil.id %}"
-                   class="btn btn-secondary">
+                <a
+                    href="{% url 'editar_perfil' perfil.id %}"
+                    class="btn btn-secondary">
 
                     <i class="bi bi-arrow-left"></i>
 
@@ -155,5 +239,93 @@ Permissões do Perfil
     </div>
 
 </div>
+
+<!-- ===================================================== -->
+<!-- JAVASCRIPT -->
+<!-- ===================================================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const todasPermissoes = document.querySelectorAll(
+        ".form-check-input:not(.grupo-checkbox)"
+    );
+
+    //----------------------------------------------------
+    // MARCAR TUDO
+    //----------------------------------------------------
+
+    document
+        .getElementById("marcarTudo")
+        .addEventListener("click", function () {
+
+            todasPermissoes.forEach(function (checkbox) {
+
+                checkbox.checked = true;
+
+            });
+
+            document
+                .querySelectorAll(".grupo-checkbox")
+                .forEach(function (grupo) {
+
+                    grupo.checked = true;
+
+                });
+
+        });
+
+    //----------------------------------------------------
+    // DESMARCAR TUDO
+    //----------------------------------------------------
+
+    document
+        .getElementById("desmarcarTudo")
+        .addEventListener("click", function () {
+
+            todasPermissoes.forEach(function (checkbox) {
+
+                checkbox.checked = false;
+
+            });
+
+            document
+                .querySelectorAll(".grupo-checkbox")
+                .forEach(function (grupo) {
+
+                    grupo.checked = false;
+
+                });
+
+        });
+
+    //----------------------------------------------------
+    // MARCAR POR GRUPO
+    //----------------------------------------------------
+
+    document
+        .querySelectorAll(".grupo-checkbox")
+        .forEach(function (grupo) {
+
+            grupo.addEventListener("change", function () {
+
+                const numero = this.dataset.grupo;
+
+                document
+                    .querySelectorAll(".grupo-" + numero)
+                    .forEach(function (checkbox) {
+
+                        checkbox.checked = grupo.checked;
+
+                    });
+
+            });
+
+        });
+
+});
+
+</script>
 
 {% endblock %}
