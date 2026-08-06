@@ -29,8 +29,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # APPS DO SISTEMA
+    # HUMANIZE
+    'django.contrib.humanize',
 
+    # APPS DO SISTEMA
     'accounts.apps.AccountsConfig',
     'agenda',
     'ckeditor',
@@ -118,7 +120,7 @@ DATABASES = {
 AUTH_PASSWORD_VALIDATORS = []
 
 # =========================================
-# LANGUAGE
+# INTERNACIONALIZAÇÃO
 # =========================================
 
 LANGUAGE_CODE = 'pt-br'
@@ -128,6 +130,16 @@ TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 
 USE_TZ = True
+
+# Formatação brasileira
+
+USE_THOUSAND_SEPARATOR = True
+
+THOUSAND_SEPARATOR = '.'
+
+DECIMAL_SEPARATOR = ','
+
+NUMBER_GROUPING = 3
 
 # =========================================
 # STATIC FILES

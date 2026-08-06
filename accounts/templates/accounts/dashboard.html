@@ -356,14 +356,23 @@ CSS POR PERFIL
     {% include "accounts/dashboard/contabilidade/_content_grid.html" %}
     {% include "accounts/dashboard/contabilidade/_content_bottom.html" %}
 
+{% elif dashboard_tipo == "marketing" %}
+
+    {% include "accounts/dashboard/marketing/_cards.html" %}
+    {% include "accounts/dashboard/marketing/_charts.html" %}
+    {% include "accounts/dashboard/marketing/_content_grid.html" %}
+    {% include "accounts/dashboard/marketing/_content_bottom.html" %}
+
 {% elif dashboard_tipo == "gestor" %}
 
     {% include "accounts/dashboard/gestor/_cards.html" %}
     {% include "accounts/dashboard/gestor/_charts.html" %}
-    {% include "accounts/dashboard/gestor/_content_grid.html" %}    
+    {% include "accounts/dashboard/gestor/_content_grid.html" %}
     {% include "accounts/dashboard/gestor/_content_bottom.html" %}
 
 {% else %}
+
+    {# ADMINISTRADOR #}
 
     {% include "accounts/dashboard/ativos/_cards.html" %}
     {% include "accounts/dashboard/ativos/_content_grid.html" %}
@@ -379,6 +388,10 @@ CSS POR PERFIL
     {% if dashboard_tipo == "contabilidade" %}
 
         {% include "accounts/dashboard/contabilidade/_charts.html" %}
+
+    {% elif dashboard_tipo == "marketing" %}
+
+        {% include "accounts/dashboard/marketing/_charts_js.html" %}
 
     {% elif dashboard_tipo == "gestor" %}
 

@@ -1,5 +1,5 @@
 <style>
-    /* =========================================
+/* =========================================
 DASHBOARD GESTOR
 ========================================= */
 
@@ -9,9 +9,33 @@ DASHBOARD GESTOR
 
     border-radius:18px;
 
-    box-shadow:0 4px 16px rgba(0,0,0,.08);
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
 
-    transition:.25s;
+    transition:.30s ease;
+
+    overflow:hidden;
+
+    position:relative;
+
+    background:#fff;
+
+}
+
+/* Barra superior */
+
+.stats-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+    top:0;
+
+    width:100%;
+    height:4px;
+
+    background:#2563eb;
 
 }
 
@@ -19,17 +43,31 @@ DASHBOARD GESTOR
 
     transform:translateY(-4px);
 
-    box-shadow:0 8px 24px rgba(0,0,0,.12);
+    box-shadow:0 12px 28px rgba(0,0,0,.12);
 
 }
 
+/* =========================================
+CARD
+========================================= */
+
+.stats-card .card-body{
+
+    padding:22px;
+
+}
+
+/* =========================================
+ÍCONES
+========================================= */
+
 .stats-icon{
 
-    width:58px;
+    width:54px;
 
-    height:58px;
+    height:54px;
 
-    border-radius:16px;
+    border-radius:15px;
 
     display:flex;
 
@@ -37,13 +75,17 @@ DASHBOARD GESTOR
 
     justify-content:center;
 
-    font-size:26px;
+    font-size:24px;
 
     color:#fff;
 
-    margin-bottom:18px;
+    margin-bottom:16px;
 
 }
+
+/* =========================================
+TEXTOS
+========================================= */
 
 .stats-content h6{
 
@@ -51,29 +93,33 @@ DASHBOARD GESTOR
 
     font-weight:600;
 
-    color:#111827;
+    color:#374151;
 
-    margin-bottom:8px;
+    margin-bottom:10px;
 
 }
 
 .stats-content h3{
 
-    font-size:34px;
+    font-size:25px;
 
     font-weight:700;
 
     color:#111827;
 
-    margin-bottom:4px;
+    margin-bottom:6px;
+
+    line-height:1.2;
+
+    white-space:nowrap;
 
 }
 
 .stats-content small{
 
-    font-size:13px;
+    font-size:14px;
 
-    color:#6b7280;
+    color:#9ca3af;
 
 }
 
@@ -111,7 +157,33 @@ CORES DOS ÍCONES
 
 }
 
+/* =========================================
+BARRAS SUPERIORES
+========================================= */
 
+.stats-card.border-green::before{
+
+    background:#10b981;
+
+}
+
+.stats-card.border-blue::before{
+
+    background:#2563eb;
+
+}
+
+.stats-card.border-orange::before{
+
+    background:#ea580c;
+
+}
+
+.stats-card.border-purple::before{
+
+    background:#7c3aed;
+
+}
 </style>
 
 <!-- =========================================
@@ -120,13 +192,11 @@ CARDS SUPERIORES
 
 <div class="row">
 
-    <!-- =========================================
-    FATURAMENTO DO MÊS
-    ========================================= -->
+    <!-- FATURAMENTO -->
 
     <div class="col-xl-3 col-md-6 mb-4">
 
-        <div class="card dashboard-card stats-card">
+        <div class="card dashboard-card stats-card border-green">
 
             <div class="card-body">
 
@@ -141,10 +211,12 @@ CARDS SUPERIORES
                     <h6>Faturamento do Mês</h6>
 
                     <h3>
+
                         R$ {{ faturamento_mes|default:0|floatformat:2 }}
+
                     </h3>
 
-                    <small class="text-muted">
+                    <small>
 
                         Recebimentos do mês
 
@@ -158,13 +230,11 @@ CARDS SUPERIORES
 
     </div>
 
-    <!-- =========================================
-    PRODUÇÃO DO MÊS
-    ========================================= -->
+    <!-- PRODUÇÃO -->
 
     <div class="col-xl-3 col-md-6 mb-4">
 
-        <div class="card dashboard-card stats-card">
+        <div class="card dashboard-card stats-card border-blue">
 
             <div class="card-body">
 
@@ -178,9 +248,13 @@ CARDS SUPERIORES
 
                     <h6>Produção do Mês</h6>
 
-                    <h3>{{ producao_mes }}</h3>
+                    <h3>
 
-                    <small class="text-muted">
+                        {{ producao_mes|default:"0" }}
+
+                    </h3>
+
+                    <small>
 
                         Procedimentos realizados
 
@@ -194,37 +268,37 @@ CARDS SUPERIORES
 
     </div>
 
-    <!-- =========================================
-CONSULTAS HOJE
-========================================= -->
+    <!-- CONSULTAS -->
 
-<div class="col-xl-3 col-md-6 mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
 
-    <div class="card dashboard-card stats-card">
+        <div class="card dashboard-card stats-card border-orange">
 
-        <div class="card-body">
+            <div class="card-body">
 
-            <div class="stats-icon orange">
+                <div class="stats-icon orange">
 
-                <i class="bi bi-calendar3"></i>
+                    <i class="bi bi-calendar3"></i>
 
-            </div>
+                </div>
 
-            <div class="stats-content">
+                <div class="stats-content">
 
-                <h6>Consultas Hoje</h6>
+                    <h6>Consultas Hoje</h6>
 
-                <h3>
+                    <h3>
 
-                    {{ consultas_hoje|default:"0" }}
+                        {{ consultas_hoje|default:"0" }}
 
-                </h3>
+                    </h3>
 
-                <small class="text-muted">
+                    <small>
 
-                    Agendamentos do dia
+                        Agendamentos do dia
 
-                </small>
+                    </small>
+
+                </div>
 
             </div>
 
@@ -232,15 +306,11 @@ CONSULTAS HOJE
 
     </div>
 
-</div>
-
-    <!-- =========================================
-    TICKET MÉDIO
-    ========================================= -->
+    <!-- TICKET MÉDIO -->
 
     <div class="col-xl-3 col-md-6 mb-4">
 
-        <div class="card dashboard-card stats-card">
+        <div class="card dashboard-card stats-card border-purple">
 
             <div class="card-body">
 
@@ -256,11 +326,11 @@ CONSULTAS HOJE
 
                     <h3>
 
-                        R$ {{ ticket_medio|floatformat:2|default:"0,00" }}
+                        R$ {{ ticket_medio|default:0|floatformat:2 }}
 
                     </h3>
 
-                    <small class="text-muted">
+                    <small>
 
                         Média por paciente
 

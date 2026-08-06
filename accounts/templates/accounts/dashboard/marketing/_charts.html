@@ -1,0 +1,356 @@
+{% load static %}
+
+<style>
+    /* =========================================
+SEGUNDA LINHA
+========================================= */
+
+    .dashboard-chart-card {
+
+        height: 350px;
+
+    }
+
+    .dashboard-chart-card .card-body {
+
+        padding: 24px;
+
+    }
+
+    /* =========================================
+GRÁFICO
+========================================= */
+
+    .grafico-container {
+
+        position: relative;
+
+        width: 100%;
+
+        height: 235px;
+
+    }
+
+    .grafico-marketing {
+
+        position: relative;
+
+        width: 100%;
+
+        height: 280px;
+
+        margin-top: 10px;
+
+    }
+
+    /* =========================================
+ORIGEM DOS LEADS
+========================================= */
+
+    .origem-card {
+
+        height: 460px;
+
+    }
+
+    .origem-card .card-body {
+
+        padding: 50px;
+
+    }
+
+    .origem-item {
+
+        margin-bottom: 32px;
+
+    }
+
+    .origem-item strong {
+
+        font-size: 16px;
+
+        font-weight: 700;
+
+        color: #2563eb;
+
+    }
+
+    .origem-top {
+
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        margin-bottom: 8px;
+
+    }
+
+    .origem-nome {
+
+        font-size: 15px;
+
+        font-weight: 600;
+
+        color: #374151;
+
+    }
+
+    .origem-percentual {
+
+        font-size: 14px;
+
+        font-weight: 700;
+
+        color: #2563eb;
+
+    }
+
+    .origem-item .progress {
+
+        width: 78%;
+
+        height: 10px;
+
+        margin: 0 auto;
+
+        border-radius: 20px;
+
+        background: #e9edf5;
+
+    }
+
+    .origem-progress {
+
+        width: 78%;
+
+        height: 10px;
+
+        margin: 0 auto;
+
+        border-radius: 20px;
+
+        background: #e9edf5;
+
+
+    }
+
+    .origem-fill {
+
+        height: 100%;
+
+        border-radius: 20px;
+
+    }
+
+    /* Cores */
+
+    .instagram {
+
+        background: linear-gradient(90deg, #ec4899, #d946ef);
+
+    }
+
+    .whatsapp {
+
+        background: linear-gradient(90deg, #22c55e, #16a34a);
+
+    }
+
+    .google {
+
+        background: linear-gradient(90deg, #3b82f6, #2563eb);
+
+    }
+
+    .indicacao {
+
+        background: linear-gradient(90deg, #f97316, #ea580c);
+
+    }
+
+    /* =========================================
+EVOLUÇÃO DOS LEADS
+========================================= */
+
+    .dashboard-chart-card {
+
+        height: 340px;
+
+    }
+
+    .grafico-marketing {
+
+        position: relative;
+
+        width: 100%;
+
+        height: 280px;
+
+    }
+
+    #graficoMarketing {
+
+        width: 100% !important;
+
+        height: 100% !important;
+
+    }
+</style>
+
+
+<div class="row mt-4">
+
+    <!-- ========================================= -->
+    <!-- EVOLUÇÃO DOS LEADS -->
+    <!-- ========================================= -->
+
+    <div class="col-lg-8 mb-4">
+
+        <div class="card dashboard-card stats-card dashboard-chart-card h-100">
+
+            <div class="card-body">
+
+                <div class="mb-4">
+
+                    <h5 class="fw-semibold mb-1">
+
+                        <i class="bi bi-graph-up-arrow text-primary me-2"></i>
+
+                        Evolução dos Leads
+
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        Captação mensal de novos contatos
+
+                    </p>
+
+                </div>
+
+                <div class="grafico-marketing">
+
+                    <canvas id="graficoMarketing"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================= -->
+    <!-- ORIGEM DOS LEADS -->
+    <!-- ========================================= -->
+
+    <div class="col-lg-4 mb-4">
+
+        <div class="card dashboard-card stats-card origem-card">
+
+            <div class="card-body">
+
+                <h5 class="fw-semibold mb-4">
+                    <i class="bi bi-bullseye text-success me-2"></i>
+                    Origem dos Leads
+                </h5>
+
+                <div class="origem-item">
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span>
+                            <i class="bi bi-instagram me-2 text-danger"></i>
+                            Instagram
+                        </span>
+
+                        <strong>40%</strong>
+
+                    </div>
+
+                    <div class="progress">
+
+                        <div class="progress-bar bg-danger" style="width:40%">
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="origem-item">
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span>
+                            <i class="bi bi-whatsapp me-2 text-success"></i>
+                            WhatsApp
+                        </span>
+
+                        <strong>30%</strong>
+
+                    </div>
+
+                    <div class="progress">
+
+                        <div class="progress-bar bg-success" style="width:30%">
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="origem-item">
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span>
+                            <i class="bi bi-google me-2 text-primary"></i>
+                            Google
+                        </span>
+
+                        <strong>20%</strong>
+
+                    </div>
+
+                    <div class="origem-progress">
+
+                        <div class="origem-fill google" style="width:20%">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="origem-item mb-0">
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span>
+                            <i class="bi bi-people-fill me-2 text-warning"></i>
+                            Indicação
+                        </span>
+
+                        <strong>10%</strong>
+
+                    </div>
+
+                    <div class="origem-progress">
+
+                        <div class="origem-fill indicacao" style="width:10%">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

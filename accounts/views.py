@@ -417,6 +417,40 @@ def dashboard_view(request):
 
         })
 
+    # =========================================
+    # MARKETING
+    # =========================================
+
+    elif dashboard_tipo == "marketing":
+
+        dashboard_config.update({
+
+            # Cards Superiores
+            "mostrar_pacientes": False,
+            "mostrar_receber": False,
+            "mostrar_pagar": False,
+            "mostrar_saldo_caixa": False,
+
+            # Segunda Linha
+            "mostrar_recebimentos": False,
+            "mostrar_pagamentos": False,
+            "mostrar_lucro": False,
+            "mostrar_fornecedores": False,
+
+            # Conteúdo
+            "mostrar_faturamento": False,
+            "mostrar_consultas": False,
+            "mostrar_aniversariantes": False,
+            "mostrar_ranking": False,
+            "mostrar_movimentacoes": False,
+
+        })    
+
+
+    # =========================================
+    # CONTABILIDADE
+    # =========================================
+
     elif dashboard_tipo == "contabilidade":
 
         dashboard_config.update({

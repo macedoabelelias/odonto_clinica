@@ -2,7 +2,7 @@
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    const canvas = document.getElementById("graficoProducaoGestor");
+    const canvas = document.getElementById("graficoMarketing");
 
     if (!canvas) return;
 
@@ -12,10 +12,44 @@ document.addEventListener("DOMContentLoaded", function () {
     // GRADIENTE
     // =========================================
 
-    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    const gradient = ctx.createLinearGradient(0, 0, 0, 350);
 
     gradient.addColorStop(0, "rgba(37,99,235,.35)");
     gradient.addColorStop(1, "rgba(37,99,235,0)");
+
+    // =========================================
+    // DADOS (TEMPORÁRIOS)
+    // =========================================
+
+    const labels = [
+        "Jan",
+        "Fev",
+        "Mar",
+        "Abr",
+        "Mai",
+        "Jun",
+        "Jul",
+        "Ago",
+        "Set",
+        "Out",
+        "Nov",
+        "Dez"
+    ];
+
+    const valores = [
+        4,
+        8,
+        12,
+        18,
+        26,
+        35,
+        41,
+        37,
+        33,
+        29,
+        24,
+        18
+    ];
 
     // =========================================
     // GRÁFICO
@@ -27,13 +61,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         data: {
 
-            labels: JSON.parse('{{ grafico_labels|escapejs }}'),
+            labels: labels,
 
             datasets: [{
 
-                label: "Procedimentos",
+                label: "Leads",
 
-                data: JSON.parse('{{ grafico_valores|escapejs }}'),
+                data: valores,
 
                 borderColor: "#2563eb",
 
@@ -47,13 +81,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 pointRadius: 4,
 
-                pointHoverRadius: 6,
+                pointHoverRadius: 7,
 
                 pointBackgroundColor: "#2563eb",
 
                 pointBorderColor: "#ffffff",
 
                 pointBorderWidth: 2,
+
+                pointHoverBorderWidth: 3
 
             }]
 
@@ -77,13 +113,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 padding: {
 
-                    top: 10,
+                    top: 5,
 
                     right: 10,
 
-                    bottom: 5,
+                    bottom: 0,
 
-                    left: 5
+                    left: 10
 
                 }
 
@@ -105,11 +141,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     bodyColor: "#ffffff",
 
+                    displayColors: false,
+
                     padding: 12,
 
-                    cornerRadius: 10,
-
-                    displayColors: false
+                    cornerRadius: 10
 
                 }
 
@@ -118,6 +154,8 @@ document.addEventListener("DOMContentLoaded", function () {
             scales: {
 
                 x: {
+
+                    offset: false,
 
                     grid: {
 
@@ -129,9 +167,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         color: "#6b7280",
 
+                        autoSkip: false,
+
+                        maxRotation: 45,
+
+                        minRotation: 45,
+
                         font: {
 
-                            size: 13,
+                            size: 12,
 
                             weight: "600"
 
@@ -145,11 +189,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     beginAtZero: true,
 
-                    suggestedMax: 15,
+                    suggestedMax: 45,
 
                     ticks: {
 
-                        stepSize: 1,
+                        stepSize: 5,
 
                         precision: 0,
 
@@ -165,7 +209,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     grid: {
 
-                        color: "rgba(148,163,184,.15)"
+                        color: "rgba(148,163,184,.15)",
+
+                        drawBorder: false
 
                     }
 

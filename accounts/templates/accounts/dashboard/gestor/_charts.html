@@ -1,11 +1,29 @@
 <style>
-    /* =========================================
-AGENDA DE HOJE
+/* =========================================
+SEGUNDA LINHA
+========================================= */
+
+/* Altura dos cards */
+
+.dashboard-chart-card{
+
+    height:350px;
+
+}
+
+.dashboard-agenda-card{
+
+    height:350px;
+
+}
+
+/* =========================================
+AGENDA
 ========================================= */
 
 .agenda-scroll{
 
-    max-height:340px;
+    max-height:210px;
 
     overflow-y:auto;
 
@@ -21,19 +39,19 @@ AGENDA DE HOJE
 
     align-items:flex-start;
 
-    gap:12px;
+    gap:10px;
 
-    padding:12px;
+    padding:10px 12px;
 
-    margin-bottom:10px;
+    margin-bottom:8px;
 
     border:1px solid #eef2f7;
 
-    border-radius:12px;
-
-    transition:.2s;
+    border-radius:10px;
 
     background:#fff;
+
+    transition:.25s;
 
 }
 
@@ -47,13 +65,13 @@ AGENDA DE HOJE
 
 .agenda-hora{
 
-    min-width:58px;
+    min-width:54px;
 
     font-weight:700;
 
-    color:#2563eb;
+    font-size:14px;
 
-    font-size:15px;
+    color:#2563eb;
 
 }
 
@@ -67,21 +85,21 @@ AGENDA DE HOJE
 
     display:block;
 
-    color:#111827;
-
     font-size:14px;
+
+    color:#111827;
 
 }
 
 .agenda-info small{
 
-    color:#6b7280;
-
     font-size:12px;
+
+    color:#6b7280;
 
 }
 
-/* Scroll moderno */
+/* Scroll */
 
 .agenda-scroll::-webkit-scrollbar{
 
@@ -105,49 +123,49 @@ AGENDA DE HOJE
 
 }
 
-.agenda-scroll::-webkit-scrollbar-thumb:hover{
+/* =========================================
+GRÁFICO
+========================================= */
 
-    background:#94a3b8;
+.dashboard-chart-card{
+
+    height:350px;
 
 }
-
-/* =========================================
-GRÁFICO PRODUÇÃO
-========================================= */
 
 .grafico-container{
 
-    position: relative;
+    position:relative;
 
-    width: 100%;
+    width:100%;
 
-    height: 380px;
+    height:220px;
 
 }
+
 
 #graficoProducaoGestor{
 
-    width:100% !important;
+    width:100%!important;
 
-    height:100% !important;
+    height:100%!important;
 
 }
-
 </style>
 
 <div class="row mt-4">
 
-    <!-- ========================================= -->
-    <!-- PRODUÇÃO MENSAL -->
-    <!-- ========================================= -->
+    <!-- =========================================
+    PRODUÇÃO MENSAL
+    ========================================= -->
 
-    <div class="col-lg-8 mb-4">
+    <div class="col-lg-7 mb-4">
 
-        <div class="card dashboard-card stats-card h-100">
+        <div class="card dashboard-card stats-card dashboard-chart-card">
 
             <div class="card-body">
 
-                <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
 
                     <div>
 
@@ -181,90 +199,90 @@ GRÁFICO PRODUÇÃO
 
     </div>
 
-    <!-- ========================================= -->
-<!-- AGENDA DE HOJE -->
-<!-- ========================================= -->
+    <!-- =========================================
+    AGENDA DE HOJE
+    ========================================= -->
 
-<div class="col-lg-4 mb-4">
+    <div class="col-lg-5 mb-4">
 
-    <div class="card dashboard-card stats-card h-100">
+        <div class="card dashboard-card stats-card dashboard-agenda-card">
 
-        <div class="card-body">
+            <div class="card-body">
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
 
-                <div>
+                    <div>
 
-                    <h5 class="mb-1">
+                        <h5 class="mb-1">
 
-                        <i class="bi bi-calendar-check-fill text-success me-2"></i>
+                            <i class="bi bi-calendar-check-fill text-success me-2"></i>
 
-                        Agenda de Hoje
+                            Agenda de Hoje
 
-                    </h5>
+                        </h5>
 
-                    <small class="text-muted">
+                        <small class="text-muted">
 
-                        Próximos atendimentos
+                            Próximos atendimentos
 
-                    </small>
-
-                </div>
-
-            </div>
-
-            <div class="agenda-scroll">
-
-                {% if proximas_consultas %}
-
-                    {% for consulta in proximas_consultas %}
-
-                        <div class="agenda-item">
-
-                            <div class="agenda-hora">
-
-                                {{ consulta.hora_inicio|time:"H:i" }}
-
-                            </div>
-
-                            <div class="agenda-info">
-
-                                <strong>
-
-                                    {{ consulta.paciente.nome }}
-
-                                </strong>
-
-                                <small>
-
-                                    {{ consulta.profissional.nome }}
-
-                                </small>
-
-                            </div>
-
-                        </div>
-
-                    {% endfor %}
-
-                {% else %}
-
-                    <div class="text-center py-5 text-muted">
-
-                        <i class="bi bi-calendar-x fs-1 d-block mb-3"></i>
-
-                        Nenhuma consulta agendada.
+                        </small>
 
                     </div>
 
-                {% endif %}
+                </div>
+
+                <div class="agenda-scroll">
+
+                    {% if proximas_consultas %}
+
+                        {% for consulta in proximas_consultas %}
+
+                            <div class="agenda-item">
+
+                                <div class="agenda-hora">
+
+                                    {{ consulta.hora_inicio|time:"H:i" }}
+
+                                </div>
+
+                                <div class="agenda-info">
+
+                                    <strong>
+
+                                        {{ consulta.paciente.nome }}
+
+                                    </strong>
+
+                                    <small>
+
+                                        {{ consulta.profissional.nome }}
+
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
+
+                            <i class="bi bi-calendar-x fs-1 mb-3"></i>
+
+                            <span>Nenhuma consulta agendada.</span>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
 
             </div>
 
         </div>
 
     </div>
-
-</div>
 
 </div>
