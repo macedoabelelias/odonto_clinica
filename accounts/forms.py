@@ -14,7 +14,7 @@ from .models import (
     MetaDentista,
 )
 
-
+from .models import PerfilUsuario
 
 # =========================================
 # FORM PROCEDIMENTO
@@ -604,3 +604,97 @@ class MetaDentistaForm(forms.ModelForm):
         if queryset.exists():
 
             self.fields["dentista"].initial = queryset.first()
+
+
+# =========================================
+# FORMULÁRIO DE LEADS
+# =========================================
+
+from .models import Lead
+
+
+class LeadForm(forms.ModelForm):
+
+    class Meta:
+
+        model = Lead
+
+        fields = [
+
+            "nome",
+            "telefone",
+            "whatsapp",
+            "email",
+            "origem",
+            "status",
+            "responsavel",
+            "observacoes",
+            "proximo_contato",
+            "ativo",
+
+        ]
+
+        widgets = {
+
+            "nome": forms.TextInput(attrs={
+                "class": "form-control"
+            }),
+
+            "telefone": forms.TextInput(attrs={
+                "class": "form-control"
+            }),
+
+            "whatsapp": forms.TextInput(attrs={
+                "class": "form-control"
+            }),
+
+            "email": forms.EmailInput(attrs={
+                "class": "form-control"
+            }),
+
+            "origem": forms.Select(attrs={
+                "class": "form-select"
+            }),
+
+            "status": forms.Select(attrs={
+                "class": "form-select"
+            }),
+
+            "responsavel": forms.Select(attrs={
+                "class": "form-select"
+            }),
+
+            "proximo_contato": forms.DateTimeInput(attrs={
+                "class": "form-control",
+                "type": "datetime-local"
+            }),
+
+            "observacoes": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4
+            }),
+
+            "ativo": forms.CheckboxInput(attrs={
+                "class": "form-check-input"
+            }),
+
+        }
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        print(">>> INIT DO LEAD FORM <<<")
+
+        queryset = User.objects.filter(
+            perfil__tipo_usuario__in=[
+                PerfilUsuario.ADMIN,
+                PerfilUsuario.GESTOR,
+                PerfilUsuario.MARKETING,
+            ]
+        )
+
+        print("USUÁRIOS ENCONTRADOS:")
+        print(list(queryset.values_list("username", flat=True)))
+
+        self.fields["responsavel"].queryset = queryset

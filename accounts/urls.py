@@ -85,6 +85,52 @@ urlpatterns = [
     ),
 
     # =========================================
+    # MARKETING - LEADS
+    # =========================================
+
+    path(
+        "marketing/leads/",
+        views.leads,
+        name="leads",
+    ),
+
+    path(
+        "marketing/leads/novo/",
+        views.novo_lead,
+        name="novo_lead",
+    ),
+
+    path(
+        "marketing/leads/<int:pk>/",
+        views.detalhe_lead,
+        name="detalhe_lead",
+    ),
+
+    path(
+        "marketing/dashboard/",
+        views.dashboard_marketing,
+        name="dashboard_marketing",
+    ),
+
+    path(
+        "marketing/leads/<int:pk>/",
+        views.detalhe_lead,
+        name="detalhe_lead",
+    ),
+
+    path(
+        "marketing/leads/<int:pk>/editar/",
+        views.editar_lead,
+        name="editar_lead",
+    ),
+
+    path(
+        "marketing/leads/<int:pk>/excluir/",
+        views.excluir_lead,
+        name="excluir_lead",
+    ),
+
+# =========================================
 # ODONTOGRAMA
 # =========================================
 

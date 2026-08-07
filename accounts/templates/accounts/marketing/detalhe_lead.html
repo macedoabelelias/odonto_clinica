@@ -1,0 +1,190 @@
+,<style>
+    /* =========================================
+TIMELINE
+========================================= */
+
+.timeline{
+
+    position:relative;
+
+    margin-top:20px;
+
+}
+
+.timeline-item{
+
+    display:flex;
+
+    gap:15px;
+
+    margin-bottom:18px;
+
+}
+
+.timeline-icon{
+
+    width:36px;
+    height:36px;
+
+    border-radius:50%;
+
+    background:#2563eb;
+
+    color:#fff;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    flex-shrink:0;
+
+}
+
+.timeline-content{
+
+    flex:1;
+
+    background:#f8fafc;
+
+    border-radius:12px;
+
+    padding:12px 16px;
+
+    border:1px solid #e2e8f0;
+
+}
+
+.timeline-content strong{
+
+    color:#0f172a;
+
+}
+
+.timeline-content small{
+
+    color:#64748b;
+
+}
+</style>
+
+
+
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Detalhes do Lead
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+
+    <div class="card-header bg-primary text-white">
+
+        <h5 class="mb-0">
+
+            <i class="bi bi-person-vcard-fill me-2"></i>
+
+            {{ lead.nome }}
+
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row">
+
+            <div class="col-md-6 mb-3">
+
+                <strong>Telefone</strong><br>
+
+                {{ lead.telefone|default:"-" }}
+
+            </div>
+
+            <div class="col-md-6 mb-3">
+
+                <strong>WhatsApp</strong><br>
+
+                {{ lead.whatsapp|default:"-" }}
+
+            </div>
+
+            <div class="col-md-6 mb-3">
+
+                <strong>E-mail</strong><br>
+
+                {{ lead.email|default:"-" }}
+
+            </div>
+
+            <div class="col-md-6 mb-3">
+
+                <strong>Origem</strong><br>
+
+                {{ lead.get_origem_display }}
+
+            </div>
+
+            <div class="col-md-6 mb-3">
+
+                <strong>Status</strong><br>
+
+                {{ lead.get_status_display }}
+
+            </div>
+
+            <div class="col-md-6 mb-3">
+
+                <strong>Responsável</strong><br>
+
+                {{ lead.responsavel|default:"-" }}
+
+            </div>
+
+            <div class="col-12">
+
+                <strong>Observações</strong>
+
+                <div class="border rounded p-3 mt-2">
+
+                    {% if lead.observacoes %}
+
+                        {{ lead.observacoes }}
+
+                    {% else %}
+
+                        <span class="text-muted">
+
+                            Nenhuma observação.
+
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card-footer text-end">
+
+        <a href="{% url 'leads' %}" class="btn btn-secondary">
+
+            <i class="bi bi-arrow-left"></i>
+
+            Voltar
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

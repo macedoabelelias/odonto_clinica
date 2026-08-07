@@ -4401,3 +4401,259 @@ class MetaDentista(models.Model):
             f"{self.mes:02}/{self.ano}"
         )
 
+# =========================================
+# LEADS (CRM / MARKETING)
+# =========================================
+
+class Lead(models.Model):
+
+    ORIGEM_CHOICES = [
+
+        ("GOOGLE", "Google Ads"),
+        ("INSTAGRAM", "Instagram"),
+        ("FACEBOOK", "Facebook"),
+        ("WHATSAPP", "WhatsApp"),
+        ("SITE", "Site"),
+        ("INDICACAO", "Indicação"),
+        ("OUTRO", "Outro"),
+
+    ]
+
+    STATUS_CHOICES = [
+
+        ("NOVO", "Novo"),
+        ("CONTATADO", "Contatado"),
+        ("AGENDADO", "Agendado"),
+        ("CONVERTIDO", "Convertido"),
+        ("PERDIDO", "Perdido"),
+
+    ]
+
+    nome = models.CharField(
+        max_length=150
+    )
+
+    telefone = models.CharField(
+        max_length=20,
+        blank=True
+    )
+
+    whatsapp = models.CharField(
+        max_length=20,
+        blank=True
+    )
+
+    email = models.EmailField(
+        blank=True
+    )
+
+    origem = models.CharField(
+        max_length=20,
+        choices=ORIGEM_CHOICES,
+        default="OUTRO"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="NOVO"
+    )
+
+    observacoes = models.TextField(
+        blank=True
+    )
+
+    responsavel = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="leads"
+    )
+
+    data_cadastro = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    ultimo_contato = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    proximo_contato = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    ativo = models.BooleanField(
+        default=True
+    )
+
+    class Meta:
+
+        ordering = ["-data_cadastro"]
+
+        verbose_name = "Lead"
+
+        verbose_name_plural = "Leads"
+
+    def __str__(self):
+
+        return self.nome
+
+# =========================================
+# HISTÓRICO DO LEAD
+# =========================================
+
+class HistoricoLead(models.Model):
+
+    lead = models.ForeignKey(
+
+        Lead,
+
+        on_delete=models.CASCADE,
+
+        related_name="historicos"
+
+    )
+
+    usuario = models.ForeignKey(
+
+        User,
+
+        on_delete=models.SET_NULL,
+
+        null=True,
+
+        blank=True
+
+    )
+
+    descricao = models.TextField(
+
+        "Descrição"
+
+    )
+
+    data = models.DateTimeField(
+
+        auto_now_add=True
+
+    )
+
+    class Meta:
+
+        ordering = ["-data"]
+
+        verbose_name = "Histórico do Lead"
+
+        verbose_name_plural = "Históricos do Lead"
+
+    def __str__(self):
+
+        return f"{self.lead.nome} - {self.data:%d/%m/%Y %H:%M}"
+
+# =========================================
+# CAMPANHAS DE MARKETING
+# =========================================
+
+class CampanhaMarketing(models.Model):
+
+    CANAL_CHOICES = [
+
+        ("GOOGLE", "Google Ads"),
+        ("INSTAGRAM", "Instagram"),
+        ("FACEBOOK", "Facebook"),
+        ("WHATSAPP", "WhatsApp"),
+        ("SITE", "Site"),
+        ("EMAIL", "E-mail Marketing"),
+        ("OUTRO", "Outro"),
+
+    ]
+
+    STATUS_CHOICES = [
+
+        ("ATIVA", "Ativa"),
+        ("PAUSADA", "Pausada"),
+        ("FINALIZADA", "Finalizada"),
+
+    ]
+
+    nome = models.CharField(
+        max_length=150
+    )
+
+    canal = models.CharField(
+        max_length=20,
+        choices=CANAL_CHOICES,
+        default="GOOGLE"
+    )
+
+    descricao = models.TextField(
+        blank=True
+    )
+
+    data_inicio = models.DateField()
+
+    data_fim = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    investimento = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    ativa = models.BooleanField(
+        default=True
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="ATIVA"
+    )
+
+    criado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    criado_em = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+
+        ordering = ["-data_inicio"]
+
+        verbose_name = "Campanha"
+
+        verbose_name_plural = "Campanhas"
+
+    def __str__(self):
+
+        return self.nome
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Lead)
+def criar_historico_lead(sender, instance, created, **kwargs):
+
+    if created:
+
+        HistoricoLead.objects.create(
+
+            lead=instance,
+
+            usuario=instance.responsavel,
+
+            descricao="Lead cadastrado no sistema."
+
+        )
+

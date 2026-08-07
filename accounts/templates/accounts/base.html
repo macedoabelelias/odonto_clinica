@@ -436,7 +436,53 @@ COMPRAS
 
 {% endif %}
 
-                <!-- =====================================================
+<!-- =====================================================
+MARKETING
+====================================================== -->
+
+{% possui_permissao request.user 'marketing_dashboard' as pode_dashboard_marketing %}
+{% possui_permissao request.user 'leads' as pode_leads %}
+{% possui_permissao request.user 'campanhas' as pode_campanhas %}
+{% possui_permissao request.user 'relatorios_marketing' as pode_relatorios_marketing %}
+{% possui_permissao request.user 'configuracoes_marketing' as pode_config_marketing %}
+
+{% if pode_dashboard_marketing or pode_leads or pode_campanhas or pode_relatorios_marketing or pode_config_marketing %}
+
+<div class="sidebar-section">
+    MARKETING
+</div>
+
+<li class="menu-group">
+
+    <button class="menu-toggle">
+
+        <span>
+            <i class="bi bi-megaphone-fill"></i>
+            Marketing
+        </span>
+
+        <i class="fa-solid fa-chevron-right"></i>
+
+    </button>
+
+    <ul class="submenu">
+
+        {% if pode_leads %}
+        <li class="{% if 'marketing/leads' in request.path %}active{% endif %}">
+            <a href="{% url 'leads' %}">
+                <i class="bi bi-person-lines-fill"></i>
+                <span>Leads</span>
+            </a>
+        </li>
+        {% endif %}
+
+    </ul>
+
+</li>
+
+{% endif %}
+
+<!-- =====================================================
 CONFIGURAÇÕES
 ====================================================== -->
 

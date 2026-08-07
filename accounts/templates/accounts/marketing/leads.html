@@ -1,0 +1,202 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block title %}
+Leads
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+
+    <div class="card-header bg-primary text-white">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <h5 class="mb-0">
+                <i class="bi bi-person-lines-fill me-2"></i>
+                Leads
+            </h5>
+
+            <a href="{% url 'novo_lead' %}" class="btn btn-light">
+
+                <i class="bi bi-plus-circle"></i>
+
+                Novo Lead
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>Nome</th>
+                        <th>Origem</th>
+                        <th>Status</th>
+                        <th>Responsável</th>
+                        <th>Próximo Contato</th>
+                        <th class="text-center" width="170">Ações</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for lead in leads %}
+
+                    <tr>
+
+                        <!-- Nome -->
+                        <td>
+
+                            <span class="fw-semibold">
+
+                                {{ lead.nome }}
+
+                            </span>
+
+                        </td>
+
+                        <!-- Origem -->
+                        <td>
+
+                            {% if lead.origem == "GOOGLE" %}
+                                <i class="bi bi-google text-danger me-1"></i>
+
+                            {% elif lead.origem == "INSTAGRAM" %}
+                                <i class="bi bi-instagram text-danger me-1"></i>
+
+                            {% elif lead.origem == "FACEBOOK" %}
+                                <i class="bi bi-facebook text-primary me-1"></i>
+
+                            {% elif lead.origem == "WHATSAPP" %}
+                                <i class="bi bi-whatsapp text-success me-1"></i>
+
+                            {% elif lead.origem == "SITE" %}
+                                <i class="bi bi-globe text-info me-1"></i>
+
+                            {% elif lead.origem == "INDICACAO" %}
+                                <i class="bi bi-people-fill text-warning me-1"></i>
+
+                            {% else %}
+                                <i class="bi bi-dot text-secondary me-1"></i>
+
+                            {% endif %}
+
+                            {{ lead.get_origem_display }}
+
+                        </td>
+
+                        <!-- Status -->
+                        <td>
+
+                            {% if lead.status == "NOVO" %}
+                                <span class="badge bg-success">Novo</span>
+
+                            {% elif lead.status == "CONTATADO" %}
+                                <span class="badge bg-info">Contatado</span>
+
+                            {% elif lead.status == "AGENDADO" %}
+                                <span class="badge bg-warning text-dark">Agendado</span>
+
+                            {% elif lead.status == "CONVERTIDO" %}
+                                <span class="badge bg-primary">Convertido</span>
+
+                            {% elif lead.status == "PERDIDO" %}
+                                <span class="badge bg-danger">Perdido</span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <!-- Responsável -->
+                        <td>
+
+                            {{ lead.responsavel|default:"-" }}
+
+                        </td>
+
+                        <!-- Próximo Contato -->
+                        <td>
+
+                            {% if lead.proximo_contato %}
+
+                                {{ lead.proximo_contato|date:"d/m/Y H:i" }}
+
+                            {% else %}
+
+                                <span class="text-muted">-</span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <!-- Ações -->
+                        <td class="text-center">
+
+                            <a href="{% url 'detalhe_lead' lead.id %}"
+                                class="btn btn-sm btn-info text-white"
+                                title="Visualizar">
+
+                                    <i class="bi bi-eye"></i>
+
+                            </a>
+
+                            <a href="{% url 'editar_lead' lead.id %}"
+                                class="btn btn-sm btn-warning"
+                                title="Editar">
+
+                                    <i class="bi bi-pencil"></i>
+
+                            </a>
+
+                            <a href="{% url 'excluir_lead' lead.id %}"
+                                class="btn btn-sm btn-danger"
+                                title="Excluir">
+
+                                    <i class="bi bi-trash"></i>
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="6" class="text-center text-muted py-5">
+
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+
+                            Nenhum Lead cadastrado.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -135,6 +135,9 @@ from .permissoes_padrao import aplicar_permissoes_padrao
 
 from .services import registrar_auditoria
 
+from .models import Lead
+from .forms import LeadForm
+
 
 
 
@@ -7117,26 +7120,54 @@ def novo_usuario(request):
         if User.objects.filter(username=username).exists():
 
             messages.error(
-
                 request,
-
                 "Já existe um usuário com esse login."
-
             )
 
             return redirect("novo_usuario")
 
         usuario = User.objects.create_user(
-
             username=username,
-
             email=email,
-
             password=senha,
-
             first_name=nome,
-
         )
+
+        # =========================================
+        # PERFIL DE ACESSO
+        # =========================================
+
+        perfil_acesso_id = request.POST.get("perfil_acesso") or None
+
+        perfil_acesso = None
+
+        if perfil_acesso_id:
+            perfil_acesso = Perfil.objects.get(id=perfil_acesso_id)
+
+        # =========================================
+        # MAPEAR PERFIL -> TIPO_USUARIO
+        # =========================================
+
+        mapa = {
+
+            "Administrador": PerfilUsuario.ADMIN,
+            "Gestor": PerfilUsuario.GESTOR,
+            "Dentista": PerfilUsuario.DENTISTA,
+            "Secretária": PerfilUsuario.SECRETARIA,
+            "Auxiliar de Saúde Bucal": PerfilUsuario.ACD,
+            "Contabilidade": PerfilUsuario.CONTABILIDADE,
+            "Marketing": PerfilUsuario.MARKETING,
+            "Auditoria": PerfilUsuario.AUDITORIA,
+
+        }
+
+        tipo_usuario = PerfilUsuario.SECRETARIA
+
+        if perfil_acesso:
+            tipo_usuario = mapa.get(
+                perfil_acesso.nome,
+                PerfilUsuario.SECRETARIA
+            )
 
         # =========================================
         # PERFIL DO USUÁRIO
@@ -7146,9 +7177,9 @@ def novo_usuario(request):
 
             usuario=usuario,
 
-            perfil_acesso_id=request.POST.get("perfil_acesso") or None,
+            perfil_acesso=perfil_acesso,
 
-            tipo_usuario=request.POST.get("tipo_usuario"),
+            tipo_usuario=tipo_usuario,
 
             foto=request.FILES.get("foto"),
 
@@ -7185,13 +7216,12 @@ def novo_usuario(request):
         )
 
         # =========================================
-        # CRIAR PROFISSIONAL AUTOMATICAMENTE
+        # CRIAR PROFISSIONAL
         # =========================================
 
         if perfil.tipo_usuario in [
 
             PerfilUsuario.DENTISTA,
-
             PerfilUsuario.ACD,
 
         ]:
@@ -7203,69 +7233,60 @@ def novo_usuario(request):
                 defaults={
 
                     "nome": nome,
-
                     "email": email,
-
                     "telefone": request.POST.get("celular"),
-
                     "especialidade": request.POST.get("especialidade"),
-
                     "ativo": True,
 
                 }
 
             )
 
-        # =========================================
-        # MENSAGEM
-        # =========================================
-
         messages.success(
-
             request,
-
             "Usuário criado com sucesso."
-
         )
 
         return redirect("usuarios")
 
-    # =========================================
-    # PERFIS DE ACESSO
-    # =========================================
-
     perfis = Perfil.objects.filter(
-
         ativo=True
-
     ).order_by(
-
         "nome"
-
     )
 
     return render(
-
         request,
-
         "accounts/usuario_form.html",
-
         {
-
             "perfis": perfis,
-
         }
-
     )
 
 # =========================================
 # EDITAR USUÁRIO
 # =========================================
+
 @login_required
 def editar_usuario(request, id):
 
     usuario = get_object_or_404(User, id=id)
-    perfil = usuario.perfil
+
+    # =========================================
+    # GARANTE QUE O PERFIL EXISTA
+    # =========================================
+
+    perfil, criado = PerfilUsuario.objects.get_or_create(
+
+        usuario=usuario,
+
+        defaults={
+
+            "tipo_usuario": PerfilUsuario.SECRETARIA,
+
+        }
+
+    )
 
     if request.method == "POST":
 
@@ -7279,20 +7300,15 @@ def editar_usuario(request, id):
         usuario.save()
 
         # =========================================
-        # DADOS DO PERFIL
+        # PERFIL DE ACESSO
         # =========================================
 
-        perfil.perfil_acesso_id = (
-            request.POST.get("perfil_acesso") or None
-        )
-
-        # =========================================
-        # COMPATIBILIDADE COM O CAMPO ANTIGO
-        # =========================================
+        perfil.perfil_acesso_id = request.POST.get("perfil_acesso") or None
 
         if perfil.perfil_acesso:
 
             mapa = {
+
                 "Administrador": PerfilUsuario.ADMIN,
                 "Gestor": PerfilUsuario.GESTOR,
                 "Dentista": PerfilUsuario.DENTISTA,
@@ -7301,11 +7317,15 @@ def editar_usuario(request, id):
                 "Contabilidade": PerfilUsuario.CONTABILIDADE,
                 "Marketing": PerfilUsuario.MARKETING,
                 "Auditoria": PerfilUsuario.AUDITORIA,
+
             }
 
             perfil.tipo_usuario = mapa.get(
+
                 perfil.perfil_acesso.nome,
-                perfil.tipo_usuario
+
+                PerfilUsuario.SECRETARIA,
+
             )
 
         # =========================================
@@ -7315,20 +7335,27 @@ def editar_usuario(request, id):
         perfil.cro = request.POST.get("cro")
         perfil.cro_uf = request.POST.get("cro_uf")
         perfil.especialidade = request.POST.get("especialidade")
+
         perfil.percentual_comissao = (
-            request.POST.get("percentual_comissao") or None
+            request.POST.get("percentual_comissao") or 40
         )
+
         perfil.meta_mensal = (
             request.POST.get("meta_mensal") or 0
         )
+
         perfil.telefone = request.POST.get("telefone")
         perfil.celular = request.POST.get("celular")
+
         perfil.cpf = request.POST.get("cpf")
         perfil.rg = request.POST.get("rg")
+
         perfil.data_nascimento = (
             request.POST.get("data_nascimento") or None
         )
+
         perfil.sexo = request.POST.get("sexo")
+
         perfil.cep = request.POST.get("cep")
         perfil.logradouro = request.POST.get("logradouro")
         perfil.numero = request.POST.get("numero")
@@ -7345,6 +7372,33 @@ def editar_usuario(request, id):
 
         perfil.save()
 
+        # =========================================
+        # PROFISSIONAL
+        # =========================================
+
+        if perfil.tipo_usuario in [
+
+            PerfilUsuario.DENTISTA,
+            PerfilUsuario.ACD,
+
+        ]:
+
+            Profissional.objects.get_or_create(
+
+                usuario=usuario,
+
+                defaults={
+
+                    "nome": usuario.first_name,
+                    "email": usuario.email,
+                    "telefone": perfil.celular,
+                    "especialidade": perfil.especialidade,
+                    "ativo": True,
+
+                }
+
+            )
+
         messages.success(
             request,
             "Usuário atualizado com sucesso."
@@ -7352,26 +7406,24 @@ def editar_usuario(request, id):
 
         return redirect("usuarios")
 
-    # =========================================
-    # PERFIS DE ACESSO
-    # =========================================
-
-    perfis = (
-        Perfil.objects
-        .filter(ativo=True)
-        .order_by("nome")
+    perfis = Perfil.objects.filter(
+        ativo=True
+    ).order_by(
+        "nome"
     )
 
     context = {
+
         "usuario": usuario,
         "perfil": perfil,
         "perfis": perfis,
+
     }
 
     return render(
         request,
         "accounts/usuario_form.html",
-        context
+        context,
     )
 
 # ==============================================================
@@ -17839,4 +17891,207 @@ def editar_meta_dentista(request, pk):
 
         context,
 
+    )
+
+# =========================================
+# LEADS
+# =========================================
+
+@login_required
+def leads(request):
+
+    leads = Lead.objects.all().order_by("-data_cadastro")
+
+    context = {
+
+        "leads": leads,
+
+    }
+
+    return render(
+
+        request,
+
+        "accounts/marketing/leads.html",
+
+        context,
+
+    )
+
+@login_required
+def novo_lead(request):
+
+    if request.method == "POST":
+
+        form = LeadForm(request.POST)
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(request, "Lead cadastrado com sucesso!")
+
+            return redirect("leads")
+
+    else:
+
+        form = LeadForm()
+
+    return render(
+
+        request,
+
+        "accounts/marketing/novo_lead.html",
+
+        {
+
+            "form": form,
+
+        },
+
+    )
+
+@login_required
+def detalhe_lead(request, pk):
+
+    lead = get_object_or_404(
+        Lead,
+        pk=pk
+    )
+
+    historicos = lead.historicos.all()
+
+    context = {
+
+        "lead": lead,
+        "historicos": historicos,
+
+    }
+
+    return render(
+
+        request,
+
+        "accounts/marketing/detalhe_lead.html",
+
+        context,
+
+    )
+
+# =========================================
+# DETALHE DO LEAD
+# =========================================
+
+@login_required
+def detalhe_lead(request, pk):
+
+    lead = get_object_or_404(
+        Lead,
+        pk=pk
+    )
+
+    return render(
+
+        request,
+
+        "accounts/marketing/detalhe_lead.html",
+
+        {
+
+            "lead": lead
+
+        }
+
+    )
+
+# =========================================
+# EDITAR LEAD
+# =========================================
+
+@login_required
+def editar_lead(request, pk):
+
+    lead = get_object_or_404(
+        Lead,
+        pk=pk
+    )
+
+    if request.method == "POST":
+
+        form = LeadForm(
+            request.POST,
+            instance=lead
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            messages.success(
+                request,
+                "Lead atualizado com sucesso!"
+            )
+
+            return redirect("leads")
+
+    else:
+
+        form = LeadForm(instance=lead)
+
+    context = {
+
+        "form": form,
+        "lead": lead,
+
+    }
+
+    return render(
+
+        request,
+
+        "accounts/marketing/editar_lead.html",
+
+        context,
+
+    )
+
+@login_required
+def excluir_lead(request, pk):
+
+    lead = get_object_or_404(
+        Lead,
+        pk=pk
+    )
+
+    if request.method == "POST":
+
+        lead.delete()
+
+        messages.success(
+            request,
+            "Lead excluído com sucesso!"
+        )
+
+        return redirect("leads")
+
+    return render(
+
+        request,
+
+        "accounts/marketing/excluir_lead.html",
+
+        {
+
+            "lead": lead
+
+        }
+
+    )
+
+@login_required
+def dashboard_marketing(request):
+
+    return render(
+        request,
+        "accounts/dashboard/marketing/dashboard.html",
     )
