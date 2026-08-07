@@ -1,0 +1,439 @@
+<style>
+
+/* =========================================
+ÚLTIMOS LEADS
+========================================= */
+
+.lead-list{
+
+    max-height:140px;
+    overflow-y:auto;
+    padding-right:4px;
+
+}
+
+.lead-item{
+
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    padding:7px 0;
+
+    border-bottom:1px solid #eef2f7;
+
+}
+
+.lead-item:last-child{
+
+    border-bottom:none;
+
+}
+
+.lead-avatar{
+
+    width:28px;
+    height:28px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:50%;
+
+    color:#fff;
+
+    font-size:12px;
+    font-weight:600;
+
+    flex-shrink:0;
+
+}
+
+.lead-info{
+
+    flex:1;
+
+}
+
+.lead-info strong{
+
+    display:block;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    line-height:1.15;
+
+    color:#0f172a;
+
+}
+
+.lead-info small{
+
+    display:block;
+
+    margin-top:1px;
+
+    font-size:11px;
+
+    color:#64748b;
+
+}
+
+.lead-item .badge{
+
+    font-size:10px;
+
+    font-weight:600;
+
+    padding:3px 7px;
+
+    border-radius:10px;
+
+}
+
+/* Scroll */
+
+.lead-list::-webkit-scrollbar{
+
+    width:5px;
+
+}
+
+.lead-list::-webkit-scrollbar-track{
+
+    background:#f8fafc;
+
+}
+
+.lead-list::-webkit-scrollbar-thumb{
+
+    background:#cbd5e1;
+
+    border-radius:20px;
+
+}
+
+/* =========================================
+FUNIL DE CONVERSÃO
+========================================= */
+
+.funil-item{
+
+    margin-bottom:10px;
+
+}
+
+.funil-item:last-child{
+
+    margin-bottom:0;
+
+}
+
+.funil-item span{
+
+    font-size:13px;
+
+    color:#334155;
+
+}
+
+.funil-item strong{
+
+    font-size:13px;
+
+    font-weight:700;
+
+}
+
+.funil-item .progress{
+
+    height:4px;
+
+    margin-top:4px;
+
+    border-radius:10px;
+
+    background:#eef2f7;
+
+}
+
+.funil-item .progress-bar{
+
+    border-radius:10px;
+
+}
+
+/* =========================================
+TÍTULOS
+========================================= */
+
+.dashboard-title{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    margin-bottom:12px;
+
+}
+
+.dashboard-title i{
+
+    font-size:20px;
+
+}
+
+.dashboard-title h5{
+
+    margin:0;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    color:#0f172a;
+
+}
+
+.dashboard-title small{
+
+    font-size:11px;
+
+    color:#64748b;
+
+}
+
+/* =========================================
+CARDS DA QUARTA LINHA
+========================================= */
+
+.marketing-bottom-card{
+
+    height:230px;
+
+}
+
+.marketing-bottom-card .card-body{
+
+    padding:14px 16px;
+
+    display:flex;
+    flex-direction:column;
+
+}
+
+</style>
+
+<!-- =========================================
+QUARTA LINHA
+ÚLTIMOS LEADS + FUNIL DE CONVERSÃO
+========================================= -->
+
+<div class="row mt-4">
+
+    <!-- =========================================
+    ÚLTIMOS LEADS
+    ========================================= -->
+
+    <div class="col-lg-6 mb-4">
+
+        <div class="card dashboard-card marketing-card marketing-bottom-card">
+
+            <div class="card-body p-3">
+
+                <div class="dashboard-title mb-3">
+
+                    <i class="bi bi-person-lines-fill text-primary"></i>
+
+                    <div>
+
+                        <h5>Últimos Leads</h5>
+
+                        <small>Novos contatos recebidos</small>
+
+                    </div>
+
+                </div>
+
+                <div class="lead-list">
+
+                    <div class="lead-item">
+
+                        <div class="lead-avatar bg-primary">M</div>
+
+                        <div class="lead-info">
+
+                            <strong>Maria Silva</strong>
+
+                            <small>Instagram • há 10 minutos</small>
+
+                        </div>
+
+                        <span class="badge bg-success">Novo</span>
+
+                    </div>
+
+                    <div class="lead-item">
+
+                        <div class="lead-avatar bg-danger">J</div>
+
+                        <div class="lead-info">
+
+                            <strong>João Souza</strong>
+
+                            <small>Google Ads • há 30 minutos</small>
+
+                        </div>
+
+                        <span class="badge bg-warning text-dark">Contato</span>
+
+                    </div>
+
+                    <div class="lead-item">
+
+                        <div class="lead-avatar bg-success">A</div>
+
+                        <div class="lead-info">
+
+                            <strong>Ana Costa</strong>
+
+                            <small>WhatsApp • há 1 hora</small>
+
+                        </div>
+
+                        <span class="badge bg-info">Agendado</span>
+
+                    </div>
+
+                    <div class="lead-item">
+
+                        <div class="lead-avatar bg-secondary">C</div>
+
+                        <div class="lead-info">
+
+                            <strong>Carlos Lima</strong>
+
+                            <small>Indicação • ontem</small>
+
+                        </div>
+
+                        <span class="badge bg-secondary">Fechado</span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =========================================
+    FUNIL DE CONVERSÃO
+    ========================================= -->
+
+    <div class="col-lg-6 mb-4">
+
+        <div class="card dashboard-card marketing-card marketing-bottom-card">
+
+            <div class="card-body p-3">
+
+                <div class="dashboard-title mb-3">
+
+                    <i class="bi bi-funnel-fill text-warning"></i>
+
+                    <div>
+
+                        <h5>Funil de Conversão</h5>
+
+                        <small>Evolução dos atendimentos</small>
+
+                    </div>
+
+                </div>
+
+                <div class="funil-item">
+
+                    <div class="d-flex justify-content-between mb-1">
+
+                        <span>Leads Recebidos</span>
+
+                        <strong>120</strong>
+
+                    </div>
+
+                    <div class="progress">
+
+                        <div class="progress-bar bg-primary" style="width:100%"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="funil-item">
+
+                    <div class="d-flex justify-content-between mb-1">
+
+                        <span>Contato Realizado</span>
+
+                        <strong>95</strong>
+
+                    </div>
+
+                    <div class="progress">
+
+                        <div class="progress-bar bg-info" style="width:79%"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="funil-item">
+
+                    <div class="d-flex justify-content-between mb-1">
+
+                        <span>Agendamentos</span>
+
+                        <strong>48</strong>
+
+                    </div>
+
+                    <div class="progress">
+
+                        <div class="progress-bar bg-success" style="width:40%"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="funil-item">
+
+                    <div class="d-flex justify-content-between mb-1">
+
+                        <span>Pacientes</span>
+
+                        <strong>30</strong>
+
+                    </div>
+
+                    <div class="progress">
+
+                        <div class="progress-bar bg-warning" style="width:25%"></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
