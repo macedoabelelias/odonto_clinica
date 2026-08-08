@@ -227,7 +227,7 @@ def dashboard_view(request):
     from decimal import Decimal
     from collections import defaultdict
 
-    from django.db.models import Sum
+    from django.db.models import Sum, Count
     from django.db.models.functions import ExtractMonth
     from django.utils import timezone
 
@@ -280,7 +280,7 @@ def dashboard_view(request):
         "admin"
     )
 
-   # =========================================
+    # =========================================
     # DASHBOARD DO GESTOR
     # =========================================
 
@@ -291,14 +291,110 @@ def dashboard_view(request):
 
     if dashboard_tipo == "gestor":
 
-        indicadores_gestor = obter_indicadores_dashboard_gestor()
+        indicadores_gestor = (
+            obter_indicadores_dashboard_gestor()
+        )
 
-        grafico_gestor = obter_grafico_producao_gestor()
+        grafico_gestor = (
+            obter_grafico_producao_gestor()
+        )
 
-        ranking_gestor = obter_ranking_dentistas_gestor()
+        ranking_gestor = (
+            obter_ranking_dentistas_gestor()
+        )
 
-        meta_clinica = obter_meta_clinica()
-        
+        meta_clinica = (
+            obter_meta_clinica()
+        )
+
+
+    # =========================================
+    # DASHBOARD MARKETING
+    # =========================================
+
+    # Valores padrão
+    leads_mes = 0
+    leads_convertidos = 0
+    taxa_conversao = 0
+    agendamentos_mes = 0
+
+    # 12 meses do ano
+    leads_por_mes = [0] * 12
+
+
+    if dashboard_tipo == "marketing":
+
+        # =========================================
+        # LEADS DO MÊS
+        # =========================================
+
+        leads_mes_qs = Lead.objects.filter(
+            data_cadastro__year=hoje.year,
+            data_cadastro__month=hoje.month,
+            ativo=True,
+        )
+
+        leads_mes = leads_mes_qs.count()
+
+
+        # =========================================
+        # LEADS CONVERTIDOS
+        # =========================================
+
+        leads_convertidos = leads_mes_qs.filter(
+            status="CONVERTIDO"
+        ).count()
+
+
+        # =========================================
+        # TAXA DE CONVERSÃO
+        # =========================================
+
+        if leads_mes > 0:
+
+            taxa_conversao = round(
+                (
+                    leads_convertidos / leads_mes
+                ) * 100,
+                1
+            )
+
+        else:
+
+            taxa_conversao = 0
+
+
+        # =========================================
+        # AGENDAMENTOS DO MÊS
+        # =========================================
+
+        agendamentos_mes = (
+            Agendamento.objects.filter(
+                data__year=hoje.year,
+                data__month=hoje.month,
+            )
+            .exclude(
+                status="cancelado"
+            )
+            .count()
+        )
+
+
+        # =========================================
+        # EVOLUÇÃO DOS LEADS POR MÊS
+        # =========================================
+
+        leads_ano = Lead.objects.filter(
+            ativo=True,
+            data_cadastro__year=hoje.year,
+        )
+
+
+        for lead in leads_ano:
+
+            mes = lead.data_cadastro.month
+
+            leads_por_mes[mes - 1] += 1
 
     # =========================================
     # CONFIGURAÇÃO DO DASHBOARD
@@ -1226,7 +1322,145 @@ def dashboard_view(request):
             "hora_inicio",
         )
     )
-    
+
+    # =========================================
+    # DASHBOARD MARKETING
+    # =========================================
+
+    novos_pacientes = 0
+    leads_mes = 0
+    agendamentos_mes = 0
+    taxa_conversao = 0
+    leads_convertidos = 0
+
+    # Evolução dos Leads — 12 meses
+    leads_por_mes = [0] * 12
+
+    # Origem dos Leads
+    origens_leads = []
+
+
+    if dashboard_tipo == "marketing":
+
+        # =========================================
+        # NOVOS PACIENTES
+        # =========================================
+
+        novos_pacientes = Paciente.objects.filter(
+            ativo=True,
+            criado_em__year=hoje.year,
+            criado_em__month=hoje.month,
+        ).count()
+
+
+        # =========================================
+        # LEADS DO MÊS
+        # =========================================
+
+        leads_mes_qs = Lead.objects.filter(
+            ativo=True,
+            data_cadastro__year=hoje.year,
+            data_cadastro__month=hoje.month,
+        )
+
+        leads_mes = leads_mes_qs.count()
+
+
+        # =========================================
+        # LEADS CONVERTIDOS
+        # =========================================
+
+        leads_convertidos = leads_mes_qs.filter(
+            status="CONVERTIDO"
+        ).count()
+
+
+        # =========================================
+        # TAXA DE CONVERSÃO
+        # =========================================
+
+        if leads_mes > 0:
+
+            taxa_conversao = round(
+                (
+                    leads_convertidos
+                    / leads_mes
+                ) * 100,
+                1
+            )
+
+        else:
+
+            taxa_conversao = 0
+
+
+        # =========================================
+        # AGENDAMENTOS DO MÊS
+        # =========================================
+
+        agendamentos_mes = (
+            Agendamento.objects.filter(
+                data__year=hoje.year,
+                data__month=hoje.month,
+            )
+            .exclude(
+                status="cancelado"
+            )
+            .count()
+        )
+
+
+        # =========================================
+        # EVOLUÇÃO DOS LEADS
+        # =========================================
+
+        leads_ano = Lead.objects.filter(
+            ativo=True,
+            data_cadastro__year=hoje.year,
+        )
+
+
+        for lead in leads_ano:
+
+            mes = lead.data_cadastro.month
+
+            leads_por_mes[mes - 1] += 1
+
+
+        # =========================================
+        # ORIGEM DOS LEADS
+        # =========================================
+
+        if leads_mes > 0:
+
+            origens = (
+                leads_mes_qs
+                .values("origem")
+                .annotate(
+                    total=Count("origem")
+                )
+                .order_by("-total")
+            )
+
+            for item in origens:
+
+                percentual = round(
+                    (
+                        item["total"]
+                        / leads_mes
+                    ) * 100,
+                    1
+                )
+
+                origens_leads.append({
+
+                    "origem": item["origem"],
+
+                    "total": item["total"],
+
+                    "percentual": percentual,
+
+                })
     # =========================================
     # DASHBOARD SECRETÁRIA
     # =========================================
@@ -1448,6 +1682,47 @@ def dashboard_view(request):
     context.update(ranking_gestor)
     context.update(meta_clinica)
 
+
+    # =========================================
+    # DASHBOARD MARKETING
+    # =========================================
+
+    if dashboard_tipo == "marketing":
+
+        context.update({
+
+            # =====================================
+            # INDICADORES
+            # =====================================
+
+            "novos_pacientes": novos_pacientes,
+
+            "leads_mes": leads_mes,
+
+            "leads_convertidos": leads_convertidos,
+
+            "agendamentos_mes": agendamentos_mes,
+
+            "taxa_conversao": taxa_conversao,
+
+            # =====================================
+            # GRÁFICO DE LEADS
+            # =====================================
+
+            "leads_por_mes": leads_por_mes,
+
+            # =====================================
+            # ORIGEM DOS LEADS
+            # =====================================
+
+            "origens_leads": origens_leads,
+
+        })
+
+
+    # =========================================
+    # RENDER
+    # =========================================
 
     return render(
         request,
@@ -9622,6 +9897,8 @@ def novo_lote(request):
 def contas_pagar(request):
 
     hoje = timezone.now().date()
+
+    
 
     # =========================================
     # ATUALIZA CONTAS VENCIDAS
@@ -17951,6 +18228,10 @@ def novo_lead(request):
 
     )
 
+# =========================================
+# DETALHE DO LEAD
+# =========================================
+
 @login_required
 def detalhe_lead(request, pk):
 
@@ -17975,32 +18256,6 @@ def detalhe_lead(request, pk):
         "accounts/marketing/detalhe_lead.html",
 
         context,
-
-    )
-
-# =========================================
-# DETALHE DO LEAD
-# =========================================
-
-@login_required
-def detalhe_lead(request, pk):
-
-    lead = get_object_or_404(
-        Lead,
-        pk=pk
-    )
-
-    return render(
-
-        request,
-
-        "accounts/marketing/detalhe_lead.html",
-
-        {
-
-            "lead": lead
-
-        }
 
     )
 
@@ -18091,7 +18346,4 @@ def excluir_lead(request, pk):
 @login_required
 def dashboard_marketing(request):
 
-    return render(
-        request,
-        "accounts/dashboard/marketing/dashboard.html",
-    )
+    return redirect("dashboard")

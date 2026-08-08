@@ -4453,6 +4453,19 @@ class Lead(models.Model):
         default="OUTRO"
     )
 
+    # =========================================
+    # CAMPANHA DE MARKETING
+    # =========================================
+
+    campanha = models.ForeignKey(
+        "CampanhaMarketing",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="leads",
+        verbose_name="Campanha",
+    )
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -4559,6 +4572,10 @@ class HistoricoLead(models.Model):
 
 class CampanhaMarketing(models.Model):
 
+    # =========================================
+    # CANAIS
+    # =========================================
+
     CANAL_CHOICES = [
 
         ("GOOGLE", "Google Ads"),
@@ -4571,6 +4588,10 @@ class CampanhaMarketing(models.Model):
 
     ]
 
+    # =========================================
+    # STATUS
+    # =========================================
+
     STATUS_CHOICES = [
 
         ("ATIVA", "Ativa"),
@@ -4578,6 +4599,10 @@ class CampanhaMarketing(models.Model):
         ("FINALIZADA", "Finalizada"),
 
     ]
+
+    # =========================================
+    # DADOS DA CAMPANHA
+    # =========================================
 
     nome = models.CharField(
         max_length=150
@@ -4593,6 +4618,10 @@ class CampanhaMarketing(models.Model):
         blank=True
     )
 
+    # =========================================
+    # PERÍODO
+    # =========================================
+
     data_inicio = models.DateField()
 
     data_fim = models.DateField(
@@ -4600,11 +4629,19 @@ class CampanhaMarketing(models.Model):
         blank=True
     )
 
+    # =========================================
+    # INVESTIMENTO
+    # =========================================
+
     investimento = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0
     )
+
+    # =========================================
+    # CONTROLE
+    # =========================================
 
     ativa = models.BooleanField(
         default=True
@@ -4616,24 +4653,43 @@ class CampanhaMarketing(models.Model):
         default="ATIVA"
     )
 
+    # =========================================
+    # USUÁRIO RESPONSÁVEL
+    # =========================================
+
     criado_por = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name="campanhas_marketing"
     )
+
+    # =========================================
+    # DATA DE CRIAÇÃO
+    # =========================================
 
     criado_em = models.DateTimeField(
         auto_now_add=True
     )
 
+    # =========================================
+    # META
+    # =========================================
+
     class Meta:
 
-        ordering = ["-data_inicio"]
+        ordering = [
+            "-data_inicio"
+        ]
 
         verbose_name = "Campanha"
 
         verbose_name_plural = "Campanhas"
+
+    # =========================================
+    # STRING
+    # =========================================
 
     def __str__(self):
 

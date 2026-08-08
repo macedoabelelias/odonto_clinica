@@ -243,111 +243,147 @@ EVOLUÇÃO DOS LEADS
     </div>
 
     <!-- ========================================= -->
-    <!-- ORIGEM DOS LEADS -->
-    <!-- ========================================= -->
+<!-- ORIGEM DOS LEADS -->
+<!-- ========================================= -->
 
-    <div class="col-lg-4 mb-4">
+<div class="col-lg-4 mb-4">
 
-        <div class="card dashboard-card stats-card origem-card">
+    <div class="card dashboard-card stats-card origem-card">
 
-            <div class="card-body">
+        <div class="card-body">
 
-                <h5 class="fw-semibold mb-4">
-                    <i class="bi bi-bullseye text-success me-2"></i>
-                    Origem dos Leads
-                </h5>
+            <h5 class="fw-semibold mb-4">
 
-                <div class="origem-item">
+                <i class="bi bi-bullseye text-success me-2"></i>
 
-                    <div class="d-flex justify-content-between mb-2">
+                Origem dos Leads
 
-                        <span>
-                            <i class="bi bi-instagram me-2 text-danger"></i>
-                            Instagram
-                        </span>
+            </h5>
 
-                        <strong>40%</strong>
 
-                    </div>
+            {% if origens_leads %}
 
-                    <div class="progress">
+                {% for item in origens_leads %}
 
-                        <div class="progress-bar bg-danger" style="width:40%">
+                    <div class="origem-item {% if forloop.last %}mb-0{% endif %}">
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span>
+
+                                {% if item.origem == "INSTAGRAM" %}
+
+                                    <i class="bi bi-instagram me-2 text-danger"></i>
+
+                                    Instagram
+
+                                {% elif item.origem == "WHATSAPP" %}
+
+                                    <i class="bi bi-whatsapp me-2 text-success"></i>
+
+                                    WhatsApp
+
+                                {% elif item.origem == "GOOGLE" %}
+
+                                    <i class="bi bi-google me-2 text-primary"></i>
+
+                                    Google Ads
+
+                                {% elif item.origem == "FACEBOOK" %}
+
+                                    <i class="bi bi-facebook me-2 text-primary"></i>
+
+                                    Facebook
+
+                                {% elif item.origem == "SITE" %}
+
+                                    <i class="bi bi-globe2 me-2 text-info"></i>
+
+                                    Site
+
+                                {% elif item.origem == "INDICACAO" %}
+
+                                    <i class="bi bi-people-fill me-2 text-warning"></i>
+
+                                    Indicação
+
+                                {% else %}
+
+                                    <i class="bi bi-three-dots me-2 text-secondary"></i>
+
+                                    Outro
+
+                                {% endif %}
+
+                            </span>
+
+
+                            <strong>
+
+                                {{ item.percentual }}%
+
+                            </strong>
+
+                        </div>
+
+
+                        <div class="progress"
+                            style="
+                                height:6px;
+                                border-radius:10px;
+                                background:#e9eef5;
+                                overflow:hidden;
+                            ">
+
+                            <div
+                                style="
+                                    width:{{ item.percentual }}%;
+                                    height:100%;
+                                    border-radius:10px;
+
+                                    {% if item.origem == 'INSTAGRAM' %}
+                                        background:#dc3545;
+
+                                    {% elif item.origem == 'WHATSAPP' %}
+                                        background:#198754;
+
+                                    {% elif item.origem == 'GOOGLE' %}
+                                        background:#0d6efd;
+
+                                    {% elif item.origem == 'FACEBOOK' %}
+                                        background:#0d6efd;
+
+                                    {% elif item.origem == 'SITE' %}
+                                        background:#0dcaf0;
+
+                                    {% elif item.origem == 'INDICACAO' %}
+                                        background:#ffc107;
+
+                                    {% else %}
+                                        background:#6c757d;
+                                    {% endif %}
+                                "
+                            ></div>
+
                         </div>
 
                     </div>
 
-                </div>
+                {% endfor %}
 
-                <div class="origem-item">
+            {% else %}
 
-                    <div class="d-flex justify-content-between mb-2">
+                <div class="text-center text-muted py-4">
 
-                        <span>
-                            <i class="bi bi-whatsapp me-2 text-success"></i>
-                            WhatsApp
-                        </span>
+                    <i class="bi bi-bullseye fs-3 d-block mb-2"></i>
 
-                        <strong>30%</strong>
-
-                    </div>
-
-                    <div class="progress">
-
-                        <div class="progress-bar bg-success" style="width:30%">
-                        </div>
-
-                    </div>
+                    <small>
+                        Nenhum Lead cadastrado neste mês.
+                    </small>
 
                 </div>
 
-                <div class="origem-item">
-
-                    <div class="d-flex justify-content-between mb-2">
-
-                        <span>
-                            <i class="bi bi-google me-2 text-primary"></i>
-                            Google
-                        </span>
-
-                        <strong>20%</strong>
-
-                    </div>
-
-                    <div class="origem-progress">
-
-                        <div class="origem-fill google" style="width:20%">
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="origem-item mb-0">
-
-                    <div class="d-flex justify-content-between mb-2">
-
-                        <span>
-                            <i class="bi bi-people-fill me-2 text-warning"></i>
-                            Indicação
-                        </span>
-
-                        <strong>10%</strong>
-
-                    </div>
-
-                    <div class="origem-progress">
-
-                        <div class="origem-fill indicacao" style="width:10%">
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
+            {% endif %}
 
         </div>
 

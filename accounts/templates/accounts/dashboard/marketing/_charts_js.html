@@ -36,20 +36,11 @@ document.addEventListener("DOMContentLoaded", function () {
         "Dez"
     ];
 
-    const valores = [
-        4,
-        8,
-        12,
-        18,
-        26,
-        35,
-        41,
-        37,
-        33,
-        29,
-        24,
-        18
-    ];
+    // =========================================
+    // DADOS REAIS DOS LEADS
+    // =========================================
+
+    const valores = {{ leads_por_mes|safe }};
 
     // =========================================
     // GRÁFICO
@@ -189,20 +180,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     beginAtZero: true,
 
-                    suggestedMax: 45,
+                    suggestedMax: Math.max(
+                        5,
+                        Math.ceil(
+                            Math.max(...valores, 0) * 1.2
+                        )
+                    ),
 
                     ticks: {
-
-                        stepSize: 5,
 
                         precision: 0,
 
                         color: "#6b7280",
 
                         font: {
-
                             size: 12
-
                         }
 
                     },
