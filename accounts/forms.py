@@ -12,9 +12,12 @@ from .models import (
     Receita,
     ModeloReceita,
     MetaDentista,
+    Lead,
+    CampanhaMarketing,
 )
 
-from .models import PerfilUsuario
+
+
 
 # =========================================
 # FORM PROCEDIMENTO
@@ -610,9 +613,6 @@ class MetaDentistaForm(forms.ModelForm):
 # FORMULÁRIO DE LEADS
 # =========================================
 
-from .models import Lead
-
-
 class LeadForm(forms.ModelForm):
 
     class Meta:
@@ -626,6 +626,7 @@ class LeadForm(forms.ModelForm):
             "whatsapp",
             "email",
             "origem",
+            "campanha",
             "status",
             "responsavel",
             "observacoes",
@@ -653,6 +654,10 @@ class LeadForm(forms.ModelForm):
             }),
 
             "origem": forms.Select(attrs={
+                "class": "form-select"
+            }),
+
+            "campanha": forms.Select(attrs={
                 "class": "form-select"
             }),
 
@@ -684,7 +689,9 @@ class LeadForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        print(">>> INIT DO LEAD FORM <<<")
+        # =========================================
+        # RESPONSÁVEIS
+        # =========================================
 
         queryset = User.objects.filter(
             perfil__tipo_usuario__in=[
@@ -694,7 +701,83 @@ class LeadForm(forms.ModelForm):
             ]
         )
 
-        print("USUÁRIOS ENCONTRADOS:")
-        print(list(queryset.values_list("username", flat=True)))
-
         self.fields["responsavel"].queryset = queryset
+
+        # =========================================
+        # CAMPANHAS
+        # =========================================
+
+        self.fields["campanha"].queryset = (
+            CampanhaMarketing.objects
+            .filter(
+                ativa=True
+            )
+            .order_by(
+                "-data_inicio"
+            )
+        )
+
+        self.fields["campanha"].required = False
+
+# =========================================
+# FORMULÁRIO DE CAMPANHAS DE MARKETING
+# =========================================
+
+class CampanhaMarketingForm(forms.ModelForm):
+
+    class Meta:
+
+        model = CampanhaMarketing
+
+        fields = [
+            "nome",
+            "canal",
+            "descricao",
+            "data_inicio",
+            "data_fim",
+            "investimento",
+            "ativa",
+            "status",
+        ]
+
+        widgets = {
+
+            "nome": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Nome da campanha"
+            }),
+
+            "canal": forms.Select(attrs={
+                "class": "form-select"
+            }),
+
+            "descricao": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Descrição da campanha"
+            }),
+
+            "data_inicio": forms.DateInput(attrs={
+                "class": "form-control",
+                "type": "date"
+            }),
+
+            "data_fim": forms.DateInput(attrs={
+                "class": "form-control",
+                "type": "date"
+            }),
+
+            "investimento": forms.NumberInput(attrs={
+                "class": "form-control",
+                "step": "0.01",
+                "min": "0"
+            }),
+
+            "ativa": forms.CheckboxInput(attrs={
+                "class": "form-check-input"
+            }),
+
+            "status": forms.Select(attrs={
+                "class": "form-select"
+            }),
+        }

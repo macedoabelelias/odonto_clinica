@@ -124,6 +124,8 @@ from .models import (
     Tratamento,
 )
 
+from django.db.models import Q
+
 from .permissions import (
     filtrar_escopo,
     perfil_required,
@@ -135,8 +137,13 @@ from .permissoes_padrao import aplicar_permissoes_padrao
 
 from .services import registrar_auditoria
 
-from .models import Lead
-from .forms import LeadForm
+from .models import (
+    Lead,
+    CampanhaMarketing,
+)
+
+from .forms import LeadForm, CampanhaMarketingForm
+
 
 
 
@@ -312,13 +319,28 @@ def dashboard_view(request):
     # DASHBOARD MARKETING
     # =========================================
 
-    # Valores padrão
+    # =========================================
+    # VALORES PADRÃO
+    # =========================================
+
     leads_mes = 0
     leads_convertidos = 0
     taxa_conversao = 0
     agendamentos_mes = 0
 
-    # 12 meses do ano
+    # =========================================
+    # CAMPANHAS
+    # =========================================
+
+    campanhas_ativas = []
+    campanhas_pausadas = 0
+    total_leads_campanhas = 0
+    desempenho_campanhas = []
+
+    # =========================================
+    # 12 MESES DO ANO
+    # =========================================
+
     leads_por_mes = [0] * 12
 
 
@@ -389,12 +411,136 @@ def dashboard_view(request):
             data_cadastro__year=hoje.year,
         )
 
-
         for lead in leads_ano:
 
             mes = lead.data_cadastro.month
 
             leads_por_mes[mes - 1] += 1
+
+
+        # =========================================
+        # CAMPANHAS DE MARKETING
+        # =========================================
+
+        campanhas_qs = (
+            CampanhaMarketing.objects
+            .annotate(
+                quantidade_leads=Count(
+                    "leads",
+                    filter=Q(
+                        leads__ativo=True
+                    )
+                )
+            )
+            .order_by(
+                "-data_inicio"
+            )
+        )
+
+
+        # =========================================
+        # CAMPANHAS ATIVAS
+        # =========================================
+
+        campanhas_ativas_qs = campanhas_qs.filter(
+            ativa=True,
+            status="ATIVA",
+        )
+
+
+        # =========================================
+        # CAMPANHAS PAUSADAS
+        # =========================================
+
+        campanhas_pausadas = campanhas_qs.filter(
+            status="PAUSADA",
+        ).count()
+
+
+        # =========================================
+        # TOTAL DE LEADS VINCULADOS A CAMPANHAS
+        # =========================================
+
+        total_leads_campanhas = Lead.objects.filter(
+            ativo=True,
+            campanha__isnull=False,
+        ).count()
+
+
+        # =========================================
+        # DADOS DAS CAMPANHAS ATIVAS
+        # =========================================
+
+        for campanha in campanhas_ativas_qs:
+
+            campanhas_ativas.append({
+
+                "id": campanha.id,
+
+                "nome": campanha.nome,
+
+                "canal": campanha.canal,
+
+                "canal_display": campanha.get_canal_display(),
+
+                "status": campanha.status,
+
+                "status_display": campanha.get_status_display(),
+
+                "leads": campanha.quantidade_leads,
+
+                "investimento": campanha.investimento,
+
+                "data_inicio": campanha.data_inicio,
+
+                "data_fim": campanha.data_fim,
+
+            })
+
+
+        # =========================================
+        # DESEMPENHO DAS CAMPANHAS
+        # =========================================
+
+        for campanha in campanhas_qs:
+
+            desempenho_campanhas.append({
+
+                "id": campanha.id,
+
+                "nome": campanha.nome,
+
+                "canal": campanha.canal,
+
+                "canal_display": campanha.get_canal_display(),
+
+                "status": campanha.status,
+
+                "status_display": campanha.get_status_display(),
+
+                "leads": campanha.quantidade_leads,
+
+                "investimento": campanha.investimento,
+
+            })
+
+
+        # =========================================
+        # ORDENAR DESEMPENHO
+        # MAIOR NÚMERO DE LEADS PRIMEIRO
+        # =========================================
+
+        desempenho_campanhas.sort(
+            key=lambda campanha: campanha["leads"],
+            reverse=True
+        )
+
+
+        # =========================================
+        # LIMITAR AO TOP 5
+        # =========================================
+
+        desempenho_campanhas = desempenho_campanhas[:5]
 
     # =========================================
     # CONFIGURAÇÃO DO DASHBOARD
@@ -1716,6 +1862,22 @@ def dashboard_view(request):
             # =====================================
 
             "origens_leads": origens_leads,
+
+            # =========================================
+            # MARKETING
+            # =========================================
+
+            "leads_mes": leads_mes,
+            "leads_convertidos": leads_convertidos,
+            "taxa_conversao": taxa_conversao,
+            "agendamentos_mes": agendamentos_mes,
+
+            "leads_por_mes": leads_por_mes,
+
+            "campanhas_ativas": campanhas_ativas,
+            "campanhas_pausadas": campanhas_pausadas,
+            "total_leads_campanhas": total_leads_campanhas,
+            "desempenho_campanhas": desempenho_campanhas,
 
         })
 
@@ -18347,3 +18509,54 @@ def excluir_lead(request, pk):
 def dashboard_marketing(request):
 
     return redirect("dashboard")
+
+# =========================================
+# CAMPANHAS DE MARKETING
+# =========================================
+
+@login_required(login_url="/")
+@permissao_required("Marketing")
+def campanhas_marketing(request):
+
+    campanhas = CampanhaMarketing.objects.all().order_by("-data_inicio")
+
+    return render(
+        request,
+        "accounts/marketing/campanhas.html",
+        {
+            "campanhas": campanhas,
+        }
+    )
+
+# =========================================
+# NOVA CAMPANHA DE MARKETING
+# =========================================
+
+@login_required
+def nova_campanha_marketing(request):
+
+    if request.method == "POST":
+
+        form = CampanhaMarketingForm(request.POST)
+
+        if form.is_valid():
+
+            campanha = form.save(commit=False)
+
+            campanha.criado_por = request.user
+
+            campanha.save()
+
+            return redirect("campanhas_marketing")
+
+    else:
+
+        form = CampanhaMarketingForm()
+
+    return render(
+        request,
+        "accounts/marketing/nova_campanha.html",
+        {
+            "form": form,
+        }
+    )

@@ -436,41 +436,66 @@ COMPRAS
 
 {% endif %}
 
-<!-- =====================================================
-MARKETING
-====================================================== -->
+
+<!-- ========================================= -->
+<!-- MARKETING -->
+<!-- ========================================= -->
 
 {% possui_permissao request.user 'marketing' as pode_marketing %}
 
 {% if pode_marketing %}
 
-<div class="sidebar-section">
-    MARKETING
-</div>
-
 <li class="menu-group">
 
-    <button class="menu-toggle">
+    <!-- BOTÃO MARKETING -->
+
+    <button type="button" class="menu-toggle">
 
         <span>
+
             <i class="bi bi-megaphone-fill"></i>
+
             Marketing
+
         </span>
 
         <i class="fa-solid fa-chevron-right"></i>
 
     </button>
 
+
+    <!-- SUBMENU MARKETING -->
+
     <ul class="submenu">
 
+        <!-- ========================================= -->
         <!-- LEADS -->
-        <li class="{% if 'marketing/leads' in request.path %}active{% endif %}">
+        <!-- ========================================= -->
+
+        <li class="{% if request.path|slice:':15' == '/marketing/leads' %}active{% endif %}">
 
             <a href="{% url 'leads' %}">
 
                 <i class="bi bi-person-lines-fill"></i>
 
                 <span>Leads</span>
+
+            </a>
+
+        </li>
+
+
+        <!-- ========================================= -->
+        <!-- CAMPANHAS -->
+        <!-- ========================================= -->
+
+        <li class="{% if request.path|slice:':20' == '/marketing/campanhas' %}active{% endif %}">
+
+            <a href="{% url 'campanhas_marketing' %}">
+
+                <i class="bi bi-megaphone"></i>
+
+                <span>Campanhas</span>
 
             </a>
 
@@ -545,13 +570,20 @@ CONFIGURAÇÕES
 </li>
 {% endif %}
 
-        {% if pode_perfis %}
+                {% if pode_perfis %}
+
         <li>
+
             <a href="{% url 'perfis' %}">
+
                 <i class="bi bi-shield-lock"></i>
+
                 <span>Perfis de Acesso</span>
+
             </a>
+
         </li>
+
         {% endif %}
 
     </ul>
@@ -559,10 +591,10 @@ CONFIGURAÇÕES
 </li>
 
 {% endif %}
-            </ul>
-            
-            {% endwith %}
-        </aside>
+
+{% endwith %}
+
+</aside>
 
         <!-- =========================================
     MAIN CONTENT

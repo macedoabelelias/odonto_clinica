@@ -94,6 +94,22 @@ urlpatterns = [
         name="leads",
     ),
 
+    # =========================================
+    # CAMPANHAS DE MARKETING
+    # =========================================
+
+    path(
+        "marketing/campanhas/",
+        views.campanhas_marketing,
+        name="campanhas_marketing",
+    ),
+
+    path(
+        "marketing/campanhas/nova/",
+        views.nova_campanha_marketing,
+        name="campanhas_marketing_nova",
+    ),
+
     path(
         "marketing/leads/novo/",
         views.novo_lead,
