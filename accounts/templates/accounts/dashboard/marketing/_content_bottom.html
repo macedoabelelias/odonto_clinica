@@ -237,96 +237,123 @@ QUARTA LINHA
 <div class="row mt-4">
 
     <!-- =========================================
-    ÚLTIMOS LEADS
-    ========================================= -->
+ÚLTIMOS LEADS
+========================================= -->
 
-    <div class="col-lg-6 mb-4">
+<div class="col-lg-6 mb-4">
 
-        <div class="card dashboard-card marketing-card marketing-bottom-card">
+    <div class="card dashboard-card marketing-card marketing-bottom-card">
 
-            <div class="card-body p-3">
+        <div class="card-body p-3">
 
-                <div class="dashboard-title mb-3">
+            <div class="dashboard-title mb-3">
 
-                    <i class="bi bi-person-lines-fill text-primary"></i>
+                <i class="bi bi-person-lines-fill text-primary"></i>
 
-                    <div>
+                <div>
 
-                        <h5>Últimos Leads</h5>
+                    <h5>Últimos Leads</h5>
 
-                        <small>Novos contatos recebidos</small>
-
-                    </div>
+                    <small>Novos contatos recebidos</small>
 
                 </div>
 
-                <div class="lead-list">
+            </div>
 
-                    <div class="lead-item">
 
-                        <div class="lead-avatar bg-primary">M</div>
+            <div class="lead-list">
 
-                        <div class="lead-info">
+                {% if ultimos_leads %}
 
-                            <strong>Maria Silva</strong>
+                    {% for lead in ultimos_leads %}
 
-                            <small>Instagram • há 10 minutos</small>
+                        <div class="lead-item">
+
+                            <!-- AVATAR -->
+
+                            <div class="lead-avatar bg-primary">
+
+                                {{ lead.nome|first|upper }}
+
+                            </div>
+
+
+                            <!-- INFORMAÇÕES -->
+
+                            <div class="lead-info">
+
+                                <strong>
+                                    {{ lead.nome }}
+                                </strong>
+
+                                <small>
+
+                                    {{ lead.get_origem_display }}
+
+                                    • há {{ lead.data_cadastro|timesince }}
+
+                                </small>
+
+                            </div>
+
+
+                            <!-- STATUS -->
+
+                            {% if lead.status == "NOVO" %}
+
+                                <span class="badge bg-success">
+                                    Novo
+                                </span>
+
+                            {% elif lead.status == "CONTATADO" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    Contato
+                                </span>
+
+                            {% elif lead.status == "AGENDADO" %}
+
+                                <span class="badge bg-info">
+                                    Agendado
+                                </span>
+
+                            {% elif lead.status == "CONVERTIDO" %}
+
+                                <span class="badge bg-success">
+                                    Convertido
+                                </span>
+
+                            {% elif lead.status == "PERDIDO" %}
+
+                                <span class="badge bg-secondary">
+                                    Perdido
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    {{ lead.get_status_display }}
+                                </span>
+
+                            {% endif %}
 
                         </div>
 
-                        <span class="badge bg-success">Novo</span>
+                    {% endfor %}
 
-                    </div>
+                {% else %}
 
-                    <div class="lead-item">
+                    <div class="text-center text-muted py-4">
 
-                        <div class="lead-avatar bg-danger">J</div>
+                        <i class="bi bi-person-x fs-3"></i>
 
-                        <div class="lead-info">
-
-                            <strong>João Souza</strong>
-
-                            <small>Google Ads • há 30 minutos</small>
-
+                        <div class="mt-2">
+                            Nenhum lead cadastrado.
                         </div>
 
-                        <span class="badge bg-warning text-dark">Contato</span>
-
                     </div>
 
-                    <div class="lead-item">
-
-                        <div class="lead-avatar bg-success">A</div>
-
-                        <div class="lead-info">
-
-                            <strong>Ana Costa</strong>
-
-                            <small>WhatsApp • há 1 hora</small>
-
-                        </div>
-
-                        <span class="badge bg-info">Agendado</span>
-
-                    </div>
-
-                    <div class="lead-item">
-
-                        <div class="lead-avatar bg-secondary">C</div>
-
-                        <div class="lead-info">
-
-                            <strong>Carlos Lima</strong>
-
-                            <small>Indicação • ontem</small>
-
-                        </div>
-
-                        <span class="badge bg-secondary">Fechado</span>
-
-                    </div>
-
-                </div>
+                {% endif %}
 
             </div>
 
@@ -334,98 +361,172 @@ QUARTA LINHA
 
     </div>
 
-    <!-- =========================================
-    FUNIL DE CONVERSÃO
-    ========================================= -->
+</div>
 
-    <div class="col-lg-6 mb-4">
+<!-- =========================================
+FUNIL DE CONVERSÃO
+========================================= -->
 
-        <div class="card dashboard-card marketing-card marketing-bottom-card">
+<div class="col-lg-6 mb-4">
 
-            <div class="card-body p-3">
+    <div class="card dashboard-card marketing-card marketing-bottom-card">
 
-                <div class="dashboard-title mb-3">
+        <div class="card-body p-3">
 
-                    <i class="bi bi-funnel-fill text-warning"></i>
+            <!-- =========================================
+            TÍTULO
+            ========================================= -->
 
-                    <div>
+            <div class="dashboard-title mb-3">
 
-                        <h5>Funil de Conversão</h5>
+                <i class="bi bi-funnel-fill text-warning"></i>
 
-                        <small>Evolução dos atendimentos</small>
+                <div>
 
+                    <h5>Funil de Conversão</h5>
+
+                    <small>Evolução dos atendimentos</small>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================================
+            LEADS RECEBIDOS
+            ========================================= -->
+
+            <div class="funil-item">
+
+                <div class="d-flex justify-content-between mb-1">
+
+                    <span>Leads Recebidos</span>
+
+                    <strong>
+                        {{ leads_mes }}
+                    </strong>
+
+                </div>
+
+                <div class="progress">
+
+                    <div
+                        class="progress-bar bg-primary"
+                        style="width: 100%;">
                     </div>
 
                 </div>
 
-                <div class="funil-item">
+            </div>
 
-                    <div class="d-flex justify-content-between mb-1">
 
-                        <span>Leads Recebidos</span>
+            <!-- =========================================
+            CONTATO REALIZADO
+            ========================================= -->
 
-                        <strong>120</strong>
+            <div class="funil-item">
 
-                    </div>
+                <div class="d-flex justify-content-between mb-1">
 
-                    <div class="progress">
+                    <span>Contato Realizado</span>
 
-                        <div class="progress-bar bg-primary" style="width:100%"></div>
+                    <strong>
+                        {{ leads_contatados }}
+                    </strong>
 
+                </div>
+
+                <div class="progress">
+
+                    {% if leads_mes > 0 %}
+
+                        {% widthratio leads_contatados leads_mes 100 as percentual_contatados %}
+
+                    {% else %}
+
+                        {% widthratio 0 1 100 as percentual_contatados %}
+
+                    {% endif %}
+
+                    <div
+                        class="progress-bar bg-info"
+                        style="width: {{ percentual_contatados }}%;">
                     </div>
 
                 </div>
 
-                <div class="funil-item">
+            </div>
 
-                    <div class="d-flex justify-content-between mb-1">
 
-                        <span>Contato Realizado</span>
+            <!-- =========================================
+            AGENDAMENTOS
+            ========================================= -->
 
-                        <strong>95</strong>
+            <div class="funil-item">
 
-                    </div>
+                <div class="d-flex justify-content-between mb-1">
 
-                    <div class="progress">
+                    <span>Agendamentos</span>
 
-                        <div class="progress-bar bg-info" style="width:79%"></div>
+                    <strong>
+                        {{ leads_agendados }}
+                    </strong>
 
+                </div>
+
+                <div class="progress">
+
+                    {% if leads_mes > 0 %}
+
+                        {% widthratio leads_agendados leads_mes 100 as percentual_agendados %}
+
+                    {% else %}
+
+                        {% widthratio 0 1 100 as percentual_agendados %}
+
+                    {% endif %}
+
+                    <div
+                        class="progress-bar bg-success"
+                        style="width: {{ percentual_agendados }}%;">
                     </div>
 
                 </div>
 
-                <div class="funil-item">
+            </div>
 
-                    <div class="d-flex justify-content-between mb-1">
 
-                        <span>Agendamentos</span>
+            <!-- =========================================
+            PACIENTES / CONVERTIDOS
+            ========================================= -->
 
-                        <strong>48</strong>
+            <div class="funil-item">
 
-                    </div>
+                <div class="d-flex justify-content-between mb-1">
 
-                    <div class="progress">
+                    <span>Pacientes</span>
 
-                        <div class="progress-bar bg-success" style="width:40%"></div>
-
-                    </div>
+                    <strong>
+                        {{ leads_convertidos }}
+                    </strong>
 
                 </div>
 
-                <div class="funil-item">
+                <div class="progress">
 
-                    <div class="d-flex justify-content-between mb-1">
+                    {% if leads_mes > 0 %}
 
-                        <span>Pacientes</span>
+                        {% widthratio leads_convertidos leads_mes 100 as percentual_convertidos %}
 
-                        <strong>30</strong>
+                    {% else %}
 
-                    </div>
+                        {% widthratio 0 1 100 as percentual_convertidos %}
 
-                    <div class="progress">
+                    {% endif %}
 
-                        <div class="progress-bar bg-warning" style="width:25%"></div>
-
+                    <div
+                        class="progress-bar bg-warning"
+                        style="width: {{ percentual_convertidos }}%;">
                     </div>
 
                 </div>

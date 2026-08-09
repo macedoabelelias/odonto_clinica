@@ -146,8 +146,6 @@ from .forms import LeadForm, CampanhaMarketingForm
 
 
 
-
-
 # =========================================
 # LOGIN
 # =========================================
@@ -324,8 +322,17 @@ def dashboard_view(request):
     # =========================================
 
     leads_mes = 0
+
+    leads_contatados = 0
+
+    leads_agendados = 0
+
     leads_convertidos = 0
+
+    leads_perdidos = 0
+
     taxa_conversao = 0
+
     agendamentos_mes = 0
 
     # =========================================
@@ -360,11 +367,26 @@ def dashboard_view(request):
 
 
         # =========================================
-        # LEADS CONVERTIDOS
+        # STATUS DOS LEADS
         # =========================================
+
+        leads_contatados = leads_mes_qs.filter(
+            status="CONTATADO"
+        ).count()
+
+
+        leads_agendados = leads_mes_qs.filter(
+            status="AGENDADO"
+        ).count()
+
 
         leads_convertidos = leads_mes_qs.filter(
             status="CONVERTIDO"
+        ).count()
+
+
+        leads_perdidos = leads_mes_qs.filter(
+            status="PERDIDO"
         ).count()
 
 
@@ -400,6 +422,13 @@ def dashboard_view(request):
             )
             .count()
         )
+
+        # =========================================
+        # AGENDAMENTOS DO MÊS
+        # FUNIL DE MARKETING
+        # =========================================
+
+        agendamentos_mes = leads_agendados
 
 
         # =========================================
@@ -1835,6 +1864,25 @@ def dashboard_view(request):
 
     if dashboard_tipo == "marketing":
 
+        # =========================================
+        # ÚLTIMOS LEADS
+        # =========================================
+
+        ultimos_leads = (
+            Lead.objects
+            .filter(ativo=True)
+            .select_related(
+                "responsavel",
+                "campanha"
+            )
+            .order_by("-data_cadastro")[:4]
+        )
+
+
+        # =========================================
+        # CONTEXTO DO MARKETING
+        # =========================================
+
         context.update({
 
             # =====================================
@@ -1845,11 +1893,18 @@ def dashboard_view(request):
 
             "leads_mes": leads_mes,
 
+            "leads_contatados": leads_contatados,
+
+            "leads_agendados": leads_agendados,
+
             "leads_convertidos": leads_convertidos,
+
+            "leads_perdidos": leads_perdidos,
 
             "agendamentos_mes": agendamentos_mes,
 
             "taxa_conversao": taxa_conversao,
+
 
             # =====================================
             # GRÁFICO DE LEADS
@@ -1857,26 +1912,31 @@ def dashboard_view(request):
 
             "leads_por_mes": leads_por_mes,
 
+
             # =====================================
             # ORIGEM DOS LEADS
             # =====================================
 
             "origens_leads": origens_leads,
 
-            # =========================================
-            # MARKETING
-            # =========================================
 
-            "leads_mes": leads_mes,
-            "leads_convertidos": leads_convertidos,
-            "taxa_conversao": taxa_conversao,
-            "agendamentos_mes": agendamentos_mes,
+            # =====================================
+            # ÚLTIMOS LEADS
+            # =====================================
 
-            "leads_por_mes": leads_por_mes,
+            "ultimos_leads": ultimos_leads,
+
+
+            # =====================================
+            # CAMPANHAS
+            # =====================================
 
             "campanhas_ativas": campanhas_ativas,
+
             "campanhas_pausadas": campanhas_pausadas,
+
             "total_leads_campanhas": total_leads_campanhas,
+
             "desempenho_campanhas": desempenho_campanhas,
 
         })
@@ -18558,5 +18618,164 @@ def nova_campanha_marketing(request):
         "accounts/marketing/nova_campanha.html",
         {
             "form": form,
+        }
+    )
+
+# =========================================
+# EDITAR CAMPANHA DE MARKETING
+# =========================================
+
+@login_required(login_url="/")
+@permissao_required("Marketing")
+def editar_campanha_marketing(request, pk):
+
+    campanha = get_object_or_404(
+        CampanhaMarketing,
+        pk=pk
+    )
+
+    if request.method == "POST":
+
+        form = CampanhaMarketingForm(
+            request.POST,
+            instance=campanha
+        )
+
+        if form.is_valid():
+
+            form.save()
+
+            return redirect("campanhas_marketing")
+
+    else:
+
+        form = CampanhaMarketingForm(
+            instance=campanha
+        )
+
+    return render(
+        request,
+        "accounts/marketing/editar_campanha.html",
+        {
+            "form": form,
+            "campanha": campanha,
+        }
+    )
+
+# =========================================
+# DETALHES DA CAMPANHA DE MARKETING
+# =========================================
+
+@login_required(login_url="/")
+@permissao_required("Marketing")
+def detalhe_campanha_marketing(request, pk):
+
+    campanha = get_object_or_404(
+        CampanhaMarketing,
+        pk=pk
+    )
+
+    # =========================================
+    # LEADS DA CAMPANHA
+    # =========================================
+
+    leads = campanha.leads.all().order_by("-data_cadastro")
+
+    # =========================================
+    # INDICADORES
+    # =========================================
+
+    total_leads = leads.count()
+
+    leads_novos = leads.filter(
+        status="NOVO"
+    ).count()
+
+    leads_contatados = leads.filter(
+        status="CONTATADO"
+    ).count()
+
+    leads_agendados = leads.filter(
+        status="AGENDADO"
+    ).count()
+
+    leads_convertidos = leads.filter(
+        status="CONVERTIDO"
+    ).count()
+
+    leads_perdidos = leads.filter(
+        status="PERDIDO"
+    ).count()
+
+    # =========================================
+    # TAXA DE CONVERSÃO
+    # =========================================
+
+    if total_leads > 0:
+
+        taxa_conversao = (
+            leads_convertidos / total_leads
+        ) * 100
+
+    else:
+
+        taxa_conversao = 0
+
+    # =========================================
+    # CONTEXTO
+    # =========================================
+
+    context = {
+
+        "campanha": campanha,
+
+        "leads": leads,
+
+        "total_leads": total_leads,
+
+        "leads_novos": leads_novos,
+
+        "leads_contatados": leads_contatados,
+
+        "leads_agendados": leads_agendados,
+
+        "leads_convertidos": leads_convertidos,
+
+        "leads_perdidos": leads_perdidos,
+
+        "taxa_conversao": taxa_conversao,
+
+    }
+
+    return render(
+        request,
+        "accounts/marketing/detalhe_campanha.html",
+        context,
+    )
+
+# =========================================
+# EXCLUIR CAMPANHA DE MARKETING
+# =========================================
+
+@login_required(login_url="/")
+@permissao_required("Marketing")
+def excluir_campanha_marketing(request, pk):
+
+    campanha = get_object_or_404(
+        CampanhaMarketing,
+        pk=pk
+    )
+
+    if request.method == "POST":
+
+        campanha.delete()
+
+        return redirect("campanhas_marketing")
+
+    return render(
+        request,
+        "accounts/marketing/excluir_campanha.html",
+        {
+            "campanha": campanha,
         }
     )

@@ -95,20 +95,8 @@ urlpatterns = [
     ),
 
     # =========================================
-    # CAMPANHAS DE MARKETING
-    # =========================================
-
-    path(
-        "marketing/campanhas/",
-        views.campanhas_marketing,
-        name="campanhas_marketing",
-    ),
-
-    path(
-        "marketing/campanhas/nova/",
-        views.nova_campanha_marketing,
-        name="campanhas_marketing_nova",
-    ),
+    # LEADS - NOVO, DETALHE, EDITAR, EXCLUIR
+    # =========================================    
 
     path(
         "marketing/leads/novo/",
@@ -145,6 +133,40 @@ urlpatterns = [
         views.excluir_lead,
         name="excluir_lead",
     ),
+
+# =========================================
+# CAMPANHAS DE MARKETING
+# =========================================
+
+path(
+    "marketing/campanhas/",
+    views.campanhas_marketing,
+    name="campanhas_marketing",
+),
+
+path(
+    "marketing/campanhas/nova/",
+    views.nova_campanha_marketing,
+    name="campanhas_marketing_nova",
+),
+
+path(
+    "marketing/campanhas/<int:pk>/editar/",
+    views.editar_campanha_marketing,
+    name="editar_campanha_marketing",
+),
+
+path(
+    "marketing/campanhas/<int:pk>/excluir/",
+    views.excluir_campanha_marketing,
+    name="excluir_campanha_marketing",
+),
+
+path(
+    "marketing/campanhas/<int:pk>/",
+    views.detalhe_campanha_marketing,
+    name="detalhe_campanha_marketing",
+),
 
 # =========================================
 # ODONTOGRAMA
