@@ -1504,14 +1504,25 @@ def dashboard_view(request):
 
     novos_pacientes = 0
     leads_mes = 0
+
+    leads_contatados = 0
+    leads_agendados = 0
+    leads_convertidos = 0
+    leads_perdidos = 0
+
     agendamentos_mes = 0
     taxa_conversao = 0
-    leads_convertidos = 0
 
-    # Evolução dos Leads — 12 meses
+    # =========================================
+    # EVOLUÇÃO DOS LEADS — 12 MESES
+    # =========================================
+
     leads_por_mes = [0] * 12
 
-    # Origem dos Leads
+    # =========================================
+    # ORIGEM DOS LEADS
+    # =========================================
+
     origens_leads = []
 
 
@@ -1522,9 +1533,13 @@ def dashboard_view(request):
         # =========================================
 
         novos_pacientes = Paciente.objects.filter(
+
             ativo=True,
+
             criado_em__year=hoje.year,
+
             criado_em__month=hoje.month,
+
         ).count()
 
 
@@ -1533,12 +1548,38 @@ def dashboard_view(request):
         # =========================================
 
         leads_mes_qs = Lead.objects.filter(
+
             ativo=True,
+
             data_cadastro__year=hoje.year,
+
             data_cadastro__month=hoje.month,
+
         )
 
         leads_mes = leads_mes_qs.count()
+
+
+        # =========================================
+        # LEADS CONTATADOS
+        # =========================================
+
+        leads_contatados = leads_mes_qs.filter(
+
+            status="CONTATADO"
+
+        ).count()
+
+
+        # =========================================
+        # LEADS AGENDADOS
+        # =========================================
+
+        leads_agendados = leads_mes_qs.filter(
+
+            status="AGENDADO"
+
+        ).count()
 
 
         # =========================================
@@ -1546,8 +1587,33 @@ def dashboard_view(request):
         # =========================================
 
         leads_convertidos = leads_mes_qs.filter(
+
             status="CONVERTIDO"
+
         ).count()
+
+
+        # =========================================
+        # LEADS PERDIDOS
+        # =========================================
+
+        leads_perdidos = leads_mes_qs.filter(
+
+            status="PERDIDO"
+
+        ).count()
+
+
+        # =========================================
+        # AGENDAMENTOS DO MARKETING
+        # =========================================
+        #
+        # Para manter o indicador coerente
+        # com o Funil de Conversão, usamos
+        # os leads que estão com status AGENDADO.
+        #
+
+        agendamentos_mes = leads_agendados
 
 
         # =========================================
@@ -1557,11 +1623,14 @@ def dashboard_view(request):
         if leads_mes > 0:
 
             taxa_conversao = round(
+
                 (
                     leads_convertidos
                     / leads_mes
                 ) * 100,
+
                 1
+
             )
 
         else:
@@ -1570,36 +1639,25 @@ def dashboard_view(request):
 
 
         # =========================================
-        # AGENDAMENTOS DO MÊS
-        # =========================================
-
-        agendamentos_mes = (
-            Agendamento.objects.filter(
-                data__year=hoje.year,
-                data__month=hoje.month,
-            )
-            .exclude(
-                status="cancelado"
-            )
-            .count()
-        )
-
-
-        # =========================================
         # EVOLUÇÃO DOS LEADS
         # =========================================
 
         leads_ano = Lead.objects.filter(
+
             ativo=True,
+
             data_cadastro__year=hoje.year,
+
         )
 
 
         for lead in leads_ano:
 
-            mes = lead.data_cadastro.month
+            if lead.data_cadastro:
 
-            leads_por_mes[mes - 1] += 1
+                mes = lead.data_cadastro.month
+
+                leads_por_mes[mes - 1] += 1
 
 
         # =========================================
@@ -1609,23 +1667,35 @@ def dashboard_view(request):
         if leads_mes > 0:
 
             origens = (
+
                 leads_mes_qs
+
                 .values("origem")
+
                 .annotate(
+
                     total=Count("origem")
+
                 )
+
                 .order_by("-total")
+
             )
+
 
             for item in origens:
 
                 percentual = round(
+
                     (
                         item["total"]
                         / leads_mes
                     ) * 100,
+
                     1
+
                 )
+
 
                 origens_leads.append({
 
@@ -1636,6 +1706,8 @@ def dashboard_view(request):
                     "percentual": percentual,
 
                 })
+
+
     # =========================================
     # DASHBOARD SECRETÁRIA
     # =========================================
@@ -18592,22 +18664,30 @@ def campanhas_marketing(request):
 # NOVA CAMPANHA DE MARKETING
 # =========================================
 
-@login_required
+@login_required(login_url="/")
+@permissao_required("Marketing")
 def nova_campanha_marketing(request):
 
     if request.method == "POST":
 
-        form = CampanhaMarketingForm(request.POST)
+        form = CampanhaMarketingForm(
+            request.POST,
+            request.FILES
+        )
 
         if form.is_valid():
 
-            campanha = form.save(commit=False)
+            campanha = form.save(
+                commit=False
+            )
 
             campanha.criado_por = request.user
 
             campanha.save()
 
-            return redirect("campanhas_marketing")
+            return redirect(
+                "campanhas_marketing"
+            )
 
     else:
 
@@ -18638,14 +18718,29 @@ def editar_campanha_marketing(request, pk):
 
         form = CampanhaMarketingForm(
             request.POST,
+            request.FILES,
             instance=campanha
         )
 
         if form.is_valid():
 
-            form.save()
+            campanha = form.save(
+                commit=False
+            )
 
-            return redirect("campanhas_marketing")
+            # =========================================
+            # MANTER USUÁRIO ORIGINAL
+            # =========================================
+
+            if not campanha.criado_por:
+
+                campanha.criado_por = request.user
+
+            campanha.save()
+
+            return redirect(
+                "campanhas_marketing"
+            )
 
     else:
 

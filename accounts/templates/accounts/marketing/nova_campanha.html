@@ -6,249 +6,318 @@ Nova Campanha
 
 {% block content %}
 
-<div class="container-fluid mt-4">
+<!-- =========================================
+CABEÇALHO
+========================================= -->
 
-    <!-- =========================================
-    CABEÇALHO
-    ========================================= -->
+<div class="d-flex justify-content-between align-items-center mb-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
 
-        <div>
+        <h4 class="fw-semibold mb-1">
 
-            <h4 class="fw-semibold mb-1">
+            <i class="bi bi-megaphone-fill text-primary me-2"></i>
 
-                <i class="bi bi-megaphone-fill text-primary me-2"></i>
+            Nova Campanha
 
-                Nova Campanha
+        </h4>
 
-            </h4>
+        <p class="text-muted mb-0">
 
-            <p class="text-muted mb-0">
+            Cadastre uma nova campanha de marketing.
 
-                Cadastre uma nova campanha de marketing.
-
-            </p>
-
-        </div>
-
-        <div>
-
-            <a href="{% url 'campanhas_marketing' %}"
-               class="btn btn-outline-secondary">
-
-                <i class="bi bi-arrow-left me-1"></i>
-
-                Voltar
-
-            </a>
-
-        </div>
+        </p>
 
     </div>
 
+    <div>
 
-    <!-- =========================================
-    FORMULÁRIO
-    ========================================= -->
+        <a href="{% url 'campanhas_marketing' %}"
+           class="btn btn-outline-secondary">
 
-    <div class="card shadow-sm border-0">
+            <i class="bi bi-arrow-left me-1"></i>
 
-        <div class="card-body">
+            Voltar
 
-            <form method="post">
+        </a>
 
-                {% csrf_token %}
+    </div>
 
-
-                {% if form.non_field_errors %}
-
-                    <div class="alert alert-danger">
-
-                        {{ form.non_field_errors }}
-
-                    </div>
-
-                {% endif %}
+</div>
 
 
-                <div class="row g-3">
+<!-- =========================================
+FORMULÁRIO
+========================================= -->
 
-                    <!-- NOME -->
+<div class="card shadow-sm border-0">
 
-                    <div class="col-md-8">
+    <div class="card-body">
 
-                        <label class="form-label">
-                            Nome da Campanha
-                        </label>
+        <form method="post"
+              enctype="multipart/form-data">
 
-                        {{ form.nome }}
-
-                        {% if form.nome.errors %}
-
-                            <div class="text-danger small">
-                                {{ form.nome.errors }}
-                            </div>
-
-                        {% endif %}
-
-                    </div>
+            {% csrf_token %}
 
 
-                    <!-- CANAL -->
+            {% if form.non_field_errors %}
 
-                    <div class="col-md-4">
+                <div class="alert alert-danger">
 
-                        <label class="form-label">
-                            Canal
-                        </label>
+                    {{ form.non_field_errors }}
 
-                        {{ form.canal }}
+                </div>
 
-                        {% if form.canal.errors %}
-
-                            <div class="text-danger small">
-                                {{ form.canal.errors }}
-                            </div>
-
-                        {% endif %}
-
-                    </div>
+            {% endif %}
 
 
-                    <!-- DESCRIÇÃO -->
+            <div class="row g-3">
 
-                    <div class="col-12">
+                <!-- NOME -->
 
-                        <label class="form-label">
-                            Descrição
-                        </label>
+                <div class="col-md-8">
 
-                        {{ form.descricao }}
+                    <label class="form-label">
+                        Nome da Campanha
+                    </label>
 
-                    </div>
+                    {{ form.nome }}
 
+                    {% if form.nome.errors %}
 
-                    <!-- DATA INÍCIO -->
-
-                    <div class="col-md-4">
-
-                        <label class="form-label">
-                            Data de Início
-                        </label>
-
-                        {{ form.data_inicio }}
-
-                        {% if form.data_inicio.errors %}
-
-                            <div class="text-danger small">
-                                {{ form.data_inicio.errors }}
-                            </div>
-
-                        {% endif %}
-
-                    </div>
-
-
-                    <!-- DATA FIM -->
-
-                    <div class="col-md-4">
-
-                        <label class="form-label">
-                            Data de Término
-                        </label>
-
-                        {{ form.data_fim }}
-
-                    </div>
-
-
-                    <!-- INVESTIMENTO -->
-
-                    <div class="col-md-4">
-
-                        <label class="form-label">
-                            Investimento
-                        </label>
-
-                        <div class="input-group">
-
-                            <span class="input-group-text">
-                                R$
-                            </span>
-
-                            {{ form.investimento }}
-
+                        <div class="text-danger small">
+                            {{ form.nome.errors }}
                         </div>
 
-                    </div>
+                    {% endif %}
+
+                </div>
 
 
-                    <!-- STATUS -->
+                <!-- CANAL -->
 
-                    <div class="col-md-6">
+                <div class="col-md-4">
 
-                        <label class="form-label">
-                            Status
-                        </label>
+                    <label class="form-label">
+                        Canal
+                    </label>
 
-                        {{ form.status }}
+                    {{ form.canal }}
 
-                    </div>
+                    {% if form.canal.errors %}
 
-
-                    <!-- ATIVA -->
-
-                    <div class="col-md-6">
-
-                        <label class="form-label d-block">
-                            Situação
-                        </label>
-
-                        <div class="form-check mt-2">
-
-                            {{ form.ativa }}
-
-                            <label class="form-check-label">
-                                Campanha ativa
-                            </label>
-
+                        <div class="text-danger small">
+                            {{ form.canal.errors }}
                         </div>
 
-                    </div>
+                    {% endif %}
+
+                </div>
+
+
+                <!-- DESCRIÇÃO -->
+
+                <div class="col-12">
+
+                    <label class="form-label">
+                        Descrição
+                    </label>
+
+                    {{ form.descricao }}
+
+                    {% if form.descricao.errors %}
+
+                        <div class="text-danger small">
+                            {{ form.descricao.errors }}
+                        </div>
+
+                    {% endif %}
 
                 </div>
 
 
                 <!-- =========================================
-                BOTÕES
+                IMAGEM DA CAMPANHA
                 ========================================= -->
 
-                <hr class="my-4">
+                <div class="col-12">
 
-                <div class="d-flex justify-content-end gap-2">
+                    <label class="form-label">
 
-                    <a href="{% url 'campanhas_marketing' %}"
-                       class="btn btn-outline-secondary">
+                        <i class="bi bi-image me-1 text-primary"></i>
 
-                        Cancelar
+                        Imagem da Campanha
 
-                    </a>
+                    </label>
 
-                    <button type="submit"
-                            class="btn btn-primary">
+                    {{ form.imagem }}
 
-                        <i class="bi bi-check-lg me-1"></i>
+                    <div class="form-text">
 
-                        Salvar Campanha
+                        Escolha uma imagem para representar esta campanha.
+                        Você poderá alterá-la posteriormente.
 
-                    </button>
+                    </div>
+
+                    {% if form.imagem.errors %}
+
+                        <div class="text-danger small">
+
+                            {{ form.imagem.errors }}
+
+                        </div>
+
+                    {% endif %}
 
                 </div>
 
-            </form>
 
-        </div>
+                <!-- DATA INÍCIO -->
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Data de Início
+                    </label>
+
+                    {{ form.data_inicio }}
+
+                    {% if form.data_inicio.errors %}
+
+                        <div class="text-danger small">
+                            {{ form.data_inicio.errors }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- DATA FIM -->
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Data de Término
+                    </label>
+
+                    {{ form.data_fim }}
+
+                    {% if form.data_fim.errors %}
+
+                        <div class="text-danger small">
+                            {{ form.data_fim.errors }}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- INVESTIMENTO -->
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Investimento
+                    </label>
+
+                    <div class="input-group">
+
+                        <span class="input-group-text">
+                            R$
+                        </span>
+
+                        {{ form.investimento }}
+
+                    </div>
+
+                    {% if form.investimento.errors %}
+
+                        <div class="text-danger small">
+
+                            {{ form.investimento.errors }}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Status
+                    </label>
+
+                    {{ form.status }}
+
+                    {% if form.status.errors %}
+
+                        <div class="text-danger small">
+
+                            {{ form.status.errors }}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- ATIVA -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label d-block">
+                        Situação
+                    </label>
+
+                    <div class="form-check mt-2">
+
+                        {{ form.ativa }}
+
+                        <label class="form-check-label">
+                            Campanha ativa
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================================
+            BOTÕES
+            ========================================= -->
+
+            <hr class="my-4">
+
+            <div class="d-flex justify-content-end gap-2">
+
+                <a href="{% url 'campanhas_marketing' %}"
+                   class="btn btn-outline-secondary">
+
+                    Cancelar
+
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    <i class="bi bi-check-lg me-1"></i>
+
+                    Salvar Campanha
+
+                </button>
+
+            </div>
+
+        </form>
 
     </div>
 

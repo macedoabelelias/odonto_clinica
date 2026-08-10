@@ -93,7 +93,8 @@ Editar Campanha
 
         <div class="card-body">
 
-            <form method="post">
+            <form method="post"
+                  enctype="multipart/form-data">
 
                 {% csrf_token %}
 
@@ -198,6 +199,80 @@ Editar Campanha
                             <div class="text-danger small mt-1">
 
                                 {{ form.descricao.errors }}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- =========================================
+                    IMAGEM DA CAMPANHA
+                    ========================================= -->
+
+                    <div class="col-12">
+
+                        <label for="{{ form.imagem.id_for_label }}"
+                               class="form-label fw-semibold">
+
+                            Imagem da campanha
+
+                        </label>
+
+
+                        {% if campanha.imagem %}
+
+                            <div class="mb-3">
+
+                                <div class="mb-2">
+
+                                    <small class="text-muted">
+                                        Imagem atual
+                                    </small>
+
+                                </div>
+
+                                <img src="{{ campanha.imagem.url }}"
+                                     alt="{{ campanha.nome }}"
+                                     class="img-fluid rounded shadow-sm"
+                                     style="
+                                         max-width: 320px;
+                                         max-height: 180px;
+                                         object-fit: cover;
+                                     ">
+
+                            </div>
+
+                        {% else %}
+
+                            <div class="alert alert-light border mb-3">
+
+                                <i class="bi bi-image text-muted me-2"></i>
+
+                                Esta campanha ainda não possui uma imagem.
+
+                            </div>
+
+                        {% endif %}
+
+
+                        {{ form.imagem }}
+
+
+                        <small class="text-muted d-block mt-2">
+
+                            Selecione uma nova imagem somente se quiser
+                            substituir a imagem atual.
+
+                        </small>
+
+
+                        {% if form.imagem.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ form.imagem.errors }}
 
                             </div>
 

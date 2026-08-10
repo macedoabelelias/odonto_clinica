@@ -733,13 +733,13 @@ class CampanhaMarketingForm(forms.ModelForm):
             "nome",
             "canal",
             "descricao",
+            "imagem",
             "data_inicio",
             "data_fim",
             "investimento",
             "ativa",
             "status",
         ]
-
         widgets = {
 
             "nome": forms.TextInput(attrs={
@@ -755,6 +755,20 @@ class CampanhaMarketingForm(forms.ModelForm):
                 "class": "form-control",
                 "rows": 4,
                 "placeholder": "Descrição da campanha"
+            }),
+
+            "imagem": forms.ClearableFileInput(attrs={
+                "class": "form-control",
+                "accept": "image/*",
+            }),
+
+            # =========================================
+            # IMAGEM DA CAMPANHA
+            # =========================================
+
+            "imagem": forms.ClearableFileInput(attrs={
+                "class": "form-control",
+                "accept": "image/*"
             }),
 
             "data_inicio": forms.DateInput(attrs={

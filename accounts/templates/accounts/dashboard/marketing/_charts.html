@@ -1,202 +1,214 @@
 {% load static %}
 
 <style>
-    /* =========================================
+
+/* =========================================
 SEGUNDA LINHA
 ========================================= */
 
-    .dashboard-chart-card {
+.dashboard-chart-card {
 
-        height: 350px;
+    height: 440px;
 
-    }
+}
 
-    .dashboard-chart-card .card-body {
+.dashboard-chart-card .card-body {
 
-        padding: 24px;
+    padding: 24px;
 
-    }
+}
 
-    /* =========================================
+
+/* =========================================
 GRÁFICO
 ========================================= */
 
-    .grafico-container {
+.grafico-container {
 
-        position: relative;
+    position: relative;
 
-        width: 100%;
+    width: 100%;
 
-        height: 235px;
+    height: 235px;
 
-    }
+}
 
-    .grafico-marketing {
+.grafico-marketing {
 
-        position: relative;
+    position: relative;
 
-        width: 100%;
+    width: 100%;
 
-        height: 280px;
+    height: 280px;
 
-        margin-top: 10px;
+    margin-top: 10px;
 
-    }
+}
 
-    /* =========================================
+#graficoMarketing {
+
+    width: 100% !important;
+
+    height: 100% !important;
+
+}
+
+
+/* =========================================
 ORIGEM DOS LEADS
 ========================================= */
 
-    .origem-card {
+.origem-card {
 
-        height: 460px;
+    height: 440px;
 
-    }
+}
 
-    .origem-card .card-body {
+.origem-card .card-body {
 
-        padding: 50px;
+    padding: 30px;
 
-    }
-
-    .origem-item {
-
-        margin-bottom: 32px;
-
-    }
-
-    .origem-item strong {
-
-        font-size: 16px;
-
-        font-weight: 700;
-
-        color: #2563eb;
-
-    }
-
-    .origem-top {
-
-        display: flex;
-
-        justify-content: space-between;
-
-        align-items: center;
-
-        margin-bottom: 8px;
-
-    }
-
-    .origem-nome {
-
-        font-size: 15px;
-
-        font-weight: 600;
-
-        color: #374151;
-
-    }
-
-    .origem-percentual {
-
-        font-size: 14px;
-
-        font-weight: 700;
-
-        color: #2563eb;
-
-    }
-
-    .origem-item .progress {
-
-        width: 78%;
-
-        height: 10px;
-
-        margin: 0 auto;
-
-        border-radius: 20px;
-
-        background: #e9edf5;
-
-    }
-
-    .origem-progress {
-
-        width: 78%;
-
-        height: 10px;
-
-        margin: 0 auto;
-
-        border-radius: 20px;
-
-        background: #e9edf5;
+}
 
 
-    }
-
-    .origem-fill {
-
-        height: 100%;
-
-        border-radius: 20px;
-
-    }
-
-    /* Cores */
-
-    .instagram {
-
-        background: linear-gradient(90deg, #ec4899, #d946ef);
-
-    }
-
-    .whatsapp {
-
-        background: linear-gradient(90deg, #22c55e, #16a34a);
-
-    }
-
-    .google {
-
-        background: linear-gradient(90deg, #3b82f6, #2563eb);
-
-    }
-
-    .indicacao {
-
-        background: linear-gradient(90deg, #f97316, #ea580c);
-
-    }
-
-    /* =========================================
-EVOLUÇÃO DOS LEADS
+/* =========================================
+ITENS DE ORIGEM
 ========================================= */
 
-    .dashboard-chart-card {
+.origem-item {
 
-        height: 340px;
+    margin-bottom: 24px;
 
-    }
+}
 
-    .grafico-marketing {
+.origem-item strong {
 
-        position: relative;
+    font-size: 16px;
 
-        width: 100%;
+    font-weight: 700;
 
-        height: 280px;
+    color: #2563eb;
 
-    }
+}
 
-    #graficoMarketing {
+.origem-top {
 
-        width: 100% !important;
+    display: flex;
 
-        height: 100% !important;
+    justify-content: space-between;
 
-    }
+    align-items: center;
+
+    margin-bottom: 8px;
+
+}
+
+.origem-nome {
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    color: #374151;
+
+}
+
+.origem-percentual {
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    color: #2563eb;
+
+}
+
+
+/* =========================================
+BARRA DE PROGRESSO
+========================================= */
+
+.origem-item .progress {
+
+    width: 78%;
+
+    height: 10px;
+
+    margin: 0 auto;
+
+    border-radius: 20px;
+
+    background: #e9edf5;
+
+}
+
+.origem-progress {
+
+    width: 78%;
+
+    height: 10px;
+
+    margin: 0 auto;
+
+    border-radius: 20px;
+
+    background: #e9edf5;
+
+}
+
+.origem-fill {
+
+    height: 100%;
+
+    border-radius: 20px;
+
+}
+
+
+/* =========================================
+CORES DAS ORIGENS
+========================================= */
+
+.instagram {
+
+    background: linear-gradient(
+        90deg,
+        #ec4899,
+        #d946ef
+    );
+
+}
+
+.whatsapp {
+
+    background: linear-gradient(
+        90deg,
+        #22c55e,
+        #16a34a
+    );
+
+}
+
+.google {
+
+    background: linear-gradient(
+        90deg,
+        #3b82f6,
+        #2563eb
+    );
+
+}
+
+.indicacao {
+
+    background: linear-gradient(
+        90deg,
+        #f97316,
+        #ea580c
+    );
+
+}
+
 </style>
 
 
@@ -208,7 +220,7 @@ EVOLUÇÃO DOS LEADS
 
     <div class="col-lg-8 mb-4">
 
-        <div class="card dashboard-card stats-card dashboard-chart-card h-100">
+        <div class="card dashboard-card stats-card dashboard-chart-card">
 
             <div class="card-body">
 

@@ -4619,6 +4619,16 @@ class CampanhaMarketing(models.Model):
     )
 
     # =========================================
+    # IMAGEM DA CAMPANHA
+    # =========================================
+
+    imagem = models.ImageField(
+        upload_to="marketing/campanhas/",
+        null=True,
+        blank=True,
+        verbose_name="Imagem da campanha",
+    )
+    # =========================================
     # PERÍODO
     # =========================================
 
@@ -4694,6 +4704,8 @@ class CampanhaMarketing(models.Model):
     def __str__(self):
 
         return self.nome
+
+#=================================================    
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver

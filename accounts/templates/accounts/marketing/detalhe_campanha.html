@@ -67,7 +67,11 @@ Detalhes da Campanha
 
             <div class="row align-items-center">
 
-                <div class="col-lg-7">
+                <!-- =========================================
+                INFORMAÇÕES
+                ========================================= -->
+
+                <div class="{% if campanha.imagem %}col-lg-8{% else %}col-lg-7{% endif %}">
 
                     <div class="d-flex align-items-center">
 
@@ -105,38 +109,74 @@ Detalhes da Campanha
                 </div>
 
 
-                <div class="col-lg-5 text-lg-end mt-3 mt-lg-0">
+                <!-- =========================================
+                IMAGEM DA CAMPANHA
+                ========================================= -->
 
-                    {% if campanha.status == "ATIVA" %}
+                {% if campanha.imagem %}
 
-                        <span class="badge bg-success fs-6 px-3 py-2">
-                            Ativa
-                        </span>
+                    <div class="col-lg-4 mt-4 mt-lg-0">
 
-                    {% elif campanha.status == "PAUSADA" %}
+                        <div class="text-center">
 
-                        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
-                            Pausada
-                        </span>
+                            <img
+                                src="{{ campanha.imagem.url }}"
+                                alt="{{ campanha.nome }}"
+                                class="img-fluid rounded shadow-sm"
+                                style="
+                                    max-height: 180px;
+                                    width: 100%;
+                                    object-fit: cover;
+                                "
+                            >
 
-                    {% elif campanha.status == "FINALIZADA" %}
+                        </div>
 
-                        <span class="badge bg-secondary fs-6 px-3 py-2">
-                            Finalizada
-                        </span>
+                    </div>
 
-                    {% else %}
-
-                        <span class="badge bg-secondary fs-6 px-3 py-2">
-                            {{ campanha.get_status_display }}
-                        </span>
-
-                    {% endif %}
-
-                </div>
+                {% endif %}
 
             </div>
 
+
+            <!-- =========================================
+            STATUS
+            ========================================= -->
+
+            <div class="d-flex justify-content-end mt-3">
+
+                {% if campanha.status == "ATIVA" %}
+
+                    <span class="badge bg-success fs-6 px-3 py-2">
+                        Ativa
+                    </span>
+
+                {% elif campanha.status == "PAUSADA" %}
+
+                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                        Pausada
+                    </span>
+
+                {% elif campanha.status == "FINALIZADA" %}
+
+                    <span class="badge bg-secondary fs-6 px-3 py-2">
+                        Finalizada
+                    </span>
+
+                {% else %}
+
+                    <span class="badge bg-secondary fs-6 px-3 py-2">
+                        {{ campanha.get_status_display }}
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- =========================================
+            DESCRIÇÃO
+            ========================================= -->
 
             {% if campanha.descricao %}
 
