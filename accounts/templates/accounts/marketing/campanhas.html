@@ -224,45 +224,42 @@ CARD
 AÇÕES
 ========================================= -->
 
-<td class="text-center">
+                        <td class="text-center">
 
-    <div class="d-flex justify-content-center gap-1">
+                            <div class="d-flex justify-content-center gap-1">
 
-        <!-- DETALHES -->
+                                <!-- DETALHES -->
 
-        <a href="{% url 'detalhe_campanha_marketing' campanha.pk %}"
-           class="btn btn-sm btn-outline-info"
-           title="Detalhes da campanha">
+                                <a href="{% url 'detalhe_campanha_marketing' campanha.pk %}"
+                                    class="btn btn-sm btn-outline-info" title="Detalhes da campanha">
 
-            <i class="bi bi-eye"></i>
+                                    <i class="bi bi-eye"></i>
 
-        </a>
-
-
-        <!-- EDITAR -->
-
-        <a href="{% url 'editar_campanha_marketing' campanha.pk %}"
-           class="btn btn-sm btn-outline-primary"
-           title="Editar campanha">
-
-            <i class="bi bi-pencil"></i>
-
-        </a>
+                                </a>
 
 
-        <!-- EXCLUIR -->
+                                <!-- EDITAR -->
 
-        <a href="{% url 'excluir_campanha_marketing' campanha.pk %}"
-           class="btn btn-sm btn-outline-danger"
-           title="Excluir campanha">
+                                <a href="{% url 'editar_campanha_marketing' campanha.pk %}"
+                                    class="btn btn-sm btn-outline-primary" title="Editar campanha">
 
-            <i class="bi bi-trash"></i>
+                                    <i class="bi bi-pencil"></i>
 
-        </a>
+                                </a>
 
-    </div>
 
-</td>
+                                <!-- EXCLUIR -->
+
+                                <a href="{% url 'excluir_campanha_marketing' campanha.pk %}"
+                                    class="btn btn-sm btn-outline-danger" title="Excluir campanha">
+
+                                    <i class="bi bi-trash"></i>
+
+                                </a>
+
+                            </div>
+
+                        </td>
 
                     </tr>
 

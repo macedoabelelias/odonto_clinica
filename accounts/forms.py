@@ -720,6 +720,168 @@ class LeadForm(forms.ModelForm):
         self.fields["campanha"].required = False
 
 # =========================================
+# FORMULÁRIO PÚBLICO DE CAPTAÇÃO DE LEADS
+# =========================================
+
+class LeadCaptacaoForm(forms.ModelForm):
+
+    class Meta:
+
+        model = Lead
+
+        fields = [
+            "nome",
+            "telefone",
+            "whatsapp",
+            "email",
+        ]
+
+        widgets = {
+
+            "nome": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Digite seu nome",
+                "autocomplete": "name",
+            }),
+
+            "telefone": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "(00) 00000-0000",
+                "autocomplete": "tel",
+            }),
+
+            "whatsapp": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "(00) 00000-0000",
+                "autocomplete": "tel",
+            }),
+
+            "email": forms.EmailInput(attrs={
+                "class": "form-control",
+                "placeholder": "seu@email.com",
+                "autocomplete": "email",
+            }),
+
+        }
+
+    def clean(self):
+
+        cleaned_data = super().clean()
+
+        telefone = cleaned_data.get("telefone")
+        whatsapp = cleaned_data.get("whatsapp")
+
+        if not telefone and not whatsapp:
+
+            raise forms.ValidationError(
+                "Informe pelo menos um telefone ou WhatsApp para que possamos entrar em contato."
+            )
+
+        return cleaned_data
+
+
+# =========================================
+# CAPTAÇÃO PÚBLICA DE LEAD
+# =========================================
+
+def captacao_campanha(request, pk):
+
+    campanha = get_object_or_404(
+        CampanhaMarketing,
+        pk=pk,
+        ativa=True,
+        status="ATIVA",
+    )
+
+    if request.method == "POST":
+
+        form = LeadCaptacaoForm(
+            request.POST
+        )
+
+        if form.is_valid():
+
+            lead = form.save(
+                commit=False
+            )
+
+            # =========================================
+            # VINCULAR À CAMPANHA
+            # =========================================
+
+            lead.campanha = campanha
+
+            # =========================================
+            # STATUS INICIAL
+            # =========================================
+
+            lead.status = "NOVO"
+
+            # =========================================
+            # ORIGEM DA CAMPANHA
+            # =========================================
+
+            if campanha.canal in [
+                "GOOGLE",
+                "INSTAGRAM",
+                "FACEBOOK",
+                "WHATSAPP",
+                "SITE",
+            ]:
+
+                lead.origem = campanha.canal
+
+            else:
+
+                lead.origem = "OUTRO"
+
+            # =========================================
+            # LEAD ATIVO
+            # =========================================
+
+            lead.ativo = True
+
+            lead.save()
+
+            # =========================================
+            # HISTÓRICO
+            # =========================================
+
+            HistoricoLead.objects.create(
+
+                lead=lead,
+
+                descricao=(
+                    f"Lead captado através da campanha "
+                    f"'{campanha.nome}'."
+                ),
+
+            )
+
+            return render(
+                request,
+                "accounts/marketing/campanha_sucesso.html",
+                {
+                    "campanha": campanha,
+                },
+            )
+
+    else:
+
+        form = LeadCaptacaoForm()
+
+    return render(
+        request,
+        "accounts/marketing/campanha_publica.html",
+        {
+            "campanha": campanha,
+            "form": form,
+        },
+    )
+
+    
+
+# =========================================
 # FORMULÁRIO DE CAMPANHAS DE MARKETING
 # =========================================
 

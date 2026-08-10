@@ -4725,3 +4725,61 @@ def criar_historico_lead(sender, instance, created, **kwargs):
 
         )
 
+
+# =========================================
+# VISUALIZAÇÕES DAS CAMPANHAS
+# =========================================
+
+class VisualizacaoCampanha(models.Model):
+
+    campanha = models.ForeignKey(
+        CampanhaMarketing,
+        on_delete=models.CASCADE,
+        related_name="visualizacoes",
+        verbose_name="Campanha",
+    )
+
+    # Identifica a sessão do visitante
+    sessao = models.CharField(
+        max_length=100,
+        db_index=True,
+        verbose_name="Sessão",
+    )
+
+    # Quantas vezes essa mesma sessão acessou
+    quantidade = models.PositiveIntegerField(
+        default=1,
+        verbose_name="Quantidade de acessos",
+    )
+
+    primeiro_acesso = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Primeiro acesso",
+    )
+
+    ultimo_acesso = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Último acesso",
+    )
+
+    class Meta:
+
+        verbose_name = "Visualização da Campanha"
+
+        verbose_name_plural = "Visualizações das Campanhas"
+
+        constraints = [
+
+            models.UniqueConstraint(
+                fields=["campanha", "sessao"],
+                name="unique_visualizacao_campanha_sessao",
+            )
+
+        ]
+
+    def __str__(self):
+
+        return (
+            f"{self.campanha.nome} - "
+            f"{self.quantidade} acesso(s)"
+        )

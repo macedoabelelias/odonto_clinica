@@ -139,10 +139,16 @@ from .services import registrar_auditoria
 
 from .models import (
     Lead,
+    HistoricoLead,
     CampanhaMarketing,
+    VisualizacaoCampanha,
 )
 
-from .forms import LeadForm, CampanhaMarketingForm
+from .forms import (
+    LeadForm,
+    LeadCaptacaoForm,
+    CampanhaMarketingForm,
+)
 
 
 
@@ -335,6 +341,12 @@ def dashboard_view(request):
 
     agendamentos_mes = 0
 
+    followups_atrasados = 0
+
+    contatos_hoje = 0
+
+    proximos_contatos = 0
+
     # =========================================
     # CAMPANHAS
     # =========================================
@@ -374,16 +386,13 @@ def dashboard_view(request):
             status="CONTATADO"
         ).count()
 
-
         leads_agendados = leads_mes_qs.filter(
             status="AGENDADO"
         ).count()
 
-
         leads_convertidos = leads_mes_qs.filter(
             status="CONVERTIDO"
         ).count()
-
 
         leads_perdidos = leads_mes_qs.filter(
             status="PERDIDO"
@@ -410,25 +419,65 @@ def dashboard_view(request):
 
         # =========================================
         # AGENDAMENTOS DO MÊS
-        # =========================================
-
-        agendamentos_mes = (
-            Agendamento.objects.filter(
-                data__year=hoje.year,
-                data__month=hoje.month,
-            )
-            .exclude(
-                status="cancelado"
-            )
-            .count()
-        )
-
-        # =========================================
-        # AGENDAMENTOS DO MÊS
         # FUNIL DE MARKETING
         # =========================================
 
         agendamentos_mes = leads_agendados
+
+
+        # =========================================
+        # FOLLOW-UPS
+        # =========================================
+
+        agora = timezone.localtime()
+
+
+        # =========================================
+        # FOLLOW-UPS ATRASADOS
+        # =========================================
+
+        followups_atrasados = Lead.objects.filter(
+            ativo=True,
+            proximo_contato__lt=agora,
+        ).exclude(
+            status__in=[
+                "CONVERTIDO",
+                "PERDIDO",
+            ]
+        ).count()
+
+
+        # =========================================
+        # CONTATOS PARA HOJE
+        # =========================================
+
+        contatos_hoje = Lead.objects.filter(
+            ativo=True,
+            proximo_contato__date=hoje,
+        ).exclude(
+            status__in=[
+                "CONVERTIDO",
+                "PERDIDO",
+            ]
+        ).count()
+
+
+        # =========================================
+        # PRÓXIMOS CONTATOS
+        # =========================================
+        # Somente contatos a partir de amanhã
+
+        proximos_contatos = Lead.objects.filter(
+            ativo=True,
+            proximo_contato__gt=agora,
+        ).exclude(
+            proximo_contato__date=hoje,
+        ).exclude(
+            status__in=[
+                "CONVERTIDO",
+                "PERDIDO",
+            ]
+        ).count()
 
 
         # =========================================
@@ -448,128 +497,137 @@ def dashboard_view(request):
 
 
         # =========================================
-        # CAMPANHAS DE MARKETING
-        # =========================================
+    # CAMPANHAS DE MARKETING
+    # =========================================
 
-        campanhas_qs = (
-            CampanhaMarketing.objects
-            .annotate(
-                quantidade_leads=Count(
-                    "leads",
-                    filter=Q(
-                        leads__ativo=True
-                    )
-                )
-            )
-            .order_by(
-                "-data_inicio"
+    campanhas_qs = (
+        CampanhaMarketing.objects
+        .annotate(
+            quantidade_leads=Count(
+                "leads",
+                filter=Q(
+                    leads__ativo=True
+                ),
+                distinct=True,
             )
         )
-
-
-        # =========================================
-        # CAMPANHAS ATIVAS
-        # =========================================
-
-        campanhas_ativas_qs = campanhas_qs.filter(
-            ativa=True,
-            status="ATIVA",
+        .order_by(
+            "-data_inicio"
         )
+    )
 
 
-        # =========================================
-        # CAMPANHAS PAUSADAS
-        # =========================================
+    # =========================================
+    # CAMPANHAS ATIVAS
+    # =========================================
 
-        campanhas_pausadas = campanhas_qs.filter(
-            status="PAUSADA",
-        ).count()
+    campanhas_ativas_qs = campanhas_qs.filter(
+        ativa=True,
+        status="ATIVA",
+    )
 
 
-        # =========================================
-        # TOTAL DE LEADS VINCULADOS A CAMPANHAS
-        # =========================================
+    # =========================================
+    # CAMPANHAS PAUSADAS
+    # =========================================
 
-        total_leads_campanhas = Lead.objects.filter(
+    campanhas_pausadas = campanhas_qs.filter(
+        status="PAUSADA"
+    ).count()
+
+
+    # =========================================
+    # TOTAL DE LEADS VINCULADOS A CAMPANHAS
+    # =========================================
+
+    total_leads_campanhas = (
+        Lead.objects
+        .filter(
             ativo=True,
             campanha__isnull=False,
-        ).count()
-
-
-        # =========================================
-        # DADOS DAS CAMPANHAS ATIVAS
-        # =========================================
-
-        for campanha in campanhas_ativas_qs:
-
-            campanhas_ativas.append({
-
-                "id": campanha.id,
-
-                "nome": campanha.nome,
-
-                "canal": campanha.canal,
-
-                "canal_display": campanha.get_canal_display(),
-
-                "status": campanha.status,
-
-                "status_display": campanha.get_status_display(),
-
-                "leads": campanha.quantidade_leads,
-
-                "investimento": campanha.investimento,
-
-                "data_inicio": campanha.data_inicio,
-
-                "data_fim": campanha.data_fim,
-
-            })
-
-
-        # =========================================
-        # DESEMPENHO DAS CAMPANHAS
-        # =========================================
-
-        for campanha in campanhas_qs:
-
-            desempenho_campanhas.append({
-
-                "id": campanha.id,
-
-                "nome": campanha.nome,
-
-                "canal": campanha.canal,
-
-                "canal_display": campanha.get_canal_display(),
-
-                "status": campanha.status,
-
-                "status_display": campanha.get_status_display(),
-
-                "leads": campanha.quantidade_leads,
-
-                "investimento": campanha.investimento,
-
-            })
-
-
-        # =========================================
-        # ORDENAR DESEMPENHO
-        # MAIOR NÚMERO DE LEADS PRIMEIRO
-        # =========================================
-
-        desempenho_campanhas.sort(
-            key=lambda campanha: campanha["leads"],
-            reverse=True
         )
+        .count()
+    )
 
 
-        # =========================================
-        # LIMITAR AO TOP 5
-        # =========================================
+    # =========================================
+    # DADOS DAS CAMPANHAS ATIVAS
+    # =========================================
 
-        desempenho_campanhas = desempenho_campanhas[:5]
+    for campanha in campanhas_ativas_qs:
+
+        campanhas_ativas.append({
+
+            "id": campanha.id,
+
+            "nome": campanha.nome,
+
+            "canal": campanha.canal,
+
+            "canal_display": campanha.get_canal_display(),
+
+            "status": campanha.status,
+
+            "status_display": campanha.get_status_display(),
+
+            "leads": campanha.quantidade_leads,
+
+            "investimento": campanha.investimento,
+
+            "data_inicio": campanha.data_inicio,
+
+            "data_fim": campanha.data_fim,
+
+        })
+
+
+    # =========================================
+    # DESEMPENHO DAS CAMPANHAS
+    # =========================================
+
+    for campanha in campanhas_qs:
+
+        # Não mostrar campanhas sem Leads
+        if campanha.quantidade_leads == 0:
+            continue
+
+        desempenho_campanhas.append({
+
+            "id": campanha.id,
+
+            "nome": campanha.nome,
+
+            "canal": campanha.canal,
+
+            "canal_display": campanha.get_canal_display(),
+
+            "status": campanha.status,
+
+            "status_display": campanha.get_status_display(),
+
+            "leads": campanha.quantidade_leads,
+
+            "investimento": campanha.investimento,
+
+        })
+
+
+    # =========================================
+    # ORDENAR DESEMPENHO
+    # MAIOR NÚMERO DE LEADS PRIMEIRO
+    # =========================================
+
+    desempenho_campanhas.sort(
+        key=lambda campanha: campanha["leads"],
+        reverse=True
+    )
+
+
+    # =========================================
+    # LIMITAR AO TOP 5
+    # =========================================
+
+    desempenho_campanhas = desempenho_campanhas[:5]
 
     # =========================================
     # CONFIGURAÇÃO DO DASHBOARD
@@ -1664,49 +1722,111 @@ def dashboard_view(request):
         # ORIGEM DOS LEADS
         # =========================================
 
+        origens_leads = []
+
         if leads_mes > 0:
 
-            origens = (
+            # =========================================
+            # AGRUPAR LEADS PELO CANAL DA CAMPANHA
+            # =========================================
 
+            contagem_origens = defaultdict(int)
+
+            leads_com_campanha = (
                 leads_mes_qs
-
-                .values("origem")
-
-                .annotate(
-
-                    total=Count("origem")
-
+                .filter(
+                    campanha__isnull=False
                 )
-
-                .order_by("-total")
-
+                .select_related("campanha")
             )
 
+            for lead in leads_com_campanha:
 
-            for item in origens:
+                campanha = lead.campanha
 
-                percentual = round(
+                if not campanha:
+                    continue
 
-                    (
-                        item["total"]
-                        / leads_mes
-                    ) * 100,
+                # Nome exibido do canal da campanha
+                canal_display = campanha.get_canal_display()
 
-                    1
-
+                canal_normalizado = (
+                    str(canal_display)
+                    .strip()
+                    .upper()
                 )
 
+                # =========================================
+                # NORMALIZAÇÃO DOS CANAIS
+                # =========================================
+
+                if "INSTAGRAM" in canal_normalizado:
+
+                    origem = "INSTAGRAM"
+
+                elif "WHATSAPP" in canal_normalizado:
+
+                    origem = "WHATSAPP"
+
+                elif "GOOGLE" in canal_normalizado:
+
+                    origem = "GOOGLE"
+
+                elif "FACEBOOK" in canal_normalizado:
+
+                    origem = "FACEBOOK"
+
+                elif "SITE" in canal_normalizado:
+
+                    origem = "SITE"
+
+                elif (
+                    "INDICA" in canal_normalizado
+                    or "REFER" in canal_normalizado
+                ):
+
+                    origem = "INDICACAO"
+
+                else:
+
+                    origem = "OUTRO"
+
+                contagem_origens[origem] += 1
+
+
+            # =========================================
+            # MONTAR DADOS PARA O CARD
+            # =========================================
+
+            for origem, total in contagem_origens.items():
+
+                percentual = round(
+                    (
+                        total
+                        / leads_mes
+                    ) * 100,
+                    1
+                )
 
                 origens_leads.append({
 
-                    "origem": item["origem"],
+                    "origem": origem,
 
-                    "total": item["total"],
+                    "total": total,
 
                     "percentual": percentual,
 
                 })
 
+
+            # =========================================
+            # ORDENAR MAIOR PARA MENOR
+            # =========================================
+
+            origens_leads.sort(
+                key=lambda item: item["total"],
+                reverse=True
+            )
 
     # =========================================
     # DASHBOARD SECRETÁRIA
@@ -18471,22 +18591,74 @@ def editar_meta_dentista(request, pk):
 @login_required
 def leads(request):
 
+    hoje = timezone.localdate()
+
+    # =========================================
+    # LISTA DE LEADS
+    # =========================================
+
     leads = Lead.objects.all().order_by("-data_cadastro")
+
+
+    # =========================================
+    # DATA/HORA ATUAL
+    # =========================================
+
+    agora = timezone.now()
+
+
+    # =========================================
+    # FOLLOW-UPS ATRASADOS
+    # =========================================
+
+    followups_atrasados = Lead.objects.filter(
+        ativo=True,
+        proximo_contato__lt=agora,
+    ).count()
+
+
+    # =========================================
+    # CONTATOS PARA HOJE
+    # =========================================
+
+    contatos_hoje = Lead.objects.filter(
+        ativo=True,
+        proximo_contato__date=hoje,
+    ).count()
+
+
+    # =========================================
+    # PRÓXIMOS CONTATOS
+    # Somente contatos depois de hoje
+    # =========================================
+
+    proximos_contatos = Lead.objects.filter(
+        ativo=True,
+        proximo_contato__date__gt=hoje,
+    ).count()
+
+
+    # =========================================
+    # CONTEXTO
+    # =========================================
 
     context = {
 
         "leads": leads,
 
+        "followups_atrasados": followups_atrasados,
+
+        "contatos_hoje": contatos_hoje,
+
+        "proximos_contatos": proximos_contatos,
+
     }
 
+
     return render(
-
         request,
-
         "accounts/marketing/leads.html",
-
         context,
-
     )
 
 @login_required
@@ -18534,11 +18706,67 @@ def detalhe_lead(request, pk):
         pk=pk
     )
 
+    # =========================================
+    # REGISTRAR NOVO HISTÓRICO
+    # =========================================
+
+    if request.method == "POST":
+
+        descricao = request.POST.get(
+            "descricao"
+        )
+
+        if descricao:
+
+            HistoricoLead.objects.create(
+
+                lead=lead,
+
+                usuario=request.user,
+
+                descricao=descricao,
+
+            )
+
+            # =========================================
+            # ATUALIZA ÚLTIMO CONTATO
+            # =========================================
+
+            lead.ultimo_contato = timezone.now()
+
+            lead.save(
+                update_fields=[
+                    "ultimo_contato"
+                ]
+            )
+
+            messages.success(
+                request,
+                "Contato registrado com sucesso!"
+            )
+
+            return redirect(
+                "detalhe_lead",
+                pk=lead.pk
+            )
+
+        else:
+
+            messages.error(
+                request,
+                "Digite uma descrição para registrar o contato."
+            )
+
+    # =========================================
+    # HISTÓRICOS
+    # =========================================
+
     historicos = lead.historicos.all()
 
     context = {
 
         "lead": lead,
+
         "historicos": historicos,
 
     }
@@ -18637,6 +18865,7 @@ def excluir_lead(request, pk):
 
     )
 
+# =========================================
 @login_required
 def dashboard_marketing(request):
 
@@ -18765,6 +18994,10 @@ def editar_campanha_marketing(request, pk):
 @permissao_required("Marketing")
 def detalhe_campanha_marketing(request, pk):
 
+    # =========================================
+    # CAMPANHA
+    # =========================================
+
     campanha = get_object_or_404(
         CampanhaMarketing,
         pk=pk
@@ -18774,7 +19007,11 @@ def detalhe_campanha_marketing(request, pk):
     # LEADS DA CAMPANHA
     # =========================================
 
-    leads = campanha.leads.all().order_by("-data_cadastro")
+    leads = (
+        campanha.leads
+        .filter(ativo=True)
+        .order_by("-data_cadastro")
+    )
 
     # =========================================
     # INDICADORES
@@ -18808,13 +19045,27 @@ def detalhe_campanha_marketing(request, pk):
 
     if total_leads > 0:
 
-        taxa_conversao = (
-            leads_convertidos / total_leads
-        ) * 100
+        taxa_conversao = round(
+            (
+                leads_convertidos
+                / total_leads
+            ) * 100,
+            1
+        )
 
     else:
 
         taxa_conversao = 0
+
+    # =========================================
+    # VISUALIZAÇÕES DA CAMPANHA
+    # =========================================
+
+    total_visualizacoes = (
+        VisualizacaoCampanha.objects
+        .filter(campanha=campanha)
+        .count()
+    )
 
     # =========================================
     # CONTEXTO
@@ -18826,21 +19077,25 @@ def detalhe_campanha_marketing(request, pk):
 
         "leads": leads,
 
+        # Indicadores
         "total_leads": total_leads,
-
         "leads_novos": leads_novos,
-
         "leads_contatados": leads_contatados,
-
         "leads_agendados": leads_agendados,
-
         "leads_convertidos": leads_convertidos,
-
         "leads_perdidos": leads_perdidos,
 
+        # Conversão
         "taxa_conversao": taxa_conversao,
 
+        # Visualizações
+        "total_visualizacoes": total_visualizacoes,
+
     }
+
+    # =========================================
+    # RENDER
+    # =========================================
 
     return render(
         request,
@@ -18872,5 +19127,417 @@ def excluir_campanha_marketing(request, pk):
         "accounts/marketing/excluir_campanha.html",
         {
             "campanha": campanha,
+        }
+    )
+
+# =========================================
+# PÁGINA PÚBLICA DA CAMPANHA
+# =========================================
+
+def campanha_publica(request, pk):
+
+    campanha = get_object_or_404(
+        CampanhaMarketing,
+        pk=pk
+    )
+
+    hoje = timezone.localdate()
+
+    # =========================================
+    # VERIFICAR SE A CAMPANHA ESTÁ DISPONÍVEL
+    # =========================================
+
+    campanha_disponivel = (
+
+        campanha.ativa
+
+        and campanha.status == "ATIVA"
+
+        and campanha.data_inicio <= hoje
+
+        and (
+            not campanha.data_fim
+            or campanha.data_fim >= hoje
+        )
+
+    )
+
+    if not campanha_disponivel:
+
+        return render(
+            request,
+            "accounts/marketing/campanha_indisponivel.html",
+            {
+                "campanha": campanha,
+            }
+        )
+
+    # =========================================
+    # FORMULÁRIO
+    # =========================================
+
+    if request.method == "POST":
+
+        form = LeadCaptacaoForm(
+            request.POST
+        )
+
+        if form.is_valid():
+
+            lead = form.save(
+                commit=False
+            )
+
+            # =========================================
+            # VINCULAR CAMPANHA
+            # =========================================
+
+            lead.campanha = campanha
+
+            # =========================================
+            # STATUS INICIAL
+            # =========================================
+
+            lead.status = "NOVO"
+
+            # =========================================
+            # ORIGEM AUTOMÁTICA
+            # =========================================
+
+            mapa_origem = {
+
+                "GOOGLE": "GOOGLE",
+
+                "INSTAGRAM": "INSTAGRAM",
+
+                "FACEBOOK": "FACEBOOK",
+
+                "WHATSAPP": "WHATSAPP",
+
+                "SITE": "SITE",
+
+            }
+
+            lead.origem = mapa_origem.get(
+                campanha.canal,
+                "OUTRO"
+            )
+
+            # =========================================
+            # LEAD ATIVO
+            # =========================================
+
+            lead.ativo = True
+
+            lead.save()
+
+            # =========================================
+            # HISTÓRICO
+            # =========================================
+
+            HistoricoLead.objects.create(
+
+                lead=lead,
+
+                usuario=None,
+
+                descricao=(
+                    f"Lead captado através da campanha "
+                    f"'{campanha.nome}'."
+                ),
+
+            )
+
+            messages.success(
+                request,
+                "Recebemos seus dados! Em breve entraremos em contato."
+            )
+
+            return render(
+                request,
+                "accounts/marketing/campanha_sucesso.html",
+                {
+                    "campanha": campanha,
+                }
+            )
+
+    else:
+
+        form = LeadCaptacaoForm()
+
+    # =========================================
+    # EXIBIR FORMULÁRIO
+    # =========================================
+
+    return render(
+        request,
+        "accounts/marketing/campanha_publica.html",
+        {
+            "campanha": campanha,
+            "form": form,
+        }
+    )
+
+# =========================================
+# CAPTAÇÃO PÚBLICA DE LEAD
+# =========================================
+
+def captacao_campanha(request, pk):
+
+    campanha = get_object_or_404(
+        CampanhaMarketing,
+        pk=pk,
+        ativa=True,
+        status="ATIVA",
+    )
+
+    # =========================================
+    # REGISTRAR VISUALIZAÇÃO
+    # =========================================
+
+    sessao = request.session.session_key
+
+    if not sessao:
+
+        request.session.create()
+
+        sessao = request.session.session_key
+
+    visualizacao, criada = (
+        VisualizacaoCampanha.objects.get_or_create(
+
+            campanha=campanha,
+
+            sessao=sessao,
+
+            defaults={
+                "quantidade": 1,
+            },
+
+        )
+    )
+
+    # =========================================
+    # ATUALIZAR QUANTIDADE DE ACESSOS
+    # =========================================
+
+    if not criada:
+
+        visualizacao.quantidade += 1
+
+        visualizacao.save(
+            update_fields=[
+                "quantidade",
+                "ultimo_acesso",
+            ]
+        )
+
+    # =========================================
+    # FORMULÁRIO
+    # =========================================
+
+    if request.method == "POST":
+
+        form = LeadCaptacaoForm(
+            request.POST
+        )
+
+        if form.is_valid():
+
+            lead = form.save(
+                commit=False
+            )
+
+            # =========================================
+            # VINCULAR À CAMPANHA
+            # =========================================
+
+            lead.campanha = campanha
+
+            # =========================================
+            # STATUS INICIAL
+            # =========================================
+
+            lead.status = "NOVO"
+
+            # =========================================
+            # ORIGEM DA CAMPANHA
+            # =========================================
+
+            if campanha.canal in [
+                "GOOGLE",
+                "INSTAGRAM",
+                "FACEBOOK",
+                "WHATSAPP",
+                "SITE",
+            ]:
+
+                lead.origem = campanha.canal
+
+            else:
+
+                lead.origem = "OUTRO"
+
+            # =========================================
+            # LEAD ATIVO
+            # =========================================
+
+            lead.ativo = True
+
+            lead.save()
+
+            # =========================================
+            # HISTÓRICO
+            # =========================================
+
+            HistoricoLead.objects.create(
+
+                lead=lead,
+
+                descricao=(
+                    f"Lead captado através da campanha "
+                    f"'{campanha.nome}'."
+                ),
+
+            )
+
+            # =========================================
+            # SUCESSO
+            # =========================================
+
+            return render(
+                request,
+                "accounts/marketing/campanha_sucesso.html",
+                {
+                    "campanha": campanha,
+                },
+            )
+
+    else:
+
+        form = LeadCaptacaoForm()
+
+    # =========================================
+    # PÁGINA PÚBLICA
+    # =========================================
+
+    return render(
+        request,
+        "accounts/marketing/campanha_publica.html",
+        {
+            "campanha": campanha,
+            "form": form,
+        },
+    )
+
+# =========================================
+# CAMPANHA PÚBLICA
+# =========================================
+
+def campanha_publica(request, pk):
+
+    campanha = get_object_or_404(
+        CampanhaMarketing,
+        pk=pk
+    )
+
+    # =========================================
+    # VERIFICAR SE A CAMPANHA ESTÁ ATIVA
+    # =========================================
+
+    if not campanha.ativa or campanha.status != "ATIVA":
+
+        return render(
+            request,
+            "accounts/marketing/campanha_indisponivel.html",
+            {
+                "campanha": campanha,
+            }
+        )
+
+    # =========================================
+    # FORMULÁRIO
+    # =========================================
+
+    if request.method == "POST":
+
+        form = LeadCaptacaoForm(request.POST)
+
+        if form.is_valid():
+
+            lead = form.save(
+                commit=False
+            )
+
+            # =========================================
+            # VINCULAR À CAMPANHA
+            # =========================================
+
+            lead.campanha = campanha
+
+            # =========================================
+            # DEFINIR ORIGEM AUTOMATICAMENTE
+            # =========================================
+
+            origem_campanha = {
+                "GOOGLE": "GOOGLE",
+                "INSTAGRAM": "INSTAGRAM",
+                "FACEBOOK": "FACEBOOK",
+                "WHATSAPP": "WHATSAPP",
+                "SITE": "SITE",
+                "EMAIL": "SITE",
+                "OUTRO": "OUTRO",
+            }
+
+            lead.origem = origem_campanha.get(
+                campanha.canal,
+                "OUTRO"
+            )
+
+            # =========================================
+            # STATUS INICIAL
+            # =========================================
+
+            lead.status = "NOVO"
+
+            # =========================================
+            # LEAD ATIVO
+            # =========================================
+
+            lead.ativo = True
+
+            # =========================================
+            # SALVAR
+            # =========================================
+
+            lead.save()
+
+            # =========================================
+            # REDIRECIONAR PARA SUCESSO
+            # =========================================
+
+            return render(
+                request,
+                "accounts/marketing/campanha_sucesso.html",
+                {
+                    "campanha": campanha,
+                    "lead": lead,
+                }
+            )
+
+    else:
+
+        form = LeadCaptacaoForm()
+
+    # =========================================
+    # PÁGINA DA CAMPANHA
+    # =========================================
+
+    return render(
+        request,
+        "accounts/marketing/campanha_publica.html",
+        {
+            "campanha": campanha,
+            "form": form,
         }
     )

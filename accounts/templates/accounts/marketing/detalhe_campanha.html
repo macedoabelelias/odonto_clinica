@@ -9,6 +9,13 @@ Detalhes da Campanha
 <div class="container-fluid">
 
     <!-- =========================================
+    LINK DA CAMPANHA
+    ========================================= -->
+
+    {% url 'captacao_campanha' campanha.pk as link_campanha %}
+
+
+    <!-- =========================================
     CABEÇALHO
     ========================================= -->
 
@@ -32,10 +39,57 @@ Detalhes da Campanha
 
         </div>
 
+
         <div class="d-flex gap-2">
 
-            <a href="{% url 'editar_campanha_marketing' campanha.pk %}"
-               class="btn btn-outline-primary">
+            <!-- =========================================
+            DIVULGAR CAMPANHA
+            ========================================= -->
+
+            {% if campanha.ativa and campanha.status == "ATIVA" %}
+
+                <button
+                    type="button"
+                    class="btn btn-success"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalDivulgarCampanha"
+                >
+
+                    <i class="bi bi-share-fill me-1"></i>
+
+                    Divulgar Campanha
+
+                </button>
+
+
+                <!-- =========================================
+                PÁGINA PÚBLICA
+                ========================================= -->
+
+                <a
+                    href="{% url 'captacao_campanha' campanha.pk %}"
+                    target="_blank"
+                    class="btn btn-primary"
+                    title="Abrir página pública da campanha"
+                >
+
+                    <i class="bi bi-box-arrow-up-right me-1"></i>
+
+                    Página Pública
+
+                </a>
+
+            {% endif %}
+
+
+            <!-- =========================================
+            EDITAR
+            ========================================= -->
+
+            <a
+                href="{% url 'editar_campanha_marketing' campanha.pk %}"
+                class="btn btn-outline-primary"
+            >
 
                 <i class="bi bi-pencil me-1"></i>
 
@@ -43,8 +97,15 @@ Detalhes da Campanha
 
             </a>
 
-            <a href="{% url 'campanhas_marketing' %}"
-               class="btn btn-outline-secondary">
+
+            <!-- =========================================
+            VOLTAR
+            ========================================= -->
+
+            <a
+                href="{% url 'campanhas_marketing' %}"
+                class="btn btn-outline-secondary"
+            >
 
                 <i class="bi bi-arrow-left me-1"></i>
 
@@ -80,13 +141,15 @@ Detalhes da Campanha
                             <span
                                 class="d-flex align-items-center justify-content-center
                                        bg-primary bg-opacity-10 rounded-circle"
-                                style="width: 55px; height: 55px;">
+                                style="width: 55px; height: 55px;"
+                            >
 
                                 <i class="bi bi-megaphone-fill text-primary fs-4"></i>
 
                             </span>
 
                         </div>
+
 
                         <div>
 
@@ -486,6 +549,7 @@ Detalhes da Campanha
 
                 </div>
 
+
                 <span class="badge bg-primary">
 
                     {{ total_leads }} Leads
@@ -522,6 +586,7 @@ Detalhes da Campanha
                             </tr>
 
                         </thead>
+
 
                         <tbody>
 
@@ -616,9 +681,11 @@ Detalhes da Campanha
 
                                     <td class="text-center">
 
-                                        <a href="{% url 'detalhe_lead' lead.pk %}"
-                                           class="btn btn-sm btn-outline-info"
-                                           title="Detalhes do lead">
+                                        <a
+                                            href="{% url 'detalhe_lead' lead.pk %}"
+                                            class="btn btn-sm btn-outline-info"
+                                            title="Detalhes do lead"
+                                        >
 
                                             <i class="bi bi-eye"></i>
 
@@ -663,5 +730,550 @@ Detalhes da Campanha
     </div>
 
 </div>
+
+
+<!-- =====================================================
+MODAL — DIVULGAR CAMPANHA
+===================================================== -->
+
+{% if campanha.ativa and campanha.status == "ATIVA" %}
+
+<div
+    class="modal fade"
+    id="modalDivulgarCampanha"
+    tabindex="-1"
+    aria-labelledby="modalDivulgarCampanhaLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <!-- CABEÇALHO -->
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title fw-semibold"
+                    id="modalDivulgarCampanhaLabel"
+                >
+
+                    <i class="bi bi-share-fill text-success me-2"></i>
+
+                    Divulgar Campanha
+
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Fechar"
+                ></button>
+
+            </div>
+
+
+            <!-- CORPO -->
+
+            <div class="modal-body">
+
+                <div class="text-center mb-4">
+
+                    <h5 class="fw-semibold mb-1">
+
+                        {{ campanha.nome }}
+
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        Escolha uma forma de divulgar esta campanha.
+
+                    </p>
+
+                </div>
+
+
+                <!-- =========================================
+                LINK PÚBLICO
+                ========================================= -->
+
+                <div class="mb-4">
+
+                    <label class="form-label fw-semibold">
+
+                        <i class="bi bi-link-45deg me-1"></i>
+
+                        Link público da campanha
+
+                    </label>
+
+                    <div class="input-group">
+
+                        <input
+                            type="text"
+                            id="linkCampanha"
+                            class="form-control"
+                            readonly
+                            value=""
+                        >
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary"
+                            onclick="copiarLinkCampanha()"
+                        >
+
+                            <i class="bi bi-copy me-1"></i>
+
+                            Copiar
+
+                        </button>
+
+                    </div>
+
+                    <div
+                        id="mensagemCopiado"
+                        class="text-success small mt-2 d-none"
+                    >
+
+                        <i class="bi bi-check-circle-fill me-1"></i>
+
+                        Link copiado com sucesso!
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                CANAIS
+                ========================================= -->
+
+                <div class="row g-3">
+
+
+                    <!-- WHATSAPP -->
+
+                    <div class="col-md-6">
+
+                        <div class="border rounded p-3 h-100">
+
+                            <div class="d-flex align-items-center mb-2">
+
+                                <i
+                                    class="bi bi-whatsapp text-success fs-3 me-2"
+                                ></i>
+
+                                <div>
+
+                                    <h6 class="fw-semibold mb-0">
+                                        WhatsApp
+                                    </h6>
+
+                                    <small class="text-muted">
+                                        Compartilhe a campanha
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="btn btn-success w-100 mt-2"
+                                onclick="compartilharWhatsApp()"
+                            >
+
+                                <i class="bi bi-whatsapp me-1"></i>
+
+                                Compartilhar no WhatsApp
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- QR CODE -->
+
+                    <div class="col-md-6">
+
+                        <div class="border rounded p-3 h-100 text-center">
+
+                            <div class="d-flex align-items-center justify-content-center mb-2">
+
+                                <i
+                                    class="bi bi-qr-code text-primary fs-3 me-2"
+                                ></i>
+
+                                <h6 class="fw-semibold mb-0">
+                                    QR Code
+                                </h6>
+
+                            </div>
+
+
+                            <div
+                                id="qrcodeCampanha"
+                                class="d-flex justify-content-center mt-3"
+                            ></div>
+
+
+                            <small class="text-muted d-block mt-2">
+
+                                Aponte a câmera do celular para acessar a campanha.
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- INSTAGRAM -->
+
+                    <div class="col-md-6">
+
+                        <div class="border rounded p-3 h-100">
+
+                            <div class="d-flex align-items-center mb-2">
+
+                                <i
+                                    class="bi bi-instagram text-danger fs-3 me-2"
+                                ></i>
+
+                                <div>
+
+                                    <h6 class="fw-semibold mb-0">
+                                        Instagram
+                                    </h6>
+
+                                    <small class="text-muted">
+                                        Prepare o conteúdo da publicação
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-danger w-100 mt-2"
+                                onclick="prepararInstagram()"
+                            >
+
+                                <i class="bi bi-instagram me-1"></i>
+
+                                Copiar texto para Instagram
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- FACEBOOK -->
+
+                    <div class="col-md-6">
+
+                        <div class="border rounded p-3 h-100">
+
+                            <div class="d-flex align-items-center mb-2">
+
+                                <i
+                                    class="bi bi-facebook text-primary fs-3 me-2"
+                                ></i>
+
+                                <div>
+
+                                    <h6 class="fw-semibold mb-0">
+                                        Facebook
+                                    </h6>
+
+                                    <small class="text-muted">
+                                        Compartilhe a página pública
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-primary w-100 mt-2"
+                                onclick="compartilharFacebook()"
+                            >
+
+                                <i class="bi bi-facebook me-1"></i>
+
+                                Compartilhar no Facebook
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- RODAPÉ -->
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+
+                    Fechar
+
+                </button>
+
+                <a
+                    href="{% url 'captacao_campanha' campanha.pk %}"
+                    target="_blank"
+                    class="btn btn-primary"
+                >
+
+                    <i class="bi bi-box-arrow-up-right me-1"></i>
+
+                    Abrir Página Pública
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+<!-- =====================================================
+JAVASCRIPT — DIVULGAÇÃO
+===================================================== -->
+
+{% if campanha.ativa and campanha.status == "ATIVA" %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /*
+    =====================================================
+    LINK PÚBLICO
+    =====================================================
+    */
+
+    const caminhoCampanha = "{% url 'captacao_campanha' campanha.pk %}";
+
+    const linkCampanha =
+        window.location.origin + caminhoCampanha;
+
+
+    const campoLink =
+        document.getElementById("linkCampanha");
+
+
+    if (campoLink) {
+
+        campoLink.value = linkCampanha;
+
+    }
+
+
+    /*
+    =====================================================
+    QR CODE
+    =====================================================
+    */
+
+    const areaQRCode =
+        document.getElementById("qrcodeCampanha");
+
+
+    if (
+        areaQRCode &&
+        typeof QRCode !== "undefined"
+    ) {
+
+        new QRCode(
+            areaQRCode,
+            {
+                text: linkCampanha,
+                width: 180,
+                height: 180
+            }
+        );
+
+    }
+
+});
+
+
+/*
+=========================================================
+COPIAR LINK
+=========================================================
+*/
+
+function copiarLinkCampanha() {
+
+    const campo =
+        document.getElementById("linkCampanha");
+
+    if (!campo) {
+        return;
+    }
+
+
+    navigator.clipboard.writeText(
+        campo.value
+    ).then(function () {
+
+        const mensagem =
+            document.getElementById("mensagemCopiado");
+
+
+        if (mensagem) {
+
+            mensagem.classList.remove("d-none");
+
+
+            setTimeout(function () {
+
+                mensagem.classList.add("d-none");
+
+            }, 2500);
+
+        }
+
+    });
+
+}
+
+
+/*
+=========================================================
+WHATSAPP
+=========================================================
+*/
+
+function compartilharWhatsApp() {
+
+    const caminhoCampanha =
+        "{% url 'captacao_campanha' campanha.pk %}";
+
+
+    const linkCampanha =
+        window.location.origin + caminhoCampanha;
+
+
+    const mensagem =
+        "🦷 {{ campanha.nome|escapejs }}\n\n" +
+        "{{ campanha.descricao|default:'Confira nossa campanha especial.'|escapejs }}\n\n" +
+        "Saiba mais e entre em contato conosco:\n" +
+        linkCampanha;
+
+
+    const urlWhatsApp =
+        "https://wa.me/?text=" +
+        encodeURIComponent(mensagem);
+
+
+    window.open(
+        urlWhatsApp,
+        "_blank"
+    );
+
+}
+
+
+/*
+=========================================================
+INSTAGRAM
+=========================================================
+*/
+
+function prepararInstagram() {
+
+    const caminhoCampanha =
+        "{% url 'captacao_campanha' campanha.pk %}";
+
+
+    const linkCampanha =
+        window.location.origin + caminhoCampanha;
+
+
+    const texto =
+        "🦷 {{ campanha.nome|escapejs }}\n\n" +
+        "{{ campanha.descricao|default:'Confira nossa campanha especial.'|escapejs }}\n\n" +
+        "Saiba mais:\n" +
+        linkCampanha;
+
+
+    navigator.clipboard.writeText(
+        texto
+    ).then(function () {
+
+        alert(
+            "Texto da campanha copiado!\n\n" +
+            "Agora você pode abrir o Instagram e utilizar o texto na publicação."
+        );
+
+    });
+
+}
+
+
+/*
+=========================================================
+FACEBOOK
+=========================================================
+*/
+
+function compartilharFacebook() {
+
+    const caminhoCampanha =
+        "{% url 'captacao_campanha' campanha.pk %}";
+
+
+    const linkCampanha =
+        window.location.origin + caminhoCampanha;
+
+
+    const urlFacebook =
+        "https://www.facebook.com/sharer/sharer.php?u=" +
+        encodeURIComponent(linkCampanha);
+
+
+    window.open(
+        urlFacebook,
+        "_blank",
+        "width=700,height=600"
+    );
+
+}
+
+</script>
+
+{% endif %}
 
 {% endblock %}

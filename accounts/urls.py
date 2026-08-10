@@ -84,55 +84,66 @@ urlpatterns = [
         name='odontograma'
     ),
 
-    # =========================================
-    # MARKETING - LEADS
-    # =========================================
+# =========================================
+# MARKETING - LEADS
+# =========================================
 
-    path(
-        "marketing/leads/",
-        views.leads,
-        name="leads",
-    ),
+path(
+    "marketing/leads/",
+    views.leads,
+    name="leads",
+),
 
-    # =========================================
-    # LEADS - NOVO, DETALHE, EDITAR, EXCLUIR
-    # =========================================    
+# =========================================
+# LEADS - NOVO
+# =========================================
 
-    path(
-        "marketing/leads/novo/",
-        views.novo_lead,
-        name="novo_lead",
-    ),
+path(
+    "marketing/leads/novo/",
+    views.novo_lead,
+    name="novo_lead",
+),
 
-    path(
-        "marketing/leads/<int:pk>/",
-        views.detalhe_lead,
-        name="detalhe_lead",
-    ),
+# =========================================
+# DASHBOARD MARKETING
+# =========================================
 
-    path(
-        "marketing/dashboard/",
-        views.dashboard_marketing,
-        name="dashboard_marketing",
-    ),
+path(
+    "marketing/dashboard/",
+    views.dashboard_marketing,
+    name="dashboard_marketing",
+),
 
-    path(
-        "marketing/leads/<int:pk>/",
-        views.detalhe_lead,
-        name="detalhe_lead",
-    ),
+# =========================================
+# LEAD - DETALHE
+# =========================================
 
-    path(
-        "marketing/leads/<int:pk>/editar/",
-        views.editar_lead,
-        name="editar_lead",
-    ),
+path(
+    "marketing/leads/<int:pk>/",
+    views.detalhe_lead,
+    name="detalhe_lead",
+),
 
-    path(
-        "marketing/leads/<int:pk>/excluir/",
-        views.excluir_lead,
-        name="excluir_lead",
-    ),
+# =========================================
+# LEAD - EDITAR
+# =========================================
+
+path(
+    "marketing/leads/<int:pk>/editar/",
+    views.editar_lead,
+    name="editar_lead",
+),
+
+# =========================================
+# LEAD - EXCLUIR
+# =========================================
+
+path(
+    "marketing/leads/<int:pk>/excluir/",
+    views.excluir_lead,
+    name="excluir_lead",
+),
+
 
 # =========================================
 # CAMPANHAS DE MARKETING
@@ -144,11 +155,39 @@ path(
     name="campanhas_marketing",
 ),
 
+# =========================================
+# NOVA CAMPANHA
+# =========================================
+
 path(
     "marketing/campanhas/nova/",
     views.nova_campanha_marketing,
     name="campanhas_marketing_nova",
 ),
+
+# =========================================
+# PÁGINA PÚBLICA DA CAMPANHA
+# =========================================
+
+path(
+    "marketing/campanha/<int:pk>/",
+    views.campanha_publica,
+    name="campanha_publica",
+),
+
+# =========================================
+# DETALHE DA CAMPANHA
+# =========================================
+
+path(
+    "marketing/campanhas/<int:pk>/",
+    views.detalhe_campanha_marketing,
+    name="detalhe_campanha_marketing",
+),
+
+# =========================================
+# EDITAR CAMPANHA
+# =========================================
 
 path(
     "marketing/campanhas/<int:pk>/editar/",
@@ -156,16 +195,34 @@ path(
     name="editar_campanha_marketing",
 ),
 
+# =========================================
+# EXCLUIR CAMPANHA
+# =========================================
+
 path(
     "marketing/campanhas/<int:pk>/excluir/",
     views.excluir_campanha_marketing,
     name="excluir_campanha_marketing",
 ),
 
+# =========================================
+# CAPTAÇÃO PÚBLICA DE CAMPANHA
+# =========================================
+
 path(
-    "marketing/campanhas/<int:pk>/",
-    views.detalhe_campanha_marketing,
-    name="detalhe_campanha_marketing",
+    "campanha/<int:pk>/",
+    views.captacao_campanha,
+    name="captacao_campanha",
+),
+
+# =========================================
+# CAMPANHA PÚBLICA
+# =========================================
+
+path(
+    "campanha/<int:pk>/",
+    views.campanha_publica,
+    name="campanha_publica",
 ),
 
 # =========================================
