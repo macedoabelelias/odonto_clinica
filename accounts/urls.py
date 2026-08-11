@@ -26,6 +26,22 @@ urlpatterns = [
     ),
 
     # =========================================
+    # DASHBOARD DE AUDITORIA
+    # =========================================
+
+    path(
+        'auditoria/dashboard/',
+        views.dashboard_auditoria,
+        name='auditoria'
+    ),
+
+    path(
+        'auditoria/dashboard/',
+        views.dashboard_auditoria,
+        name='dashboard_auditoria'
+    ),
+
+    # =========================================
     # PACIENTES
     # =========================================
 

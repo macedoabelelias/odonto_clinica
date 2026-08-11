@@ -6,6 +6,10 @@ from .models import Modulo, Permissao
 
 PERMISSOES_PADRAO = {
 
+    # =================================================
+    # ADMINISTRADOR
+    # =================================================
+
     "Administrador": {
 
         # =================================================
@@ -83,7 +87,8 @@ PERMISSOES_PADRAO = {
         "auditoria": ("v", "i", "e", "x", "p"),
     },
 
-        # =====================================================
+
+    # =====================================================
     # GESTOR
     # =====================================================
 
@@ -116,6 +121,7 @@ PERMISSOES_PADRAO = {
         "relatorios": ("v", "p"),
     },
 
+
     # =====================================================
     # DENTISTA
     # =====================================================
@@ -132,6 +138,7 @@ PERMISSOES_PADRAO = {
         "tratamentos": ("v", "i", "e"),
         "orcamentos": ("v", "i", "e"),
     },
+
 
     # =====================================================
     # SECRETÁRIA
@@ -159,7 +166,8 @@ PERMISSOES_PADRAO = {
         "relatorios": ("v",),
     },
 
-        # =====================================================
+
+    # =====================================================
     # AUXILIAR DE SAÚDE BUCAL
     # =====================================================
 
@@ -176,6 +184,7 @@ PERMISSOES_PADRAO = {
         "estoque": ("v",),
         "produtos": ("v",),
     },
+
 
     # =====================================================
     # CONTABILIDADE
@@ -198,6 +207,7 @@ PERMISSOES_PADRAO = {
         "relatorios": ("v", "p"),
     },
 
+
     # =====================================================
     # MARKETING
     # =====================================================
@@ -213,52 +223,33 @@ PERMISSOES_PADRAO = {
         "relatorios": ("v", "p"),
     },
 
+
     # =====================================================
     # AUDITORIA
     # =====================================================
 
     "Auditoria": {
 
+        # =================================================
+        # DASHBOARD
+        # =================================================
+
+        # IMPORTANTE:
+        # O perfil precisa visualizar o Dashboard
+        # para conseguir entrar normalmente no sistema.
+
         "dashboard": ("v",),
 
-        # Atendimento
-        "agenda": ("v",),
-        "pacientes": ("v",),
-        "anamnese": ("v",),
-        "odontograma": ("v",),
-        "tratamentos": ("v",),
-        "orcamentos": ("v",),
+        # =================================================
+        # ÁREA DE AUDITORIA
+        # =================================================
 
-        # Financeiro
-        "contas_receber": ("v",),
-        "contas_pagar": ("v",),
-        "caixa": ("v",),
-        "livro_caixa": ("v",),
-        "fluxo_caixa": ("v",),
-        "dre": ("v",),
-        "fechamento_mensal": ("v",),
-
-        # Compras
-        "fornecedores": ("v",),
-        "produtos": ("v",),
-        "compras": ("v",),
-        "estoque": ("v",),
-
-        # Relatórios
-        "relatorios": ("v",),
-
-        # Auditoria
-        "auditoria": ("v",),
-
-        # Equipe
-        "usuarios": ("v",),
-        "perfis": ("v",),
-
-        # Configurações
-        "configuracao_clinica": ("v",),
+        "auditoria": ("v", "i", "e", "x", "p"),
     },
 }
+               
 
+    
 # =====================================================
 # APLICAR PERMISSÕES PADRÃO
 # =====================================================

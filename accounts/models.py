@@ -4783,3 +4783,6 @@ class VisualizacaoCampanha(models.Model):
             f"{self.campanha.nome} - "
             f"{self.quantidade} acesso(s)"
         )
+    
+
+

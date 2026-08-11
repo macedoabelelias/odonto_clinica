@@ -1,7 +1,7 @@
 import os
 import json
 
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from django.conf import settings
@@ -286,10 +286,21 @@ def dashboard_view(request):
         "Auditoria": "auditoria",
     }
 
+    # Normaliza o nome do perfil
+    perfil_nome_normalizado = (
+        str(perfil_nome).strip()
+    )
+
     dashboard_tipo = TIPOS_DASHBOARD.get(
-        perfil_nome,
+        perfil_nome_normalizado,
         "admin"
     )
+
+    print("=========================================")
+    print("PERFIL NOME:", repr(perfil_nome))
+    print("PERFIL NORMALIZADO:", repr(perfil_nome_normalizado))
+    print("DASHBOARD TIPO:", repr(dashboard_tipo))
+    print("=========================================")
 
     # =========================================
     # DASHBOARD DO GESTOR
@@ -776,7 +787,55 @@ def dashboard_view(request):
             "mostrar_ranking": False,
             "mostrar_movimentacoes": False,
 
-        })    
+        }) 
+
+    # =========================================
+    # AUDITORIA
+    # =========================================
+
+    elif dashboard_tipo == "auditoria":
+
+        dashboard_config.update({
+
+            # =====================================
+            # DASHBOARD PADRÃO
+            # =====================================
+
+            "mostrar_pacientes": False,
+            "mostrar_receber": False,
+            "mostrar_pagar": False,
+            "mostrar_saldo_caixa": False,
+
+            "mostrar_recebimentos": False,
+            "mostrar_pagamentos": False,
+            "mostrar_lucro": False,
+            "mostrar_fornecedores": False,
+
+            "mostrar_faturamento": False,
+            "mostrar_consultas": False,
+            "mostrar_aniversariantes": False,
+            "mostrar_ranking": False,
+            "mostrar_movimentacoes": False,
+
+            # =====================================
+            # DASHBOARD DE AUDITORIA
+            # =====================================
+
+            "mostrar_auditoria": True,
+            "mostrar_auditoria_hoje": True,
+            "mostrar_auditoria_total": True,
+            "mostrar_auditoria_usuarios": True,
+            "mostrar_auditoria_alertas": True,
+
+            "mostrar_auditoria_inclusoes": True,
+            "mostrar_auditoria_alteracoes": True,
+            "mostrar_auditoria_exclusoes": True,
+
+            "mostrar_ultimas_auditorias": True,
+            "mostrar_auditoria_por_acao": True,
+            "mostrar_auditoria_por_nivel": True,
+
+        })       
 
 
     # =========================================
@@ -1906,9 +1965,448 @@ def dashboard_view(request):
         )
         .order_by("hora_inicio")
     )
+
+    # =========================================
+    # DASHBOARD AUDITORIA
+    # =========================================
+
+    auditoria_hoje = 0
+    auditoria_total = 0
+    auditoria_usuarios = 0
+
+    auditoria_inclusoes = 0
+    auditoria_alteracoes = 0
+    auditoria_exclusoes = 0
+
+    auditoria_alertas = 0
+
+    ultimas_auditorias = []
+
+    auditoria_por_acao = []
+    auditoria_por_nivel = []
+
+    # =========================================
+    # FILTROS DA AUDITORIA
+    # =========================================
+
+    filtro_data_inicio = ""
+    filtro_data_final = ""
+    filtro_usuario = ""
+    filtro_modulo = ""
+    filtro_acao = ""
+    filtro_nivel = ""
+
+    usuarios_auditoria = []
+    modulos_auditoria = []
+    acoes_auditoria = Auditoria.ACAO_CHOICES
+    niveis_auditoria_choices = Auditoria.NIVEL_CHOICES
+
+
+    # =========================================
+    # DADOS REAIS DA AUDITORIA
+    # =========================================
+
+    if dashboard_tipo == "auditoria":
+
+        # =========================================
+        # TODAS AS AUDITORIAS
+        # =========================================
+
+        auditorias_qs = Auditoria.objects.all()
+
+
+        # =========================================
+        # FILTROS DA AUDITORIA
+        # =========================================
+
+        filtro_data_inicio = request.GET.get(
+            "data_inicio",
+            ""
+        ).strip()
+
+        filtro_data_final = request.GET.get(
+            "data_final",
+            ""
+        ).strip()
+
+        filtro_usuario = request.GET.get(
+            "usuario",
+            ""
+        ).strip()
+
+        filtro_modulo = request.GET.get(
+            "modulo",
+            ""
+        ).strip()
+
+        filtro_acao = request.GET.get(
+            "acao",
+            ""
+        ).strip()
+
+        filtro_nivel = request.GET.get(
+            "nivel",
+            ""
+        ).strip()
+
+
+        # =========================================
+        # FILTRO — DATA INICIAL
+        # =========================================
+
+        if filtro_data_inicio:
+
+            try:
+
+                data_inicio_filtro = datetime.strptime(
+                    filtro_data_inicio,
+                    "%Y-%m-%d"
+                ).date()
+
+                auditorias_qs = auditorias_qs.filter(
+                    data_hora__date__gte=data_inicio_filtro
+                )
+
+            except ValueError:
+
+                pass
+
+
+        # =========================================
+        # FILTRO — DATA FINAL
+        # =========================================
+
+        if filtro_data_final:
+
+            try:
+
+                data_final_filtro = datetime.strptime(
+                    filtro_data_final,
+                    "%Y-%m-%d"
+                ).date()
+
+                auditorias_qs = auditorias_qs.filter(
+                    data_hora__date__lte=data_final_filtro
+                )
+
+            except ValueError:
+
+                pass
+
+
+        # =========================================
+        # FILTRO — USUÁRIO
+        # =========================================
+
+        if filtro_usuario:
+
+            try:
+
+                auditorias_qs = auditorias_qs.filter(
+                    usuario_id=int(filtro_usuario)
+                )
+
+            except (ValueError, TypeError):
+
+                pass
+
+
+        # =========================================
+        # FILTRO — MÓDULO
+        # =========================================
+
+        if filtro_modulo:
+
+            auditorias_qs = auditorias_qs.filter(
+                modulo__iexact=filtro_modulo
+            )
+
+
+        # =========================================
+        # FILTRO — AÇÃO
+        # =========================================
+
+        if filtro_acao:
+
+            auditorias_qs = auditorias_qs.filter(
+                acao=filtro_acao
+            )
+
+
+        # =========================================
+        # FILTRO — NÍVEL
+        # =========================================
+
+        if filtro_nivel:
+
+            # -----------------------------------------
+            # ATENÇÃO
+            # Compatibilidade com registros antigos
+            # -----------------------------------------
+
+            if filtro_nivel == "atencao":
+
+                auditorias_qs = auditorias_qs.filter(
+                    nivel__in=[
+                        "atencao",
+                        "aviso",
+                    ]
+                )
+
+            # -----------------------------------------
+            # CRÍTICO
+            # Compatibilidade com registros antigos
+            # -----------------------------------------
+
+            elif filtro_nivel == "critico":
+
+                auditorias_qs = auditorias_qs.filter(
+                    nivel__in=[
+                        "critico",
+                        "erro",
+                    ]
+                )
+
+            else:
+
+                auditorias_qs = auditorias_qs.filter(
+                    nivel=filtro_nivel
+                )
+
+
+        # =========================================
+        # TOTAL DE AUDITORIAS
+        # =========================================
+
+        auditoria_total = auditorias_qs.count()
+
+
+        # =========================================
+        # AUDITORIAS DE HOJE
+        # =========================================
+
+        auditoria_hoje = auditorias_qs.filter(
+            data_hora__date=hoje
+        ).count()
+
+
+        # =========================================
+        # USUÁRIOS MONITORADOS
+        # =========================================
+
+        auditoria_usuarios = (
+            auditorias_qs
+            .filter(
+                usuario__isnull=False
+            )
+            .values("usuario")
+            .distinct()
+            .count()
+        )
+
+
+        # =========================================
+        # INCLUSÕES / CADASTROS
+        # =========================================
+
+        auditoria_inclusoes = auditorias_qs.filter(
+            acao="cadastro"
+        ).count()
+
+
+        # =========================================
+        # ALTERAÇÕES
+        # =========================================
+
+        auditoria_alteracoes = auditorias_qs.filter(
+            acao="edicao"
+        ).count()
+
+
+        # =========================================
+        # EXCLUSÕES
+        # =========================================
+
+        auditoria_exclusoes = auditorias_qs.filter(
+            acao="exclusao"
+        ).count()
+
+
+        # =========================================
+        # ALERTAS
+        # =========================================
+
+        auditoria_alertas = auditorias_qs.filter(
+            nivel__in=[
+                "atencao",
+                "importante",
+                "critico",
+                "aviso",
+                "erro",
+            ]
+        ).count()
+
+
+        # =========================================
+        # ÚLTIMAS AUDITORIAS
+        # =========================================
+
+        ultimas_auditorias = (
+            auditorias_qs
+            .select_related("usuario")
+            .order_by("-data_hora")[:10]
+        )
+
+
+        # =========================================
+        # AUDITORIAS POR AÇÃO
+        # =========================================
+
+        auditoria_por_acao = (
+            auditorias_qs
+            .values("acao")
+            .annotate(
+                total=Count("id")
+            )
+            .order_by("-total")
+        )
+
+
+        # =========================================
+        # AUDITORIAS POR NÍVEL
+        # =========================================
+
+        auditoria_niveis_raw = (
+            auditorias_qs
+            .values("nivel")
+            .annotate(
+                total=Count("id")
+            )
+        )
+
+
+        # =========================================
+        # NORMALIZAÇÃO DOS NÍVEIS
+        # =========================================
+
+        niveis_auditoria = {
+
+            "info": 0,
+
+            "atencao": 0,
+
+            "importante": 0,
+
+            "critico": 0,
+
+        }
+
+
+        for item in auditoria_niveis_raw:
+
+            nivel = item["nivel"]
+
+            total = item["total"]
+
+
+            # -----------------------------------------
+            # REGISTROS ANTIGOS
+            # -----------------------------------------
+
+            if nivel == "aviso":
+
+                nivel = "atencao"
+
+
+            elif nivel == "erro":
+
+                nivel = "critico"
+
+
+            # -----------------------------------------
+            # SOMENTE NÍVEIS CONHECIDOS
+            # -----------------------------------------
+
+            if nivel in niveis_auditoria:
+
+                niveis_auditoria[nivel] += total
+
+
+        # =========================================
+        # TRANSFORMA EM LISTA PARA O TEMPLATE
+        # =========================================
+
+        auditoria_por_nivel = [
+
+            {
+                "nivel": "info",
+                "total": niveis_auditoria["info"],
+            },
+
+            {
+                "nivel": "atencao",
+                "total": niveis_auditoria["atencao"],
+            },
+
+            {
+                "nivel": "importante",
+                "total": niveis_auditoria["importante"],
+            },
+
+            {
+                "nivel": "critico",
+                "total": niveis_auditoria["critico"],
+            },
+
+        ]
+
+
+        # =========================================
+        # REMOVE NÍVEIS SEM REGISTROS
+        # =========================================
+
+        auditoria_por_nivel = [
+
+            item
+
+            for item in auditoria_por_nivel
+
+            if item["total"] > 0
+
+        ]
+
+
+        # =========================================
+        # TRANSFORMA EM LISTA PARA O TEMPLATE
+        # =========================================
+
+        auditoria_por_nivel = [
+            {
+                "nivel": "info",
+                "total": niveis_auditoria["info"],
+            },
+            {
+                "nivel": "atencao",
+                "total": niveis_auditoria["atencao"],
+            },
+            {
+                "nivel": "importante",
+                "total": niveis_auditoria["importante"],
+            },
+            {
+                "nivel": "critico",
+                "total": niveis_auditoria["critico"],
+            },
+        ]
+
+        auditoria_por_nivel = [
+            item
+            for item in auditoria_por_nivel
+            if item["total"] > 0
+        ]
     
     # =========================================
-    # CONTEXT
+    # CONTEXT PRINCIPAL DO DASHBOARD
     # =========================================
 
     context = {
@@ -1922,7 +2420,7 @@ def dashboard_view(request):
         "dashboard": dashboard_config,
 
         # =========================================
-        # INDICADORES
+        # INDICADORES GERAIS
         # =========================================
 
         "total_pacientes": total_pacientes,
@@ -1940,6 +2438,42 @@ def dashboard_view(request):
         "saidas_hoje": saidas_hoje,
 
         "lucro_hoje": lucro_hoje,
+
+        # =========================================
+        # AUDITORIA
+        # =========================================
+
+        "auditoria_hoje": auditoria_hoje,
+        "auditoria_total": auditoria_total,
+        "auditoria_usuarios": auditoria_usuarios,
+
+        "auditoria_inclusoes": auditoria_inclusoes,
+        "auditoria_alteracoes": auditoria_alteracoes,
+        "auditoria_exclusoes": auditoria_exclusoes,
+
+        "auditoria_alertas": auditoria_alertas,
+
+        "ultimas_auditorias": ultimas_auditorias,
+
+        "auditoria_por_acao": auditoria_por_acao,
+        "auditoria_por_nivel": auditoria_por_nivel,
+
+        # =========================================
+        # FILTROS DA AUDITORIA
+        # =========================================
+
+        "filtro_data_inicio": filtro_data_inicio,
+        "filtro_data_final": filtro_data_final,
+
+        "filtro_usuario": filtro_usuario,
+        "filtro_modulo": filtro_modulo,
+        "filtro_acao": filtro_acao,
+        "filtro_nivel": filtro_nivel,
+
+        "usuarios_auditoria": usuarios_auditoria,
+        "modulos_auditoria": modulos_auditoria,
+        "acoes_auditoria": acoes_auditoria,
+        "niveis_auditoria_choices": niveis_auditoria_choices,
 
         # =========================================
         # MOVIMENTAÇÃO DO DIA
@@ -1983,7 +2517,7 @@ def dashboard_view(request):
         "aniversariantes": aniversariantes,
 
         # =========================================
-        # SECRETÁRIA
+        # SECRETARIA
         # =========================================
 
         "receber_hoje": receber_hoje,
@@ -1999,7 +2533,7 @@ def dashboard_view(request):
         "produtos_criticos": total_produtos_criticos,
 
         # =========================================
-        # RANKING
+        # RANKING DOS DENTISTAS
         # =========================================
 
         "ranking_dentistas": ranking_dentistas,
@@ -2016,32 +2550,24 @@ def dashboard_view(request):
         "barra_percentual": barra_percentual,
 
         # =========================================
-        # POSIÇÃO
+        # POSIÇÃO NO RANKING
         # =========================================
 
         "posicao_ranking": posicao_ranking,
         "valor_para_proximo": valor_para_proximo,
 
         # =========================================
-        # GRÁFICOS
+        # GRÁFICOS GERAIS
         # =========================================
 
         "meses": meses,
         "entradas_mes": entradas_mes,
         "saidas_mes": saidas_mes,
 
-        # =========================================
-        # DASHBOARD DO GESTOR
-        # =========================================
-
-        **indicadores_gestor,
-        **grafico_gestor,
-        **ranking_gestor,
-
     }
 
     # =========================================
-    # INDICADORES DO GESTOR
+    # DADOS DO DASHBOARD DO GESTOR
     # =========================================
 
     context.update(indicadores_gestor)
@@ -2051,7 +2577,7 @@ def dashboard_view(request):
 
 
     # =========================================
-    # DASHBOARD MARKETING
+    # DASHBOARD DE MARKETING
     # =========================================
 
     if dashboard_tipo == "marketing":
@@ -2070,9 +2596,8 @@ def dashboard_view(request):
             .order_by("-data_cadastro")[:4]
         )
 
-
         # =========================================
-        # CONTEXTO DO MARKETING
+        # DADOS DO MARKETING
         # =========================================
 
         context.update({
@@ -2097,13 +2622,11 @@ def dashboard_view(request):
 
             "taxa_conversao": taxa_conversao,
 
-
             # =====================================
-            # GRÁFICO DE LEADS
+            # GRÁFICO
             # =====================================
 
             "leads_por_mes": leads_por_mes,
-
 
             # =====================================
             # ORIGEM DOS LEADS
@@ -2111,13 +2634,11 @@ def dashboard_view(request):
 
             "origens_leads": origens_leads,
 
-
             # =====================================
             # ÚLTIMOS LEADS
             # =====================================
 
             "ultimos_leads": ultimos_leads,
-
 
             # =====================================
             # CAMPANHAS
@@ -2135,7 +2656,7 @@ def dashboard_view(request):
 
 
     # =========================================
-    # RENDER
+    # RENDER FINAL
     # =========================================
 
     return render(
@@ -16334,8 +16855,9 @@ def obter_dados_auditoria(request):
         ""
     )
 
+
     # =========================================
-    # CONSULTA
+    # CONSULTA PRINCIPAL
     # =========================================
 
     auditorias = (
@@ -16344,8 +16866,9 @@ def obter_dados_auditoria(request):
         .order_by("-data_hora")
     )
 
+
     # =========================================
-    # FILTRO DATA INICIAL
+    # FILTRO - DATA INICIAL
     # =========================================
 
     if data_inicio:
@@ -16354,8 +16877,9 @@ def obter_dados_auditoria(request):
             data_hora__date__gte=data_inicio
         )
 
+
     # =========================================
-    # FILTRO DATA FINAL
+    # FILTRO - DATA FINAL
     # =========================================
 
     if data_final:
@@ -16364,8 +16888,9 @@ def obter_dados_auditoria(request):
             data_hora__date__lte=data_final
         )
 
+
     # =========================================
-    # FILTRO USUÁRIO
+    # FILTRO - USUÁRIO
     # =========================================
 
     if usuario:
@@ -16374,8 +16899,9 @@ def obter_dados_auditoria(request):
             usuario_id=usuario
         )
 
+
     # =========================================
-    # FILTRO MÓDULO
+    # FILTRO - MÓDULO
     # =========================================
 
     if modulo:
@@ -16384,8 +16910,9 @@ def obter_dados_auditoria(request):
             modulo=modulo
         )
 
+
     # =========================================
-    # FILTRO AÇÃO
+    # FILTRO - AÇÃO
     # =========================================
 
     if acao:
@@ -16394,8 +16921,9 @@ def obter_dados_auditoria(request):
             acao=acao
         )
 
+
     # =========================================
-    # FILTRO NÍVEL
+    # FILTRO - NÍVEL
     # =========================================
 
     if nivel:
@@ -16404,44 +16932,221 @@ def obter_dados_auditoria(request):
             nivel=nivel
         )
 
+
     # =========================================
-    # USUÁRIOS
+    # DATA DE HOJE
     # =========================================
 
-    usuarios = User.objects.filter(
-        is_active=True
-    ).order_by(
-        "first_name",
-        "username"
+    hoje = timezone.localdate()
+
+    auditorias_hoje = auditorias.filter(
+        data_hora__date=hoje
+    ).count()
+
+
+    # =========================================
+    # TOTAL DE AUDITORIAS
+    # =========================================
+
+    auditoria_total = auditorias.count()
+
+
+    # =========================================
+    # USUÁRIOS MONITORADOS
+    # =========================================
+
+    auditoria_usuarios = (
+        auditorias
+        .filter(usuario__isnull=False)
+        .values("usuario")
+        .distinct()
+        .count()
     )
 
-    # =========================================
-    # INDICADORES
-    # =========================================
-
-    total_eventos = auditorias.count()
-
-    total_logins = auditorias.filter(
-        acao="login"
-    ).count()
-
-    total_logouts = auditorias.filter(
-        acao="logout"
-    ).count()
-
-    total_erros = auditorias.filter(
-        nivel="erro"
-    ).count()
-
-    total_criticos = auditorias.filter(
-        nivel="critico"
-    ).count()
 
     # =========================================
-    # LISTAS DOS FILTROS
+    # AÇÕES
     # =========================================
 
-    modulos = (
+    auditoria_inclusoes = auditorias.filter(
+        acao__iexact="cadastro"
+    ).count()
+
+    auditoria_alteracoes = auditorias.filter(
+        acao__iexact="alteracao"
+    ).count()
+
+    auditoria_exclusoes = auditorias.filter(
+        acao__iexact="exclusao"
+    ).count()
+
+
+    # =========================================
+    # ALERTAS
+    #
+    # Atenção + Crítico
+    # =========================================
+
+    auditoria_atencao = auditorias.filter(
+        nivel__in=[
+            "atencao",
+            "aviso",
+        ]
+    ).count()
+
+    auditoria_critico = auditorias.filter(
+        nivel__in=[
+            "critico",
+            "erro",
+        ]
+    ).count()
+
+    auditoria_alertas = (
+        auditoria_atencao +
+        auditoria_critico
+    )
+
+
+    # =========================================
+    # ÚLTIMAS AUDITORIAS
+    # =========================================
+
+    ultimas_auditorias = auditorias[:10]
+
+
+    # =========================================
+    # DISTRIBUIÇÃO POR AÇÃO
+    # =========================================
+
+    total_acoes = auditorias.count()
+
+    auditoria_por_acao = []
+
+    acoes_dashboard = [
+
+        ("Login", "login"),
+
+        ("Outro", "outro"),
+
+        ("Exclusão", "exclusao"),
+
+        ("Cadastro", "cadastro"),
+
+    ]
+
+    for nome, codigo in acoes_dashboard:
+
+        total = auditorias.filter(
+            acao__iexact=codigo
+        ).count()
+
+        percentual = (
+            round(
+                (total / total_acoes) * 100
+            )
+            if total_acoes
+            else 0
+        )
+
+        auditoria_por_acao.append({
+
+            "nome": nome,
+
+            "codigo": codigo,
+
+            "total": total,
+
+            "percentual": percentual,
+
+        })
+
+
+    # =========================================
+    # DISTRIBUIÇÃO POR NÍVEL
+    # =========================================
+
+    total_niveis = auditorias.count()
+
+    niveis_dashboard = [
+
+        (
+            "Informação",
+            [
+                "info",
+                "informacao",
+                "informação",
+            ],
+        ),
+
+        (
+            "Atenção",
+            [
+                "atencao",
+                "atenção",
+                "aviso",
+            ],
+        ),
+
+        (
+            "Crítico",
+            [
+                "critico",
+                "crítico",
+                "erro",
+            ],
+        ),
+
+    ]
+
+    auditoria_por_nivel = []
+
+
+    for nome, codigos in niveis_dashboard:
+
+        total = auditorias.filter(
+            nivel__in=codigos
+        ).count()
+
+        percentual = (
+            round(
+                (total / total_niveis) * 100
+            )
+            if total_niveis
+            else 0
+        )
+
+        auditoria_por_nivel.append({
+
+            "nome": nome,
+
+            "codigos": codigos,
+
+            "total": total,
+
+            "percentual": percentual,
+
+        })
+
+
+    # =========================================
+    # LISTA DE USUÁRIOS DA AUDITORIA
+    # =========================================
+
+    usuarios_auditoria = (
+        User.objects
+        .filter(is_active=True)
+        .order_by(
+            "first_name",
+            "username"
+        )
+    )
+
+
+    # =========================================
+    # LISTA DE MÓDULOS DA AUDITORIA
+    # =========================================
+
+    modulos_auditoria = (
         Auditoria.objects
         .values_list(
             "modulo",
@@ -16451,7 +17156,12 @@ def obter_dados_auditoria(request):
         .order_by("modulo")
     )
 
-    acoes = (
+
+    # =========================================
+    # LISTA DE AÇÕES DA AUDITORIA
+    # =========================================
+
+    acoes_auditoria = (
         Auditoria.objects
         .values_list(
             "acao",
@@ -16461,15 +17171,21 @@ def obter_dados_auditoria(request):
         .order_by("acao")
     )
 
-    niveis = (
-        Auditoria.objects
-        .values_list(
-            "nivel",
-            flat=True
-        )
-        .distinct()
-        .order_by("nivel")
-    )
+
+    # =========================================
+    # NÍVEIS DA AUDITORIA
+    # =========================================
+
+    niveis_auditoria_choices = [
+
+        ("info", "Informação"),
+
+        ("atencao", "Atenção"),
+
+        ("critico", "Crítico"),
+
+    ]
+
 
     # =========================================
     # CONTEXT
@@ -16477,15 +17193,105 @@ def obter_dados_auditoria(request):
 
     context = {
 
+        # =====================================
+        # AUDITORIA
+        # =====================================
+
         "auditorias": auditorias,
 
-        "usuarios": usuarios,
+        "auditoria_hoje": auditorias_hoje,
 
-        "modulos": modulos,
+        "auditoria_total": auditoria_total,
 
-        "acoes": acoes,
+        "auditoria_usuarios": auditoria_usuarios,
 
-        "niveis": niveis,
+        "auditoria_inclusoes": auditoria_inclusoes,
+
+        "auditoria_alteracoes": auditoria_alteracoes,
+
+        "auditoria_exclusoes": auditoria_exclusoes,
+
+        "auditoria_alertas": auditoria_alertas,
+
+        "ultimas_auditorias": ultimas_auditorias,
+
+
+        # =====================================
+        # DISTRIBUIÇÕES
+        # =====================================
+
+        "auditoria_por_acao": auditoria_por_acao,
+
+        "auditoria_por_nivel": auditoria_por_nivel,
+
+
+        # =====================================
+        # FILTROS
+        # =====================================
+
+        "filtro_data_inicio": data_inicio,
+
+        "filtro_data_final": data_final,
+
+        "filtro_usuario": usuario,
+
+        "filtro_modulo": modulo,
+
+        "filtro_acao": acao,
+
+        "filtro_nivel": nivel,
+
+
+        # =====================================
+        # OPÇÕES DOS FILTROS
+        # =====================================
+
+        "usuarios_auditoria": usuarios_auditoria,
+
+        "modulos_auditoria": modulos_auditoria,
+
+        "acoes_auditoria": acoes_auditoria,
+
+        "niveis_auditoria_choices":
+            niveis_auditoria_choices,
+
+
+        # =====================================
+        # COMPATIBILIDADE
+        # =====================================
+
+        "total_eventos": auditoria_total,
+
+        "total_logins": auditorias.filter(
+            acao__iexact="login"
+        ).count(),
+
+        "total_logouts": auditorias.filter(
+            acao__iexact="logout"
+        ).count(),
+
+        "total_erros": auditorias.filter(
+            nivel__in=[
+                "erro",
+                "critico",
+                "crítico",
+            ]
+        ).count(),
+
+        "total_criticos": auditoria_critico,
+
+
+        # =====================================
+        # NOMES ANTIGOS DOS FILTROS
+        # =====================================
+
+        "usuarios": usuarios_auditoria,
+
+        "modulos": modulos_auditoria,
+
+        "acoes": acoes_auditoria,
+
+        "niveis": niveis_auditoria_choices,
 
         "data_inicio": data_inicio,
 
@@ -16499,20 +17305,45 @@ def obter_dados_auditoria(request):
 
         "nivel": nivel,
 
-        "total_eventos": total_eventos,
-
-        "total_logins": total_logins,
-
-        "total_logouts": total_logouts,
-
-        "total_erros": total_erros,
-
-        "total_criticos": total_criticos,
-
     }
+
+
+    # =========================================
+    # RETORNO
+    # =========================================
 
     return context
 
+
+
+# =========================================
+# DASHBOARD DE AUDITORIA
+# =========================================
+
+@login_required
+def dashboard_auditoria(request):
+
+    context = obter_dados_auditoria(request)
+
+    # =========================================
+    # FORÇA O DASHBOARD DE AUDITORIA
+    # =========================================
+
+    context["dashboard_tipo"] = "auditoria"
+
+    context["perfil_nome"] = (
+        getattr(
+            getattr(request.user, "perfil", None),
+            "tipo_usuario",
+            "Auditoria"
+        )
+    )
+
+    return render(
+        request,
+        "accounts/dashboard.html",
+        context,
+    )
 
 # =========================================
 # RELATÓRIO - AUDITORIA

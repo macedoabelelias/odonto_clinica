@@ -79,7 +79,7 @@ CSS DASHBOARD
 
     <div class="dashboard-wrapper">
 
-        <!-- =========================================
+    <!-- =========================================
     SIDEBAR
     ========================================== -->
         {% with perfil=request.user.perfil.tipo_usuario %}
@@ -112,6 +112,18 @@ MENU
 
     <li class="{% if 'dashboard' in request.path %}active{% endif %}">
 
+    {% if perfil == "AUDITORIA" %}
+
+        <a href="{% url 'auditoria' %}">
+
+            <i class="bi bi-speedometer2"></i>
+
+            <span>Dashboard</span>
+
+        </a>
+
+    {% else %}
+
         <a href="{% url 'dashboard' %}">
 
             <i class="bi bi-speedometer2"></i>
@@ -120,15 +132,26 @@ MENU
 
         </a>
 
-    </li>
+    {% endif %}
+
+</li>
 
 <!-- =====================================================
 ATENDIMENTO
 ====================================================== -->
 
+{% possui_permissao request.user 'agenda' as pode_ver_agenda %}
+{% possui_permissao request.user 'pacientes' as pode_ver_pacientes %}
+{% possui_permissao request.user 'orcamentos' as pode_ver_orcamentos %}
+{% possui_permissao request.user 'relatorios' as pode_ver_relatorios %}
+
+
+{% if pode_ver_agenda or pode_ver_pacientes or pode_ver_orcamentos or pode_ver_relatorios %}
+
 <div class="sidebar-section">
     ATENDIMENTO
 </div>
+
 
 <li class="menu-group">
 
@@ -143,59 +166,114 @@ ATENDIMENTO
 
     </button>
 
+
     <ul class="submenu">
 
-        {% possui_permissao request.user 'agenda' as pode_ver_agenda %}
+
+        <!-- =================================================
+        AGENDA
+        ================================================== -->
+
         {% if pode_ver_agenda %}
+
         <li class="{% if 'agenda' in request.path %}active{% endif %}">
+
             <a href="{% url 'agenda' %}">
+
                 <i class="bi bi-calendar3"></i>
+
                 <span>Agenda</span>
+
             </a>
+
         </li>
+
         {% endif %}
 
-        {% possui_permissao request.user 'pacientes' as pode_ver_pacientes %}
+
+        <!-- =================================================
+        PACIENTES
+        ================================================== -->
+
         {% if pode_ver_pacientes %}
+
         <li class="{% if 'pacientes' in request.path and 'odontograma' not in request.path %}active{% endif %}">
+
             <a href="{% url 'pacientes' %}">
+
                 <i class="bi bi-people-fill"></i>
+
                 <span>Pacientes</span>
+
             </a>
+
         </li>
+
         {% endif %}
 
-        {% possui_permissao request.user 'orcamentos' as pode_ver_orcamentos %}
+
+        <!-- =================================================
+        ORÇAMENTOS
+        ================================================== -->
+
         {% if pode_ver_orcamentos %}
+
         <li class="{% if 'central_orcamentos' in request.path %}active{% endif %}">
+
             <a href="{% url 'central_orcamentos' %}">
+
                 <i class="bi bi-clipboard2-check"></i>
+
                 <span>Orçamentos</span>
+
             </a>
+
         </li>
+
         {% endif %}
 
-        {% possui_permissao request.user 'relatorios' as pode_ver_relatorios %}
+
+        <!-- =================================================
+        RELATÓRIOS
+        ================================================== -->
+
         {% if pode_ver_relatorios %}
+
         <li class="{% if 'central_relatorios' in request.path %}active{% endif %}">
+
             <a href="{% url 'central_relatorios' %}">
+
                 <i class="bi bi-bar-chart-line-fill"></i>
+
                 <span>Relatórios</span>
+
             </a>
+
         </li>
+
         {% endif %}
+
 
     </ul>
 
 </li>
 
+{% endif %}
+
 <!-- =====================================================
 CADASTROS
 ====================================================== -->
 
+{% possui_permissao request.user 'procedimentos' as pode_ver_procedimentos %}
+{% possui_permissao request.user 'convenios' as pode_ver_convenios %}
+
+
+{% if pode_ver_procedimentos or pode_ver_convenios %}
+
 <div class="sidebar-section">
     CADASTROS
 </div>
+
 
 <li class="menu-group">
 
@@ -210,31 +288,57 @@ CADASTROS
 
     </button>
 
+
     <ul class="submenu">
 
-        {% possui_permissao request.user 'procedimentos' as pode_ver_procedimentos %}
+
+        <!-- =================================================
+        PROCEDIMENTOS
+        ================================================== -->
+
         {% if pode_ver_procedimentos %}
+
         <li class="{% if 'procedimentos' in request.path %}active{% endif %}">
+
             <a href="{% url 'procedimentos' %}">
+
                 <i class="bi bi-bandaid-fill"></i>
+
                 <span>Procedimentos</span>
+
             </a>
+
         </li>
+
         {% endif %}
 
-        {% possui_permissao request.user 'convenios' as pode_ver_convenios %}
+
+        <!-- =================================================
+        CONVÊNIOS
+        ================================================== -->
+
         {% if pode_ver_convenios %}
+
         <li class="{% if 'convenios' in request.path %}active{% endif %}">
+
             <a href="{% url 'convenios' %}">
+
                 <i class="bi bi-hospital"></i>
+
                 <span>Convênios</span>
+
             </a>
+
         </li>
+
         {% endif %}
+
 
     </ul>
 
 </li>
+
+{% endif %}
 
 <!-- =====================================================
 FINANCEIRO
@@ -243,14 +347,19 @@ FINANCEIRO
 {% possui_permissao request.user 'contas_pagar' as pode_contas_pagar %}
 {% possui_permissao request.user 'contas_receber' as pode_contas_receber %}
 {% possui_permissao request.user 'caixa' as pode_ver_caixa %}
+{% possui_permissao request.user 'livro_caixa' 'visualizar' as pode_ver_livro_caixa %}
 
-{% if pode_contas_pagar or pode_contas_receber or pode_ver_caixa %}
+
+{% if pode_contas_pagar or pode_contas_receber or pode_ver_caixa or pode_ver_livro_caixa %}
+
 
 <div class="sidebar-section">
     FINANCEIRO
 </div>
 
+
 <li class="menu-group">
+
 
     <button class="menu-toggle">
 
@@ -266,11 +375,17 @@ FINANCEIRO
 
     </button>
 
+
     <ul class="submenu">
+
+
+        <!-- =================================================
+        CONTAS A PAGAR
+        ================================================== -->
 
         {% if pode_contas_pagar %}
 
-        <li>
+        <li class="{% if 'contas-pagar' in request.path or 'contas_pagar' in request.path %}active{% endif %}">
 
             <a href="{% url 'contas_pagar' %}">
 
@@ -284,9 +399,14 @@ FINANCEIRO
 
         {% endif %}
 
+
+        <!-- =================================================
+        CONTAS A RECEBER
+        ================================================== -->
+
         {% if pode_contas_receber %}
 
-        <li>
+        <li class="{% if 'contas-receber' in request.path or 'contas_receber' in request.path %}active{% endif %}">
 
             <a href="{% url 'contas_receber' %}">
 
@@ -300,9 +420,14 @@ FINANCEIRO
 
         {% endif %}
 
+
+        <!-- =================================================
+        CAIXA
+        ================================================== -->
+
         {% if pode_ver_caixa %}
 
-        <li>
+        <li class="{% if 'caixa' in request.path %}active{% endif %}">
 
             <a href="{% url 'caixa' %}">
 
@@ -316,20 +441,32 @@ FINANCEIRO
 
         {% endif %}
 
-       {% possui_permissao request.user "livro_caixa" "visualizar" as pode_ver_livro_caixa %}
+
+        <!-- =================================================
+        LIVRO CAIXA
+        ================================================== -->
 
         {% if pode_ver_livro_caixa %}
-        <li>
+
+        <li class="{% if 'livro-caixa' in request.path or 'livro_caixa' in request.path %}active{% endif %}">
+
             <a href="{% url 'livro_caixa' %}">
+
                 <i class="fa-solid fa-book"></i>
-                Livro Caixa
+
+                <span>Livro Caixa</span>
+
             </a>
+
         </li>
+
         {% endif %}
+
 
     </ul>
 
 </li>
+
 
 {% endif %}
 
@@ -346,108 +483,212 @@ COMPRAS
 {% possui_permissao request.user 'produtos_criticos' as pode_ver_produtos_criticos %}
 {% possui_permissao request.user 'lotes' as pode_ver_lotes %}
 
+
 {% if pode_ver_fornecedores or pode_ver_produtos or pode_ver_compras or pode_ver_estoque or pode_ver_movimentacoes or pode_ver_produtos_criticos or pode_ver_lotes %}
+
 
 <div class="sidebar-section">
     COMPRAS
 </div>
 
+
 <li class="menu-group">
+
 
     <button class="menu-toggle">
 
         <span>
+
             <i class="fa-solid fa-cart-shopping"></i>
+
             Compras
+
         </span>
 
         <i class="fa-solid fa-chevron-right"></i>
 
     </button>
 
+
     <ul class="submenu">
 
+
+        <!-- =================================================
+        FORNECEDORES
+        ================================================== -->
+
         {% if pode_ver_fornecedores %}
-        <li>
+
+        <li class="{% if 'fornecedores' in request.path %}active{% endif %}">
+
             <a href="{% url 'fornecedores' %}">
+
                 <i class="fa-solid fa-truck-field"></i>
+
                 <span>Fornecedores</span>
+
             </a>
+
         </li>
+
         {% endif %}
+
+
+        <!-- =================================================
+        PRODUTOS
+        ================================================== -->
 
         {% if pode_ver_produtos %}
-        <li>
+
+        <li class="{% if 'produtos' in request.path and 'criticos' not in request.path %}active{% endif %}">
+
             <a href="{% url 'produtos' %}">
+
                 <i class="fa-solid fa-box-open"></i>
+
                 <span>Produtos</span>
+
             </a>
+
         </li>
+
         {% endif %}
+
+
+        <!-- =================================================
+        COMPRAS
+        ================================================== -->
 
         {% if pode_ver_compras %}
-        <li>
+
+        <li class="{% if 'compras' in request.path %}active{% endif %}">
+
             <a href="{% url 'compras' %}">
+
                 <i class="fa-solid fa-cart-shopping"></i>
+
                 <span>Compras</span>
+
             </a>
+
         </li>
+
         {% endif %}
+
+
+        <!-- =================================================
+        ESTOQUE
+        ================================================== -->
 
         {% if pode_ver_estoque %}
-        <li>
+
+        <li class="{% if 'estoque' in request.path and 'movimentacoes' not in request.path %}active{% endif %}">
+
             <a href="{% url 'estoque' %}">
+
                 <i class="fa-solid fa-warehouse"></i>
+
                 <span>Estoque</span>
+
             </a>
+
         </li>
+
         {% endif %}
+
+
+        <!-- =================================================
+        MOVIMENTAÇÕES DE ESTOQUE
+        ================================================== -->
 
         {% if pode_ver_movimentacoes %}
-        <li>
+
+        <li class="{% if 'movimentacoes_estoque' in request.path %}active{% endif %}">
+
             <a href="{% url 'movimentacoes_estoque' %}">
+
                 <i class="fa-solid fa-arrow-right-arrow-left"></i>
+
                 <span>Movimentações</span>
+
             </a>
+
         </li>
+
         {% endif %}
+
+
+        <!-- =================================================
+        PRODUTOS CRÍTICOS
+        ================================================== -->
 
         {% if pode_ver_produtos_criticos %}
-        <li>
+
+        <li class="{% if 'produtos_criticos' in request.path %}active{% endif %}">
+
             <a href="{% url 'produtos_criticos' %}">
+
                 <i class="fa-solid fa-triangle-exclamation"></i>
+
                 <span>Produtos Críticos</span>
+
             </a>
+
         </li>
+
         {% endif %}
 
+
+        <!-- =================================================
+        LOTES
+        ================================================== -->
+
         {% if pode_ver_lotes %}
-        <li>
+
+        <li class="{% if 'lotes' in request.path %}active{% endif %}">
+
             <a href="{% url 'lotes' %}">
+
                 <i class="fa-solid fa-boxes-stacked"></i>
+
                 <span>Lotes</span>
+
             </a>
+
         </li>
+
         {% endif %}
+
 
     </ul>
 
+
 </li>
+
 
 {% endif %}
 
 
-<!-- ========================================= -->
-<!-- MARKETING -->
-<!-- ========================================= -->
+<!-- =========================================
+MARKETING
+========================================= -->
 
 {% possui_permissao request.user 'marketing' as pode_marketing %}
 
+
 {% if pode_marketing %}
+
+<div class="sidebar-section">
+    MARKETING
+</div>
+
 
 <li class="menu-group">
 
-    <!-- BOTÃO MARKETING -->
+
+    <!-- =========================================
+    BOTÃO MARKETING
+    ========================================== -->
 
     <button type="button" class="menu-toggle">
 
@@ -464,15 +705,18 @@ COMPRAS
     </button>
 
 
-    <!-- SUBMENU MARKETING -->
+    <!-- =========================================
+    SUBMENU MARKETING
+    ========================================== -->
 
     <ul class="submenu">
 
-        <!-- ========================================= -->
-        <!-- LEADS -->
-        <!-- ========================================= -->
 
-        <li class="{% if request.path|slice:':15' == '/marketing/leads' %}active{% endif %}">
+        <!-- =========================================
+        LEADS
+        ========================================== -->
+
+        <li class="{% if '/marketing/leads' in request.path %}active{% endif %}">
 
             <a href="{% url 'leads' %}">
 
@@ -485,17 +729,55 @@ COMPRAS
         </li>
 
 
-        <!-- ========================================= -->
-        <!-- CAMPANHAS -->
-        <!-- ========================================= -->
+        <!-- =========================================
+        CAMPANHAS
+        ========================================== -->
 
-        <li class="{% if request.path|slice:':20' == '/marketing/campanhas' %}active{% endif %}">
+        <li class="{% if '/marketing/campanhas' in request.path %}active{% endif %}">
 
             <a href="{% url 'campanhas_marketing' %}">
 
                 <i class="bi bi-megaphone"></i>
 
                 <span>Campanhas</span>
+
+            </a>
+
+        </li>
+
+
+    </ul>
+
+</li>
+
+{% endif %}
+
+
+{% possui_permissao request.user 'auditoria' as pode_auditoria %}
+
+{% if pode_auditoria %}
+
+<li class="menu-group">
+
+    <button type="button" class="menu-toggle">
+
+        <span>
+            <i class="bi bi-shield-check"></i>
+            Auditoria
+        </span>
+
+        <i class="fa-solid fa-chevron-right"></i>
+
+    </button>
+
+    <ul class="submenu">
+
+        <li class="{% if request.path == '/auditoria/dashboard/' %}active{% endif %}">
+
+            <a href="{% url 'auditoria' %}">
+
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
 
             </a>
 
@@ -518,15 +800,13 @@ CONFIGURAÇÕES
 
 {% if pode_configuracao_clinica or pode_metas_dentistas or pode_usuarios or pode_perfis %}
 
-
-
 <div class="sidebar-section">
     CONFIGURAÇÕES
 </div>
 
 <li class="menu-group">
 
-    <button class="menu-toggle">
+    <button type="button" class="menu-toggle">
 
         <span>
             <i class="fa-solid fa-gear"></i>
@@ -538,41 +818,77 @@ CONFIGURAÇÕES
     </button>
 
     <ul class="submenu">
-{% if pode_configuracao_clinica %}
-<li>
-    <a href="{% url 'configuracao_clinica' %}">
-        <i class="bi bi-hospital"></i>
-        <span>Clínica</span>
-    </a>
-</li>
-{% endif %}
 
-{% if pode_metas_dentistas %}
-<li class="{% if 'metas-dentistas' in request.path %}active{% endif %}">
+        <!-- =========================================
+        CLÍNICA
+        ========================================== -->
 
-    <a href="{% url 'metas_dentistas' %}">
+        {% if pode_configuracao_clinica %}
 
-        <i class="bi bi-bullseye"></i>
+        <li class="{% if 'configuracao-clinica' in request.path %}active{% endif %}">
 
-        <span>Metas dos Dentistas</span>
+            <a href="{% url 'configuracao_clinica' %}">
 
-    </a>
+                <i class="bi bi-hospital"></i>
 
-</li>
-{% endif %}
+                <span>Clínica</span>
 
-{% if pode_usuarios %}
-<li>
-    <a href="{% url 'usuarios' %}">
-        <i class="bi bi-people"></i>
-        <span>Usuários</span>
-    </a>
-</li>
-{% endif %}
+            </a>
 
-                {% if pode_perfis %}
+        </li>
 
-        <li>
+        {% endif %}
+
+
+        <!-- =========================================
+        METAS DOS DENTISTAS
+        ========================================== -->
+
+        {% if pode_metas_dentistas %}
+
+        <li class="{% if 'metas-dentistas' in request.path %}active{% endif %}">
+
+            <a href="{% url 'metas_dentistas' %}">
+
+                <i class="bi bi-bullseye"></i>
+
+                <span>Metas dos Dentistas</span>
+
+            </a>
+
+        </li>
+
+        {% endif %}
+
+
+        <!-- =========================================
+        USUÁRIOS
+        ========================================== -->
+
+        {% if pode_usuarios %}
+
+        <li class="{% if 'usuarios' in request.path %}active{% endif %}">
+
+            <a href="{% url 'usuarios' %}">
+
+                <i class="bi bi-people"></i>
+
+                <span>Usuários</span>
+
+            </a>
+
+        </li>
+
+        {% endif %}
+
+
+        <!-- =========================================
+        PERFIS DE ACESSO
+        ========================================== -->
+
+        {% if pode_perfis %}
+
+        <li class="{% if 'perfis' in request.path %}active{% endif %}">
 
             <a href="{% url 'perfis' %}">
 
@@ -592,167 +908,247 @@ CONFIGURAÇÕES
 
 {% endif %}
 
+
+<!-- =====================================================
+ENCERRA A SIDEBAR
+====================================================== -->
+
 {% endwith %}
 
 </aside>
 
-        <!-- =========================================
-    MAIN CONTENT
-    ========================================== -->
 
-        <main class="main-content">
+<!-- =========================================
+MAIN CONTENT
+========================================== -->
 
-            <div class="topbar">
+<main class="main-content">
 
-                <div class="d-flex justify-content-end align-items-center">
+    <div class="topbar">
 
-                    {% if request.user.is_authenticated %}
+        <div class="d-flex justify-content-end align-items-center">
 
-                    <div class="dropdown">
+            {% if request.user.is_authenticated %}
 
-                        <button class="btn profile-dropdown-btn dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
+            <div class="dropdown">
 
-                            {% if request.user.perfil.foto %}
+                <button
+                    class="btn profile-dropdown-btn dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                >
 
-                            <img src="{{ request.user.perfil.foto.url }}" alt="Foto" class="profile-avatar">
+                    {% if request.user.perfil.foto %}
+
+                    <img
+                        src="{{ request.user.perfil.foto.url }}"
+                        alt="Foto"
+                        class="profile-avatar"
+                    >
+
+                    {% else %}
+
+                    <div class="profile-avatar-placeholder"></div>
+
+                    {% endif %}
+
+
+                    <div class="text-start">
+
+                        <div class="profile-user-name">
+
+                            {% if request.user.first_name and request.user.last_name %}
+
+                                {{ request.user.first_name }}
+                                {{ request.user.last_name }}
+
+                            {% elif request.user.first_name %}
+
+                                {{ request.user.first_name }}
 
                             {% else %}
 
-                            <div class="profile-avatar-placeholder"></div>
+                                {{ request.user.username }}
 
                             {% endif %}
 
-                            <div class="text-start">
+                        </div>
 
-                                <div class="profile-user-name">
 
-                                    {% if request.user.first_name and request.user.last_name %}
-                                    {{ request.user.first_name }} {{ request.user.last_name }}
-                                    {% elif request.user.first_name %}
-                                    {{ request.user.first_name }}
-                                    {% else %}
-                                    {{ request.user.username }}
-                                    {% endif %}
+                        <small class="profile-user-role">
 
-                                </div>
+                            {{ request.user.perfil.get_tipo_usuario_display }}
 
-                                <small class="profile-user-role">
-
-                                    {{ request.user.perfil.get_tipo_usuario_display }}
-
-                                </small>
-
-                            </div>
-
-                        </button>
-
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-
-                            <li>
-                                <a class="dropdown-item" href="{% url 'meu_perfil' %}">
-                                    <i class="fa-solid fa-user me-2"></i>
-                                    Meu Perfil
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item" href="{% url 'alterar_senha' %}">
-                                    <i class="fa-solid fa-key me-2"></i>
-                                    Alterar Senha
-                                </a>
-                            </li>
-
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
-                                    <i class="fa-solid fa-right-from-bracket me-2"></i>
-                                    Sair
-                                </a>
-                            </li>
-
-                        </ul>
+                        </small>
 
                     </div>
 
-                    {% endif %}
-
-                </div>
-
-            </div>
-
-            {% if messages %}
-
-            {% for message in messages %}
-
-            <div
-                class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3 shadow-sm">
-
-                <strong>
-
-                    {% if message.tags == 'error' %}
-                    Erro:
-                    {% elif message.tags == 'success' %}
-                    Sucesso:
-                    {% elif message.tags == 'warning' %}
-                    Atenção:
-                    {% endif %}
-
-                </strong>
-
-                {{ message }}
-
-                <button type="button" class="btn-close" data-bs-dismiss="alert">
                 </button>
 
-            </div>
 
-            {% endfor %}
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+
+                    <li>
+
+                        <a
+                            class="dropdown-item"
+                            href="{% url 'meu_perfil' %}"
+                        >
+
+                            <i class="fa-solid fa-user me-2"></i>
+
+                            Meu Perfil
+
+                        </a>
+
+                    </li>
+
+
+                    <li>
+
+                        <a
+                            class="dropdown-item"
+                            href="{% url 'alterar_senha' %}"
+                        >
+
+                            <i class="fa-solid fa-key me-2"></i>
+
+                            Alterar Senha
+
+                        </a>
+
+                    </li>
+
+
+                    <li>
+
+                        <hr class="dropdown-divider">
+
+                    </li>
+
+
+                    <li>
+
+                        <a
+                            class="dropdown-item text-danger"
+                            href="{% url 'logout' %}"
+                        >
+
+                            <i class="fa-solid fa-right-from-bracket me-2"></i>
+
+                            Sair
+
+                        </a>
+
+                    </li>
+
+                </ul>
+
+            </div>
 
             {% endif %}
 
-            {% block content %}
-            {% endblock %}
-
-        </main>
+        </div>
 
     </div>
 
-        <!-- =========================================
-    BOOTSTRAP
-    ========================================== -->
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- =========================================
-    CHART.JS
+    MENSAGENS
     ========================================== -->
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% if messages %}
+
+        {% for message in messages %}
+
+        <div
+            class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3 shadow-sm"
+        >
+
+            <strong>
+
+                {% if message.tags == 'error' %}
+
+                    Erro:
+
+                {% elif message.tags == 'success' %}
+
+                    Sucesso:
+
+                {% elif message.tags == 'warning' %}
+
+                    Atenção:
+
+                {% endif %}
+
+            </strong>
+
+            {{ message }}
+
+
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+            ></button>
+
+        </div>
+
+        {% endfor %}
+
+    {% endif %}
+
 
     <!-- =========================================
-    MENU LATERAL
+    CONTEÚDO DAS PÁGINAS
     ========================================== -->
 
-    <script>
+    {% block content %}
+    {% endblock %}
 
-        document.querySelectorAll(".menu-toggle").forEach(btn => {
+</main>
 
-            btn.addEventListener("click", function () {
 
-                this.parentElement.classList.toggle("open");
+</div>
 
-            });
+
+<!-- =========================================
+BOOTSTRAP
+========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<!-- =========================================
+CHART.JS
+========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<!-- =========================================
+MENU LATERAL
+========================================== -->
+
+<script>
+
+    document.querySelectorAll(".menu-toggle").forEach(btn => {
+
+        btn.addEventListener("click", function () {
+
+            this.parentElement.classList.toggle("open");
 
         });
 
-    </script>
+    });
 
-    {% block extra_js %}
-    {% endblock %}
+</script>
+
+
+{% block extra_js %}
+{% endblock %}
+
 
 </body>
 
